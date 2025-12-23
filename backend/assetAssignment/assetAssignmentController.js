@@ -1,6 +1,5 @@
 const db = require('../models');
 const { Op } = require('sequelize');
-
 const { Asset, Employee, AssetAssignment } = db;
 
 // Get all asset assignments

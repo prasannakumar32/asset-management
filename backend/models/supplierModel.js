@@ -36,9 +36,6 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   });
 
-  Supplier.associate = function(models) {
-    Supplier.hasMany(models.Asset, { foreignKey: 'supplier_id', as: 'assets' });
-  };
 
   return Supplier;
 };

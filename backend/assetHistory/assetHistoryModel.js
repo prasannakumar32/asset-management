@@ -55,9 +55,3 @@ module.exports = (sequelize, DataTypes) => {
 
   return AssetHistory;
 };
-
-module.exports.associate = (models) => {
-  const AssetHistory = models.AssetHistory;
-  AssetHistory.belongsTo(models.Asset, { foreignKey: 'asset_id' });
-  AssetHistory.belongsTo(models.Employee, { foreignKey: 'employee_id' });
-};

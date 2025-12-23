@@ -62,6 +62,7 @@ const assetHistoryRoutes = require('./backend/assetHistory/assetHistoryRoute');
 app.use('/api/asset-history', assetHistoryRoutes);
 // Start server
 const PORT = process.env.PORT || 3000;
+
 const startServer = async () => {
   await connectDB();
   app.listen(PORT, () => {

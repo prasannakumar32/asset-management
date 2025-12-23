@@ -16,7 +16,7 @@ const modelFiles = fs.readdirSync(__dirname)
     );
   });
 
-// Import models from feature directories
+// Import models 
 const featureDirs = ['asset', 'employee', 'assetAssignment', 'assetCategories', 'assetHistory'];
 const featureModels = [];
 
@@ -31,13 +31,13 @@ featureDirs.forEach(dir => {
   }
 });
 
-// First, import all models from models directory
+//import all models
 modelFiles.forEach(file => {
   const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
   db[model.name] = model;
 });
 
-// Then, import all models from feature directories
+//  import all models from seperate path 
 featureModels.forEach(filePath => {
   const model = require(filePath)(sequelize, Sequelize.DataTypes);
   db[model.name] = model;

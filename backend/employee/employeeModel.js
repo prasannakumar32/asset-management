@@ -61,11 +61,6 @@ module.exports = (sequelize, DataTypes) => {
     paranoid: false
   });
 
-  // Set up associations
-  Employee.associate = (models) => {
-    Employee.hasMany(models.AssetAssignment, { foreignKey: 'employee_id', as: 'assignments' });
-    Employee.hasMany(models.AssetAssignment, { foreignKey: 'assigned_by', as: 'assignedAssets' });
-  };
 
   return Employee;
 };

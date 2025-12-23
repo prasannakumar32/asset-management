@@ -70,12 +70,5 @@ module.exports = (sequelize, DataTypes) => {
     ]
   });
 
-  // Set up associations
-  AssetAssignment.associate = (models) => {
-    AssetAssignment.belongsTo(models.Asset, { foreignKey: 'asset_id', as: 'asset' });
-    AssetAssignment.belongsTo(models.Employee, { foreignKey: 'employee_id', as: 'employee' });
-    AssetAssignment.belongsTo(models.Employee, { foreignKey: 'assigned_by', as: 'assignedBy' });
-  };
-
   return AssetAssignment;
 };

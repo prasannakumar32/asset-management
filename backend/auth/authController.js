@@ -19,7 +19,11 @@ exports.login = (req, res, next) => {
   })(req, res, next);
 };
 
-exports.logout = (req, res) => {
-  req.logout();
-  res.redirect('/login');
-};
+router.get('/logout', (req, res, next) => {
+  req.logout((err) => {
+    if (err) {  
+      return next(err); 
+    }
+    res.redirect('/login');
+  });
+});

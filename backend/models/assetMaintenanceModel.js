@@ -67,11 +67,6 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true
   });
 
-  AssetMaintenance.associate = (models) => {
-    AssetMaintenance.belongsTo(models.Asset, {foreignKey: 'asset_id',as: 'assets'});
-    AssetMaintenance.belongsTo(models.Supplier, {foreignKey: 'supplier_id',as: 'suppliers'});
-    AssetMaintenance.belongsTo(models.User, {foreignKey: 'user_id',as: 'assignedTo'});
-  };
 
   return AssetMaintenance;
 };

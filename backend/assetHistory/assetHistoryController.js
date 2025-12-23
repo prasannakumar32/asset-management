@@ -103,8 +103,6 @@ assignments.forEach(assignment => {
       }
     });
 
-    const utilizationRate = totalDays > 0 ? Math.min(100, Math.max(0, (assignedDays / totalDays) * 100)).toFixed(1) : '0.0';
-
     res.render('assetHistory/assetHistory', {
       asset,
       assignments,
@@ -113,7 +111,6 @@ assignments.forEach(assignment => {
       metrics: {
         totalDays,
         assignedDays,
-        utilizationRate,
         totalAssignments: assignments.length,
         currentAssignment: assignments.find(a => a.status === 'assigned')
       }
