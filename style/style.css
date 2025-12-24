@@ -359,119 +359,126 @@ h1.mb-4 {
 .asset-form-container {
   margin-bottom: 1rem;
 }
-/* asset details 3x4 grid */
-
+/* Asset View -  */
+.asset-view-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 2rem;
+  margin: 0;
+}
+.asset-view-header {
+  margin-bottom: 2rem;
+}
 .asset-details-container .row {
   display: flex;
   flex-wrap: wrap;
-  margin-right: -0.75rem;
-  margin-left: -0.75rem;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 .asset-details-container .row > [class*='col-'] {
-  padding-right: 0.75rem;
-  padding-left: 0.75rem;
-  flex: 0 0 25%;
-  max-width: 25%;
+  flex: 0 0 calc(50% - 0.5rem);
+  max-width: calc(50% - 0.5rem);
+  padding: 0;
 }
-/* Asset View  styles */
-.asset-view-container {
-  margin: 0 auto;
-}
-.row.mb-4 > .col-12 > .d-flex {
-  min-height: 50px;
-  position: relative;
-}
-.row.mb-4 h1 {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 500;
-  color: #343a40;
-  text-align: center;
-  width: 100%;
-}
-/* Asset view  card display*/
-.asset-view-header .btn-outline-primary i {
-  margin-right: 0.5rem;
-}
-.asset-view-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color:grey;
-  margin-bottom: 0.2rem;
-}
-.asset-view-subtitle {
-  color: grey;
-  font-size: 0.8rem;
-}
-.asset-details-grid {
-  padding: 0.75rem;
-}
-/* asset label item */
 .asset-detail-item {
-  margin-bottom: 0.5rem;
-  padding: 0.4rem;
-  background: white;
-  border: 1px solid white;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+.asset-detail-item:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 .asset-detail-label {
-  font-size: 0.65rem;
-  color: grey;
+  display: block;
+  font-size: 0.75rem;
+  color: #6c757d;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
   font-weight: 600;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0.5rem;
 }
-.asset-detail-value .detail-icon {
-  margin-right: 0.2rem;
-  opacity: 0.5;
+.asset-detail-label i {
+  margin-right: 0.5rem;
+  color: #007bff;
+}
+.asset-detail-value {
+  font-size: 1rem;
+  color: #212529;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.asset-notes-card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+.asset-notes-header {
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 .asset-notes-title {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: #666;
+  font-size: 0.875rem;
+  color: #007bff;
   font-weight: 600;
   margin: 0;
 }
-.asset-actions-section {
-  padding: 0.6rem 0.75rem 0.75rem;
-  background: #fafafa;
-  border-top: 1px solid #f0f0f0;
-  text-align: right;
+.asset-notes-title i {
+  margin-right: 0.5rem;
 }
-.asset-actions-buttons {
-  display: inline-flex;
-  gap: 0.4rem;
+.asset-notes-content {
+  color: #495057;
+  line-height: 1.6;
+}
+.asset-actions-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
 }
 .asset-action-btn {
-  padding: 0.3rem 0.6rem;
-  border-radius: 2px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
   font-weight: 500;
   text-decoration: none;
   display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
-.asset-action-btn .btn-icon {
-  margin-right: 0.2rem;
+.asset-action-btn i {
+  margin-right: 0.5rem;
 }
 .asset-btn-primary {
-  background-color: #007bff;
+  background: #007bff;
   border-color: #007bff;
   color: white;
 }
+.asset-btn-primary:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+  transform: translateY(-1px);
+}
 .asset-btn-secondary {
-  background-color: transparent;
+  background: #6c757d;
   border-color: #6c757d;
-  color: #6c757d;
-}
-.asset-btn-danger {
-  background-color: #dc3545;
-  border-color: #dc3545;
   color: white;
 }
-.asset-btn-danger:hover {
-  background-color: #c82333;
-  border-color: #bd2130;
-  color: white;
+.asset-btn-secondary:hover {
+  background: #545b62;
+  border-color: #545b62;
+  transform: translateY(-1px);
 }
 
 /* Asset Form */

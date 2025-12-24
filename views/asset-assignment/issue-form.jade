@@ -1,0 +1,174 @@
+extends ../navbar
+
+block content
+  .container-fluid.px-4.py-4
+    .row.mb-4
+      .col-12
+        h1.text-center.mb-4
+          i.fas.fa-hand-holding-box.me-2
+          | Issue Asset to Employee
+    
+    .row.justify-content-center
+      .col-lg-9.col-md-9
+        .card.shadow
+          .card-header
+          .card-body
+            form(action='/api/asset-assignment', method='POST', id='issueForm', novalidate, class='asset-form-container')
+              .row.mb-3
+                .col-12
+                  .d-flex.justify-content-start
+                    a(href='/asset-assignment' class='btn btn-outline-secondary btn-sm')
+                      i.fas.fa-arrow-left.me-2
+                      | Back to Asset Assignments
+              .row.mb-3
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='assetId' class='form-label required-field')
+                      i.fas.fa-cube.me-2
+                      | Asset *
+                    select#assetId.form-select(name='asset_id', required)
+                      option(value='') Select Asset
+                    .invalid-feedback
+                      | Please select an asset
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='employeeId' class='form-label required-field')
+                      i.fas.fa-user.me-2
+                      | Employee *
+                    select#employeeId.form-select(name='employee_id', required)
+                      option(value='') Select Employee
+                    .invalid-feedback
+                      | Please select an employee    
+              .row.mb-3
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='assignedBy' class='form-label required-field')
+                      i.fas.fa-user-tie.me-2
+                      | Assigned By *
+                    select#assignedBy.form-select(name='assigned_by', required)
+                      option(value='') Select Manager/Staff
+                      // Employees will be populated via JavaScript
+                    .invalid-feedback
+                      | Please select who is assigning this asset
+                  
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='assignedDate' class='form-label')
+                      i.fas.fa-calendar.me-2
+                      | Assigned Date
+                    input#assignedDate.form-control(name='assigned_date', type='date', value=new Date().toISOString().split('T')[0])
+              
+              .row.mt-4
+                .col-6
+                  a(href='/asset-assignment' class='btn btn-secondary')
+                    i.fas.fa-times.me-2
+                    | Cancel
+                .col-6.text-end
+                  button(type='submit' class='btn btn-primary')
+                    i.fas.fa-paper-plane.me-2
+                    | Issue Asset
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      loadAvailableAssets();
+      loadEmployees();
+      loadAssigners();
+    });
+
+    async function loadAvailableAssets() {
+      try {
+        const response = await fetch('/api/assets');
+        const result = await response.json();
+        const assetSelect = document.getElementById('assetId');
+        
+        if (result.success && result.data) {
+          const availableAssets = result.data.assets ? result.data.assets.filter(asset => asset.is_active && asset.status === 'available') : [];
+          
+          if (availableAssets.length === 0) {
+            console.warn('No available assets found');
+            return;
+          }
+          
+          // Clear existing options
+          assetSelect.innerHTML = '<option value="">Select Asset</option>';
+          
+          // Populate dropdown
+          availableAssets.forEach(asset => {
+            const option = document.createElement('option');
+            option.value = asset.id;
+            option.textContent = `${asset.name} (${asset.asset_tag})`;
+            assetSelect.appendChild(option);
+          });
+          
+        } else {
+          console.error('Error loading assets:', result.error || 'Unknown error');
+        }
+      } catch (error) {
+        console.error('Error loading assets:', error);
+      }
+    }
+
+    async function loadEmployees() {
+      try {
+        const response = await fetch('/api/employee');
+        const result = await response.json();
+        const select = document.getElementById('employeeId');
+        
+        console.log('Employee API response:', result);
+        
+        if (result.success && result.data && result.data.employees) {
+          // Clear existing options
+          select.innerHTML = '<option value="">Select Employee</option>';
+          
+          result.data.employees.forEach(employee => {
+            if (employee.status === 'active') {
+              const option = document.createElement('option');
+              option.value = employee.id;
+              option.textContent = `${employee.first_name} ${employee.last_name} (${employee.email})`;
+              select.appendChild(option);
+            }
+          });
+          
+          if (select.children.length === 1) {
+            console.warn('No active employees found');
+          }
+        } else {
+          console.error('Error loading employees:', result.error || 'Invalid response format');
+        }
+      } catch (error) {
+        console.error('Error loading employees:', error);
+      }
+    }
+
+    async function loadAssigners() {
+      try {
+        const response = await fetch('/api/employee');
+        const result = await response.json();
+        const select = document.getElementById('assignedBy');
+        
+        console.log('Assigners API response:', result);
+        
+        if (result.success && result.data && result.data.employees) {
+          // Clear existing options
+          select.innerHTML = '<option value="">Select Manager/Staff</option>';
+          
+          result.data.employees.forEach(employee => {
+            if (employee.status === 'active') {
+              const option = document.createElement('option');
+              option.value = employee.id;
+              option.textContent = `${employee.first_name} ${employee.last_name} (${employee.position || 'Employee'})`;
+              select.appendChild(option);
+            }
+          });
+          
+          if (select.children.length === 1) {
+            console.warn('No active employees found for assigners');
+          }
+        } else {
+          console.error('Error loading assigners:', result.error || 'Invalid response format');
+        }
+      } catch (error) {
+        console.error('Error loading assigners:', error);
+      }
+    }

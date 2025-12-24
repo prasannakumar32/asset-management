@@ -16,8 +16,8 @@ router.get('/assets', ensureAuthenticated, require('../asset/assetController').l
 router.get('/assets/form', ensureAuthenticated, require('../asset/assetController').showAssetForm);
 router.get('/assets/:id/form', ensureAuthenticated, require('../asset/assetController').showAssetForm);
 
-// Get single asset
-router.get('/assets/:id', ensureAuthenticated, require('../asset/assetController').getById);
+// Get single asset (view page)
+router.get('/assets/:id', ensureAuthenticated, require('../asset/assetController').viewAsset);
 
 // Create Asset 
 router.post('/assets', ensureAuthenticated, require('../asset/assetController').create);
@@ -41,18 +41,17 @@ router.get('/asset-assignment', ensureAuthenticated, (req, res) => {
   res.render('asset-assignment/asset-assignment');
 });
 
+// Asset Assignment Issue Form page
+router.get('/asset-assignments/issue', ensureAuthenticated, (req, res) => {
+  res.render('asset-assignment/issue-form');
+});
+
 // Asset Categories page
 router.get('/asset-categories', ensureAuthenticated, (req, res) => {
   res.render('asset-categories/asset-categories');
 });
 
-// API routes
-router.use('/api/assets', assets);
-router.use('/api/employees', employees);
-router.use('/api/asset-categories', assetCategories);
-router.use('/api/stock', stock);
-router.use('/api/asset-assignments', assetAssignments);
-router.use('/api/asset-history', assetHistory);
+// API routes are handled in app.js, no need to duplicate here
 
 // Asset Assignment Page
 router.get('/asset-assignment', ensureAuthenticated, (req, res) => {

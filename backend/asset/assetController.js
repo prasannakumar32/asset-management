@@ -157,8 +157,8 @@ exports.list = async (req, res) => {
             branch,
             sortBy,
             sortOrder,
-            success,
-            error
+            success: req.query.success,
+            error: req.query.error
         });
     } catch (error) {
         console.error('Error fetching assets:', error);
@@ -170,34 +170,99 @@ exports.list = async (req, res) => {
                 order: [['name', 'ASC']],
                 raw: true  
             });
-        } catch (categoryError) {
-            console.error('Error fetching categories:', categoryError);
+        } catch (catError) {
+            console.error('Error fetching categories:', catError);
         }
+        
         return res.render('asset/asset', {
             assets: [],
             categories,
-            error: error || 'Error fetching assets',
-            success: req.query.success
+            search,
+            category,
+            status,
+            is_active,
+            branch,
+            sortBy,
+            sortOrder,
+            error: 'Failed to load assets'
         });
     }
 };
-//view asset details 
-exports.getById = async (req, res) => {
+
+// API endpoint to get assets as JSON
+exports.listAPI = async (req, res) => {
+    try {
+        const { 
+            search = '', 
+            category = '', 
+            status = '', 
+            is_active = 'true',
+            branch = '',
+            sortBy = 'name',
+            sortOrder = 'ASC'
+        } = req.query;
+        const whereClause = {};
+        if (search) {
+            whereClause[Op.or] = [
+                { name: { [Op.like]: `%${search}%` } },
+                { asset_tag: { [Op.like]: `%${search}%` } },
+                { serial_number: { [Op.like]: `%${search}%` } },
+                { model: { [Op.like]: `%${search}%` } },
+                { manufacturer: { [Op.like]: `%${search}%` } }
+            ];
+        }
+        if (category) whereClause.category_id = category;
+        if (status) whereClause.status = status;
+        if (branch) whereClause.branch = branch;
+        if (is_active) {
+            whereClause.is_active = is_active === 'true';
+        }
+        const assets = await Asset.findAll({
+            where: whereClause,
+            include: [
+                { 
+                    model: db.AssetCategory,
+                    as: 'category',
+                    attributes: ['id', 'name']
+                }
+            ],
+            order: [[sortBy, sortOrder.toUpperCase()]]
+        });
+
+        return res.json({
+            success: true,
+            data: {
+                assets
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching assets API:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Error fetching assets',
+            message: error.message
+        });
+    }
+};
+
+// View single asset details
+exports.viewAsset = async (req, res) => {
     try {
         const { id } = req.params;
-// Fetch the asset 
         const asset = await Asset.findByPk(id, {
             include: [
                 { 
-                    model: db.AssetCategory, 
-                    as: 'category' 
+                    model: db.AssetCategory,
+                    as: 'category',
+                    attributes: ['id', 'name']
                 },
                 { 
                     model: db.AssetAssignment, 
                     as: 'assignments',
                     include: [{
                         model: db.Employee,
-                        as: 'employee'
+                        as: 'employee',
+                        attributes: ['id', 'first_name', 'last_name', 'employee_id']
                     }],
                     where: { 
                         status: 'assigned',
@@ -209,22 +274,19 @@ exports.getById = async (req, res) => {
             ]
         }); 
         if (!asset) {
-            return res.render('asset/asset', {
-                assets: [],
-                error: 'Asset not found'
-            });
+            return res.redirect('/assets?error=Asset not found');
         }
         return res.render('asset/asset-view', {
-            asset
-        });  
-    } catch (error) {
-        console.error('Error fetching asset:', error);  
-        return res.render('asset/asset', {
-            assets: [],
-            error: 'Error fetching asset'
+            asset,
+            error: req.query.error,
+            success: req.query.success
         });
+    } catch (error) {
+        console.error('Error viewing asset:', error);  
+        return res.redirect('/assets?error=Error loading asset details');
     }
 };
+
 //create new asset 
 exports.create = async (req, res) => {
     try {
@@ -319,83 +381,6 @@ exports.create = async (req, res) => {
         console.error('Error creating asset:', error);
  // Redirect back with error message
         return res.redirect('/assets/form?error=Error creating asset: ' + error.message);
-    }
-};
-//show edit form
-exports.showEditForm = async (req, res) => {
-    try {
-        const { id } = req.params;
- // Fetch the asset with its associations
-        const asset = await Asset.findByPk(id, {
-            include: [
-                { 
-                    model: db.AssetCategory,
-                    as: 'category',
-                    attributes: ['id', 'name']
-                },
-                { 
-                    model: db.AssetAssignment, 
-                    as: 'assignments',
-                    include: [{
-                        model: db.Employee,
-                        as: 'employee',
-                        attributes: ['id', 'first_name', 'last_name', 'employee_id']
-                    }],
-                    where: { 
-                        status: 'assigned',
-                        return_date: null 
-                    },
-                    required: false,
-                    limit: 1
-                }
-            ]
-        });
-        if (!asset) {
-            return res.redirect('/assets?error=Asset not found');
-        }
-// Fetch categories and employees for dropdowns
-        const categories = await AssetCategory.findAll({ 
-            where: { is_active: true },
-            order: [['name', 'ASC']]
-        });
-        const employees = await Employee.findAll({ 
-            where: { status: 'active' },
-            order: [['first_name', 'ASC'], ['last_name', 'ASC']]
-        });
-        return res.render('asset/edit-asset', {
-            asset,
-            categories,
-            employees,
-            formData: {},
-            error: req.query.error,
-            success: req.query.success
-        });
-    } catch (error) {
-        console.error('Error loading edit asset form:', error);
-// Still try to fetch categories 
-        let categories = [];
-        let employees = [];
-        try {
-            categories = await AssetCategory.findAll({ 
-                where: { is_active: true },
-                order: [['name', 'ASC']],
-                raw: true  
-            });
-            employees = await Employee.findAll({ 
-                where: { status: 'active' },
-                order: [['first_name', 'ASC'], ['last_name', 'ASC']]
-            });
-        } catch (fetchError) {
-            console.error('Error fetching dropdown data:', fetchError);
-        }
-        return res.render('asset/asset-form', {
-            isEdit: true,
-            asset: null,
-            categories,
-            employees,
-            formData: {},
-            error: req.query.error || 'Error loading edit form'
-        });
     }
 };
 //update asset
