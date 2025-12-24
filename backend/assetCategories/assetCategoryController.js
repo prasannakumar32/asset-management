@@ -5,15 +5,12 @@ const AssetCategory = db.AssetCategory;
 exports.list = async (req, res) => {
     try {
         const { 
-            page = 1, 
-            limit = 10, 
             search = '', 
             status = 'active',
             sortBy = 'name',
             sortOrder = 'ASC'
         } = req.query;
 
-        const offset = (page - 1) * limit;
         const whereClause = {};
         if (search) {
             whereClause[Op.or] = [
@@ -26,25 +23,15 @@ exports.list = async (req, res) => {
         } else if (status === 'inactive') {
             whereClause.is_active = false;
         }
-        const { count, rows: categories } = await AssetCategory.findAndCountAll({
+        const categories = await AssetCategory.findAll({
             where: whereClause,
-            limit: parseInt(limit),
-            offset: parseInt(offset),
             order: [[sortBy, sortOrder.toUpperCase()]]
         });
-
-        const totalPages = Math.ceil(count / limit);
 
         return res.json({
             success: true,
             data: {
-                categories,
-                pagination: {
-                    currentPage: parseInt(page),
-                    totalPages,
-                    totalItems: count,
-                    itemsPerPage: parseInt(limit)
-                }
+                categories
             }
         });
     } catch (error) {

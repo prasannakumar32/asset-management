@@ -26,7 +26,6 @@ const setupAssociations = (db) => {
 // AssetCategory associations
   AssetCategory.hasMany(Asset, { foreignKey: 'category_id', as: 'assets' });
   
-  console.log('Model associations set up successfully');
 };
 
 module.exports = {

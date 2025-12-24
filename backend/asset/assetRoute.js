@@ -5,6 +5,10 @@ const assetController = require('./assetController');
 // Get all assets
 router.get('/', assetController.list);
 
+// Show asset form (handles both create and edit)
+router.get('/form', assetController.showAssetForm);
+router.get('/:id/form', assetController.showAssetForm);
+
 // Create a new asset
 router.post('/', assetController.create);
 

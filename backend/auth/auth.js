@@ -4,7 +4,7 @@ const authController = require('./authController');
 const passport = require('passport');
 
 //send login page 
-router.get('/login', (req, res) => res.sendFile('login.html', { root: '../..' }));
+router.get('/login', (req, res) => res.sendFile('login.jade', { root: '../..' }));
 
 //handle login
 router.post('/login', authController.login);

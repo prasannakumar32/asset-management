@@ -1,0 +1,25 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title Login - Asset Management System
+    link(rel='stylesheet', href='/style.css')
+  body
+    .login-container
+      .login-header
+        h1 Asset Management
+        p Sign in to your account
+      
+      if error
+        .error-message= error
+      
+      form(action='/login', method='POST')
+        .form-group
+          label(for='username') Username
+          input(type='text', id='username', name='username', required, placeholder='Enter your username')
+        .form-group
+          label(for='password') Password
+          input(type='password', id='password', name='password', required, placeholder='Enter your password')
+        .form-group
+          input(type='submit', value='Sign In', class='login-btn')

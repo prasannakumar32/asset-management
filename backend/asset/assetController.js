@@ -2,12 +2,104 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const Asset = db.Asset;
 const AssetHistory = db.AssetHistory;
+const AssetCategory = db.AssetCategory;
+const Employee = db.Employee;
+
+exports.showAssetForm = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const isEdit = !!id;
+        
+        // Fetch categories and employees for dropdowns
+        const categories = await AssetCategory.findAll({ 
+            where: { is_active: true },
+            order: [['name', 'ASC']],
+            raw: true 
+        });
+        
+        const employees = await Employee.findAll({ 
+            where: { status: 'active' },
+            order: [['first_name', 'ASC'], ['last_name', 'ASC']]
+        });
+
+        let asset = null;
+        if (isEdit) {
+            // Fetch the asset with its associations for edit
+            asset = await Asset.findByPk(id, {
+                include: [
+                    { 
+                        model: db.AssetCategory,
+                        as: 'category',
+                        attributes: ['id', 'name']
+                    },
+                    { 
+                        model: db.AssetAssignment, 
+                        as: 'assignments',
+                        include: [{
+                            model: db.Employee,
+                            as: 'employee',
+                            attributes: ['id', 'first_name', 'last_name', 'employee_id']
+                        }],
+                        where: { 
+                            status: 'assigned',
+                            return_date: null 
+                        },
+                        required: false,
+                        limit: 1
+                    }
+                ]
+            });
+            
+            if (!asset) {
+                return res.redirect('/assets?error=Asset not found');
+            }
+        }
+
+        return res.render('asset/asset-form', {
+            isEdit,
+            asset,
+            categories,
+            employees,
+            formData: {},
+            error: req.query.error,
+            success: req.query.success
+        });
+
+    } catch (error) {
+        console.error('Error loading asset form:', error);
+        
+        // Still try to fetch categories and employees for the dropdown even if there's an error
+        let categories = [];
+        let employees = [];
+        try {
+            categories = await AssetCategory.findAll({ 
+                where: { is_active: true },
+                order: [['name', 'ASC']],
+                raw: true  // Return plain JSON objects
+            });
+            employees = await Employee.findAll({ 
+                where: { status: 'active' },
+                order: [['first_name', 'ASC'], ['last_name', 'ASC']]
+            });
+        } catch (fetchError) {
+            console.error('Error fetching dropdown data:', fetchError);
+        }
+        
+        return res.render('asset/asset-form', {
+            isEdit: !!req.params.id,
+            asset: null,
+            categories,
+            employees,
+            formData: {},
+            error: req.query.error || 'Error loading form'
+        });
+    }
+};
+
 
 exports.list = async (req, res) => {
     try {
         const { 
-            page = 1, 
-            limit = 10, 
             search = '', 
             category = '', 
             status = '', 
@@ -16,7 +108,6 @@ exports.list = async (req, res) => {
             sortOrder = 'ASC'
         } = req.query;
 
-        const offset = (page - 1) * limit;
         const whereClause = { is_active: true };
 
         if (search) {
@@ -33,35 +124,72 @@ exports.list = async (req, res) => {
         if (status) whereClause.status = status;
         if (branch) whereClause.branch = branch;
 
-        const { count, rows: assets } = await Asset.findAndCountAll({
+        const assets = await Asset.findAll({
             where: whereClause,
-            limit: parseInt(limit),
-            offset: parseInt(offset),
+            include: [
+                { 
+                    model: db.AssetCategory,
+                    as: 'category',
+                    attributes: ['id', 'name']
+                },
+                { 
+                    model: db.AssetAssignment, 
+                    as: 'assignments',
+                    include: [{
+                        model: db.Employee,
+                        as: 'employee',
+                        attributes: ['id', 'first_name', 'last_name', 'employee_id']
+                    }],
+                    where: { 
+                        status: 'assigned',
+                        return_date: null 
+                    },
+                    required: false,
+                    limit: 1
+                }
+            ],
             order: [[sortBy, sortOrder.toUpperCase()]]
         });
 
-        const totalPages = Math.ceil(count / limit);
 
-        return res.json({
-            success: true,
-            data: {
-                assets,
-                pagination: {
-                    currentPage: parseInt(page),
-                    totalPages,
-                    totalItems: count,
-                    itemsPerPage: parseInt(limit)
-                }
-            }
+
+        // Fetch categories for the dropdown
+        const categories = await AssetCategory.findAll({ 
+            where: { is_active: true },
+            order: [['name', 'ASC']],
+            raw: true  // Return plain JSON objects
+        });
+
+        return res.render('asset/asset', {
+            assets,
+            categories,
+            search,
+            category,
+            status,
+            branch,
+            sortBy,
+            sortOrder
         });
 
     } catch (error) {
         console.error('Error fetching assets:', error);
         
-        return res.status(500).json({
-            success: false,
-            error: 'Error fetching assets',
-            message: error.message
+        // Still try to fetch categories for the dropdown even if assets fail
+        let categories = [];
+        try {
+            categories = await AssetCategory.findAll({ 
+                where: { is_active: true },
+                order: [['name', 'ASC']],
+                raw: true  // Return plain JSON objects
+            });
+        } catch (categoryError) {
+            console.error('Error fetching categories:', categoryError);
+        }
+        
+        return res.render('asset/asset', {
+            assets: [],
+            categories,
+            error: 'Error fetching assets'
         });
     }
 };
@@ -70,32 +198,30 @@ exports.getById = async (req, res) => {
     try {
         const { id } = req.params;
         
-        const asset = await Asset.findByPk(id);
+        const asset = await Asset.findByPk(id, {
+            include: [
+                { model: db.AssetCategory, as: 'category' },
+                { model: db.Employee, as: 'assignedEmployee' }
+            ]
+        });
         
         if (!asset) {
-            return res.status(404).json({
-                success: false,
+            return res.render('asset/asset', {
+                assets: [],
                 error: 'Asset not found'
             });
         }
         
-        if (asset.category_id) {
-            const category = await db.AssetCategory.findByPk(asset.category_id);
-            asset.dataValues.category = category;
-        }
-        
-        return res.json({
-            success: true,
-            data: asset
+        return res.render('asset/asset-detail', {
+            asset
         });
         
     } catch (error) {
         console.error('Error fetching asset:', error);
         
-        return res.status(500).json({
-            success: false,
-            error: 'Error fetching asset',
-            message: error.message
+        return res.render('asset/asset', {
+            assets: [],
+            error: 'Error fetching asset'
         });
     }
 };
@@ -103,7 +229,8 @@ exports.getById = async (req, res) => {
 exports.create = async (req, res) => {
     try {
         let assetData = req.body;
-//convert string to numberic fields 
+        
+        // Convert string to numeric fields 
         if (assetData.warranty_months) {
             assetData.warranty_months = parseInt(assetData.warranty_months);
         }
@@ -116,9 +243,11 @@ exports.create = async (req, res) => {
         if (assetData.category_id) {
             assetData.category_id = parseInt(assetData.category_id);
         }
-//convert active to boolean 
+        
+        // Convert active to boolean 
         assetData.is_active = assetData.is_active !== 'false' && assetData.is_active !== 'off' && assetData.is_active !== '0';
-///generate asset tag 
+        
+        // Generate asset tag if not provided
         if (!assetData.asset_tag || assetData.asset_tag.trim() === '') {
             const lastAsset = await Asset.findOne({
                 attributes: ['asset_tag'],
@@ -137,21 +266,142 @@ exports.create = async (req, res) => {
             assetData.asset_tag = `AST${String(lastId + 1).padStart(4, '0')}`;
         }
 
-        const asset = await Asset.create(assetData);
+        // Start transaction
+        const transaction = await db.sequelize.transaction();
         
-        return res.status(201).json({
-            success: true,
-            data: asset,
-            message: 'Asset created successfully'
-        });
+        try {
+            // Create the asset
+            const asset = await Asset.create(assetData, { transaction });
+            
+            // If asset is being assigned immediately, create assignment
+            if (assetData.status === 'assigned' && assetData.employee_id) {
+                const AssetAssignment = db.AssetAssignment;
+                await AssetAssignment.create({
+                    asset_id: asset.id,
+                    employee_id: parseInt(assetData.employee_id),
+                    assigned_by: req.user ? req.user.id : 1, // Use current user or default
+                    assigned_date: new Date(),
+                    status: 'assigned',
+                    notes: assetData.assignment_notes || ''
+                }, { transaction });
+                
+                // Create history record
+                await AssetHistory.create({
+                    asset_id: asset.id,
+                    employee_id: parseInt(assetData.employee_id),
+                    action_type: 'assigned',
+                    action_date: new Date(),
+                    notes: `Asset assigned during creation: ${assetData.assignment_notes || 'No notes provided'}`
+                }, { transaction });
+            }
+            
+            // Create history record for asset creation
+            await AssetHistory.create({
+                asset_id: asset.id,
+                action_type: 'created',
+                action_date: new Date(),
+                notes: `Asset created with status: ${assetData.status}`
+            }, { transaction });
+            
+            await transaction.commit();
+            
+            // Redirect to assets list with success message
+            return res.redirect('/assets?success=Asset created successfully');
+
+        } catch (transactionError) {
+            await transaction.rollback();
+            throw transactionError;
+        }
 
     } catch (error) {
         console.error('Error creating asset:', error);
         
-        return res.status(500).json({
-            success: false,
-            error: 'Error creating asset',
-            message: error.message
+        // Redirect back with error message
+        return res.redirect('/assets/form?error=Error creating asset: ' + error.message);
+    }
+};
+
+exports.showEditForm = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Fetch the asset with its associations
+        const asset = await Asset.findByPk(id, {
+            include: [
+                { 
+                    model: db.AssetCategory,
+                    as: 'category',
+                    attributes: ['id', 'name']
+                },
+                { 
+                    model: db.AssetAssignment, 
+                    as: 'assignments',
+                    include: [{
+                        model: db.Employee,
+                        as: 'employee',
+                        attributes: ['id', 'first_name', 'last_name', 'employee_id']
+                    }],
+                    where: { 
+                        status: 'assigned',
+                        return_date: null 
+                    },
+                    required: false,
+                    limit: 1
+                }
+            ]
+        });
+        
+        if (!asset) {
+            return res.redirect('/assets?error=Asset not found');
+        }
+        
+        // Fetch categories and employees for dropdowns
+        const categories = await AssetCategory.findAll({ 
+            where: { is_active: true },
+            order: [['name', 'ASC']]
+        });
+        
+        const employees = await Employee.findAll({ 
+            where: { status: 'active' },
+            order: [['first_name', 'ASC'], ['last_name', 'ASC']]
+        });
+
+        return res.render('asset/edit-asset', {
+            asset,
+            categories,
+            employees,
+            formData: {},
+            error: req.query.error,
+            success: req.query.success
+        });
+
+    } catch (error) {
+        console.error('Error loading edit asset form:', error);
+        
+        // Still try to fetch categories and employees for the dropdown even if there's an error
+        let categories = [];
+        let employees = [];
+        try {
+            categories = await AssetCategory.findAll({ 
+                where: { is_active: true },
+                order: [['name', 'ASC']],
+                raw: true  // Return plain JSON objects
+            });
+            employees = await Employee.findAll({ 
+                where: { status: 'active' },
+                order: [['first_name', 'ASC'], ['last_name', 'ASC']]
+            });
+        } catch (fetchError) {
+            console.error('Error fetching dropdown data:', fetchError);
+        }
+        
+        return res.render('asset/asset-form', {
+            isEdit: true,
+            asset: null,
+            categories,
+            employees,
+            formData: {},
+            error: req.query.error || 'Error loading edit form'
         });
     }
 };
@@ -160,7 +410,8 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         let assetData = req.body;
-//convert string to numberic fields
+        
+        // Convert string to numeric fields
         if (assetData.warranty_months) {
             assetData.warranty_months = parseInt(assetData.warranty_months);
         }
@@ -176,31 +427,32 @@ exports.update = async (req, res) => {
 
         assetData.is_active = assetData.is_active === 'on' || assetData.is_active === true || assetData.is_active === 'true';
 
+        // Don't allow asset_tag to be updated
+        delete assetData.asset_tag;
+        delete assetData.current_assignment; // Remove the read-only field
+
         const [updatedRowsCount] = await Asset.update(assetData, { where: { id } });
         
         if (updatedRowsCount === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'Asset not found'
-            });
+            return res.redirect(`/assets/${id}/form?error=Asset not found`);
         }
 
-        const updatedAsset = await Asset.findByPk(id);
-        
-        return res.json({
-            success: true,
-            data: updatedAsset,
-            message: 'Asset updated successfully'
+        // Create history record for asset update
+        await AssetHistory.create({
+            asset_id: parseInt(id),
+            action_type: 'updated',
+            action_date: new Date(),
+            notes: `Asset updated with new status: ${assetData.status || 'unchanged'}`
         });
+
+        // Redirect to assets list with success message
+        return res.redirect('/assets?success=Asset updated successfully');
 
     } catch (error) {
         console.error('Error updating asset:', error);
         
-        return res.status(500).json({
-            success: false,
-            error: 'Error updating asset',
-            message: error.message
-        });
+        // Redirect back with error message
+        return res.redirect(`/assets/${id}/form?error=Error updating asset: ${error.message}`);
     }
 };
 
@@ -211,25 +463,17 @@ exports.delete = async (req, res) => {
         const deletedRowsCount = await Asset.destroy({ where: { id } });
         
         if (deletedRowsCount === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'Asset not found'
-            });
+            return res.redirect('/assets?error=Asset not found');
         }
         
-        return res.json({
-            success: true,
-            message: 'Asset deleted successfully'
-        });
+        // Redirect to assets list with success message
+        return res.redirect('/assets?success=Asset deleted successfully');
 
     } catch (error) {
         console.error('Error deleting asset:', error);
         
-        return res.status(500).json({
-            success: false,
-            error: 'Error deleting asset',
-            message: error.message
-        });
+        // Redirect back with error message
+        return res.redirect('/assets?error=Error deleting asset');
     }
 };
 

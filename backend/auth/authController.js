@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 
 exports.showLogin = (req, res) => {
-  res.sendFile('login.html', { root: '../..' });
+  res.sendFile('login.jade', { root: '../..' });
 };
 
 exports.login = (req, res, next) => {

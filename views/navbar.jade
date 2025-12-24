@@ -1,0 +1,29 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title Asset Management System
+    link(rel='stylesheet', href='/style.css')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css')
+
+      
+  body
+    nav.navbar
+      .navbar-brand Asset tracker
+      ul.navbar-nav
+        li
+          a.nav-link(href='/dashboard') Dashboard
+        li
+          a.nav-link(href='/assets') Assets
+        li
+          a.nav-link(href='/employee') Employees
+        li 
+          a.nav-link(href='/asset-assignment') Asset Assignment
+        li
+          a.nav-link(href='/asset-categories') Asset Categories
+
+      .logout-container
+        a.nav-link(href='/logout') Logout
+    
+    block content

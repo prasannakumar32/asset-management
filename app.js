@@ -5,6 +5,7 @@ const passport = require('passport');
 const app = express();
 const db = require('./backend/models');
 const bcrypt=require('bcryptjs');
+const path = require('path');
 
 
 
@@ -29,9 +30,24 @@ app.use(
   })
 )
 
+
+// 🔑 Set JADE as view engine
+app.set('view engine', 'jade');
+app.set('views', path.join(__dirname, 'views'));
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'style')));
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+// Enable CORS for local API calls
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 
 
 // Passport middleware
@@ -41,10 +57,6 @@ app.use(passport.session());
 // Configure Passport
 require('./backend/config/passport')(passport);
 
-
-// Routes
-const mainRoutes = require('./backend/routes');
-app.use('/', mainRoutes);
 // API routes
 const assetRoutes = require('./backend/asset/assetRoute');
 app.use('/api/assets', assetRoutes);
@@ -60,6 +72,11 @@ app.use('/api/asset-categories', assetCategoriesRoutes);
 // AssetHistory routes
 const assetHistoryRoutes = require('./backend/assetHistory/assetHistoryRoute');
 app.use('/api/asset-history', assetHistoryRoutes);
+
+// Main routes (should be after API routes)
+const mainRoutes = require('./backend/routes');
+app.use('/', mainRoutes);
+
 // Start server
 const PORT = process.env.PORT || 3000;
 

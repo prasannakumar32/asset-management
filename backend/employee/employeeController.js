@@ -5,23 +5,20 @@ const Employee = db.Employee;
 exports.list = async (req, res) => {
     try {
         const { 
-            page = 1, 
-            limit = 10, 
             search = '', 
             department = '', 
             status = '', 
             branch = '',
-            sortBy = 'name',
+            sortBy = 'first_name',
             sortOrder = 'ASC'
         } = req.query;
 
-        const offset = (page - 1) * limit;
         const whereClause = {};
 
         if (search) {
             whereClause[Op.or] = [
-                { name: { [Op.like]: `%${search}%` } },
-                { email: { [Op.like]: `%${search}%` } },
+                { first_name: { [Op.like]: `%${search}%` } },
+                { last_name: { [Op.like]: `%${search}%` } },
                 { employee_id: { [Op.like]: `%${search}%` } }
             ];
         }
@@ -30,25 +27,15 @@ exports.list = async (req, res) => {
         if (status) whereClause.status = status;
         if (branch) whereClause.branch = branch;
 
-        const { count, rows: employees } = await Employee.findAndCountAll({
+        const employees = await Employee.findAll({
             where: whereClause,
-            limit: parseInt(limit),
-            offset: parseInt(offset),
             order: [[sortBy, sortOrder.toUpperCase()]]
         });
-
-        const totalPages = Math.ceil(count / limit);
 
         return res.json({
             success: true,
             data: {
-                employees,
-                pagination: {
-                    currentPage: parseInt(page),
-                    totalPages,
-                    totalItems: count,
-                    itemsPerPage: parseInt(limit)
-                }
+                employees
             }
         });
 

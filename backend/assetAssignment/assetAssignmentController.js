@@ -6,14 +6,10 @@ const { Asset, Employee, AssetAssignment } = db;
 exports.listAssignments = async (req, res) => {
   try {
     const { 
-      page = 1,
-      limit = 10,
       search = '',
       status = '', 
       sortBy = 'assigned_date',
       sortOrder = 'DESC' } = req.query;
-
-    const offset = (page - 1) * limit;
 
 // Build where clause
     const whereClause = {};
@@ -26,10 +22,8 @@ exports.listAssignments = async (req, res) => {
       whereClause.status = status;
     }
 
-    const { count, rows: assignments } = await AssetAssignment.findAndCountAll({
+    const assignments = await AssetAssignment.findAll({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-      limit: parseInt(limit),
-      offset: parseInt(offset),
       order: [[sortBy, sortOrder.toUpperCase()]],
       include: [
         {
@@ -50,18 +44,10 @@ exports.listAssignments = async (req, res) => {
       ]
     });
 
-    const totalPages = Math.ceil(count / limit);
-
     res.json({
       success: true,
       data: {
-        assignments,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages,
-          totalItems: count,
-          itemsPerPage: parseInt(limit)
-        }
+        assignments
       }
     });
 
