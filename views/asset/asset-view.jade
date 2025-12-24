@@ -1,0 +1,149 @@
+extends ../navbar
+
+block content
+  .container-fluid.px-4.py-4
+    .row.mb-4
+      .col-12.position-relative
+        .d-flex.align-items-center.justify-content-center(style="min-height: 50px;")
+          a.btn.btn-outline-primary.position-absolute.start-0(href='/assets')
+            i.fas.fa-arrow-left.me-2
+            | Back to Assets
+          h1.mb-0.text-center
+            i.fas.fa-cube.me-2.text-primary
+            | Asset Details
+    
+    .row.justify-content-center
+      .col-lg-10.col-xl-8
+        .asset-view-card
+          .asset-view-header
+            if asset
+              .d-flex.align-items-center.justify-content-between
+                div
+                  h3.asset-view-title= asset.name
+                  .asset-view-subtitle
+                    i.fas.fa-barcode.me-2
+                    | Asset Tag: 
+                    strong= asset.asset_tag
+              
+              .asset-details-container
+                // Row 1
+                .row.mb-3
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-barcode
+                        | Serial Number
+                      .asset-detail-value= asset.serial_number || 'N/A'
+                  
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-tags
+                        | Category
+                      .asset-detail-value= asset.category ? asset.category.name : 'N/A'
+                  
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-cube
+                        | Model
+                      .asset-detail-value= asset.model || 'N/A'
+                  
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-industry
+                        | Manufacturer
+                      .asset-detail-value= asset.manufacturer || 'N/A'
+                
+                // Row 2
+                .row.mb-3
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-calendar-alt
+                        | Purchase Date
+                      .asset-detail-value= asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString() : 'N/A'
+                  
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-money-bill-wave
+                        | Purchase Cost
+                      .asset-detail-value= asset.purchase_cost ? `$${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A'
+                  
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-shield-alt
+                        | Warranty
+                      .asset-detail-value= asset.warranty_months ? `${asset.warranty_months} months` : 'N/A'
+                  
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-chart-line
+                        | Current Value
+                      .asset-detail-value= asset.current_value ? `$${parseFloat(asset.current_value).toFixed(2)}` : 'N/A'
+                
+                // Row 3
+                .row.mb-4
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-building
+                        | Branch
+                      .asset-detail-value= asset.branch || 'N/A'
+                  
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-map-marker-alt
+                        | Location
+                      .asset-detail-value= asset.location || 'N/A'
+                  
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-user-tie
+                        | Assigned To
+                      .asset-detail-value
+                        if asset.assignments && asset.assignments.length > 0 && asset.assignments[0].employee
+                          div= `${asset.assignments[0].employee.first_name} ${asset.assignments[0].employee.last_name}`
+                          .small.text-muted (ID: #{asset.assignments[0].employee.employee_id})
+                        else
+                          span.text-muted Unassigned
+                  
+                  .col-md-3.mb-3
+                    .asset-detail-item
+                      .asset-detail-label
+                        i.fas.fa-info-circle
+                        | Status
+                      .asset-detail-value
+                        if asset.status
+                          span= asset.status.charAt(0).toUpperCase() + asset.status.slice(1)
+                        else
+                          | N/A
+                
+                // Notes Section - Full Width
+                .row.mb-4
+                  .col-12
+                    .asset-notes-card.h-100
+                      .asset-notes-header
+                        h6.asset-notes-title
+                          i.fas.fa-sticky-note.me-2
+                          | Notes
+                      .asset-notes-content
+                        if asset.notes && asset.notes.trim()
+                          p.asset-notes-text= asset.notes
+                        else
+                          .text-muted No notes available
+              
+              .asset-actions-section
+                .asset-actions-buttons
+                  a.asset-action-btn.asset-btn-primary(href='/assets/#{asset.id}/form')
+                    i.fas.fa-edit.btn-icon
+                    | Edit Asset
+                  a.asset-action-btn.asset-btn-secondary(href='/assets')
+                    i.fas.fa-list.btn-icon
+                    | Back to List

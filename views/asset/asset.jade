@@ -25,39 +25,50 @@ block content
     // Search and Filters
     .row.mb-4.search-filters-row
       .col-12
-        .card
-          .card-body
+        .card.shadow-sm
+          .card-body.p-3
             form(method='GET', action='/assets').search-form#searchForm
-              .search-form-group.search-field
-                label.search-form-label(for='search') Search Assets
-                input.search-form-control(type='text', name='search', id='search', 
-                  value=search || '', 
-                  placeholder='Search by name, tag, serial...')
-              .search-form-group.filter-field
-                label.search-form-label(for='category') Category
-                select.search-form-select(name='category', id='category')
-                  option(value='') All Categories
-                  if categories && categories.length > 0
-                    each cat in categories
-                      option(value=cat.id, selected=cat.id.toString() === (category || '').toString()) #{cat.name}
-              .search-form-group.filter-field
-                label.search-form-label(for='status') Status
-                select.search-form-select(name='status', id='status')
-                  option(value='') All Status
-                  option(value='available', selected=status === 'available') Available
-                  option(value='assigned', selected=status === 'assigned') Assigned
-                  option(value='maintenance', selected=status === 'maintenance') Maintenance
-                  option(value='retired', selected=status === 'retired') Retired
-              .search-form-group.button-field
-                .search-button-group
-                  if search || category || status
-                    button.search-button.search-button-secondary(type='button', onclick='window.location.href="/assets"')
-                      i.fas.fa-times.me-2
-                      | Clear
+              .row.gy-3.gx-4.search-form-vertical
+                .col-md-6.col-lg-3
+                  .search-form-group.search-field.search-field-main
+                    label.search-form-label(for='search') Search Assets
+                    input.search-form-control.form-control(type='text', name='search', id='search', 
+                      value=search || '', 
+                      placeholder='Search by name, tag, serial...')
+                .col-md-6.col-lg-3
+                  .search-form-group.filter-field.filter-field-category
+                    label.search-form-label(for='category') Category
+                    select.search-form-select.form-select(name='category', id='category')
+                      option(value='') All Categories
+                      if categories && categories.length > 0
+                        each cat in categories
+                          option(value=cat.id, selected=cat.id.toString() === (category || '').toString()) #{cat.name}
+                .col-md-6.col-lg-3
+                  .search-form-group.filter-field.filter-field-status
+                    label.search-form-label(for='status') Status
+                    select.search-form-select.form-select(name='status', id='status')
+                      option(value='') All Status
+                      option(value='available', selected=status === 'available') Available
+                      option(value='assigned', selected=status === 'assigned') Assigned
+                      option(value='maintenance', selected=status === 'maintenance') Maintenance
+                      option(value='retired', selected=status === 'retired') Retired
+                // Active status filter removed
+                .col-md-6.col-lg-3
+                  .search-form-group.filter-field.filter-field-branch
+                    label.search-form-label(for='branch') Branch
+                    input.search-form-control.form-control(type='text', name='branch', id='branch', 
+                      value=branch || '', 
+                      placeholder='Enter branch')
+                .col-md-6.col-lg-3.d-flex.align-items-end
+                  .search-form-group.button-field.search-button-field.w-100
+                    .search-button-group.search-button-group-main.w-100
+                      if search || category || status || branch
+                        button.search-button.search-button-secondary.btn.btn-secondary.w-100(type='button', onclick='clearAllFilters()')
+                          i.fas.fa-times.me-1
+                          | Clear
     
     script.
-      
-      // Auto-submit form when dropdown values change
+      //auto submit for filters 
       document.getElementById('category').addEventListener('change', function() {
         document.getElementById('searchForm').submit();
       });
@@ -66,7 +77,16 @@ block content
         document.getElementById('searchForm').submit();
       });
       
-      // Handle search input with debounce
+      // Handle branch input with debounce
+      let branchTimeout;
+      document.getElementById('branch').addEventListener('input', function() {
+        clearTimeout(branchTimeout);
+        branchTimeout = setTimeout(function() {
+          document.getElementById('searchForm').submit();
+        }, 500);
+      });
+      
+      // Handle search input
       let searchTimeout;
       document.getElementById('search').addEventListener('input', function() {
         clearTimeout(searchTimeout);
@@ -74,8 +94,26 @@ block content
           document.getElementById('searchForm').submit();
         }, 500);
       });
-    
-    // Asset List
+      
+      // Delete confirmation 
+      function confirmDelete(assetId, assetName) {
+        if (confirm('Are you sure you want to delete "' + assetName + '"? This action cannot be undone.')) {
+          var form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/assets/' + assetId + '/delete';
+          document.body.appendChild(form);
+          form.submit();
+        } else {
+        }
+      }
+      // Clear all filters function
+      function clearAllFilters() {
+        document.getElementById('search').value = '';
+        document.getElementById('category').value = '';
+        document.getElementById('status').value = '';
+        document.getElementById('branch').value = '';
+        window.location.href = '/assets';
+      }
     .row.asset-list-row
       .col-12
         .card
@@ -84,7 +122,6 @@ block content
               i.fas.fa-list.me-2
               | Asset List
           .card-body.pt-3
-            if assets && assets.length > 0
                 table.table.table-hover.mb-0.asset-table.mt-3
                   thead
                     tr
@@ -107,8 +144,7 @@ block content
                         td.serial-td
                           span= asset.serial_number || 'N/A'
                         td.status-td
-                          - var statusClass = asset.status === 'assigned' ? 'assigned' : asset.status === 'available' ? 'available' : asset.status === 'maintenance' ? 'maintenance' : asset.status === 'retired' ? 'retired' : 'secondary'
-                            = asset.status
+                          = asset.status
                         td.assigned-td
                           .d-flex.align-items-center
                             if asset.status === 'assigned' && asset.assignments && asset.assignments.length > 0 && asset.assignments[0] && asset.assignments[0].employee
@@ -123,66 +159,5 @@ block content
                               i.fas.fa-edit
                             a.btn.btn-outline-info.action-btn(href='/assets/#{asset.id}' title='View Asset Details')
                               i.fas.fa-eye
-    
-          // Pagination Controls
-          if pagination && pagination.totalPages > 1
-            .d-flex.justify-content-between.align-items-center.mt-4
-              .text-muted
-                | Showing 
-                span= Math.min((pagination.currentPage - 1) * pagination.itemsPerPage + 1, pagination.totalItems)
-                |  to 
-                span= Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)
-                |  of 
-                span= pagination.totalItems
-                |  assets
-              .pagination-controls
-                nav
-                  ul.pagination.mb-0
-                    // Previous button
-                    if pagination.currentPage > 1
-                      li.page-item
-                        a.page-link(href=pagination.urls.prev)
-                          i.fas.fa-chevron-left
-                          | Previous
-                    else
-                      li.page-item.disabled
-                        span.page-link
-                          i.fas.fa-chevron-left
-                          | Previous
-                    
-                    // Page numbers
-                    - var startPage = pagination.startPage;
-                    - var endPage = pagination.endPage;
-                    if startPage > 1
-                      li.page-item
-                        a.page-link(href=pagination.urls.first) 1
-                      if startPage > 2
-                        li.page-item.disabled
-                          span.page-link ...
-                    
-                    - for (var i = startPage; i <= endPage; i++)
-                      if i === pagination.currentPage
-                        li.page-item.active
-                          span.page-link= i
-                      else
-                        li.page-item
-                          a.page-link(href=pagination.pageUrls[i])= i
-                    
-                    if endPage < pagination.totalPages
-                      if endPage < pagination.totalPages - 1
-                        li.page-item.disabled
-                          span.page-link ...
-                      li.page-item
-                        a.page-link(href=pagination.urls.last)= pagination.totalPages
-                    
-                    // Next button
-                    if pagination.currentPage < pagination.totalPages
-                      li.page-item
-                        a.page-link(href=pagination.urls.next)
-                          | Next
-                          i.fas.fa-chevron-right
-                    else
-                      li.page-item.disabled
-                        span.page-link
-                          | Next
-                          i.fas.fa-chevron-right
+                            button.asset-action-btn.asset-btn-danger(type='button', onclick='confirmDelete(#{asset.id}, "#{asset.name}")' title='Delete Asset')
+                              i.fas.fa-trash.btn-icon

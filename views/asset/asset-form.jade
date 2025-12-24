@@ -13,15 +13,14 @@ block content
             | Add New Asset
     
     .row.justify-content-center
-      .col-lg-9.col-md-10
+      .col-lg-9.col-md-9
         .card.shadow
-          .card-header(class=isEdit ? 'bg-warning.text-dark' : 'bg-primary.text-white')
+          .card-header
             h5.mb-0
               i.fas.fa-cube.me-2
               | Asset Information
           
           .card-body
-            // Top navigation button
             .row.mb-3
               .col-12
                 .d-flex.justify-content-start
@@ -38,10 +37,8 @@ block content
               .alert.alert-success(role='alert')
                 i.fas.fa-check-circle.me-2
                 = success
-            
-            form(action=isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets' method='POST' id='assetForm' novalidate class='asset-form-container')
-              .row
-                // Basic Information
+            form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate, class='asset-form-container')
+              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='name' class='form-label required-field')
@@ -52,7 +49,6 @@ block content
                           placeholder='Enter asset name')
                     .invalid-feedback
                       | Asset name is required
-                
                 .col-md-6
                   .form-group.mb-3
                     label(for='asset_tag' class='form-label')
@@ -68,8 +64,7 @@ block content
                           placeholder='e.g., AST0001')
                     if isEdit
                       .form-text.text-muted Asset tag cannot be changed after creation
-              
-              .row
+              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='category_id' class='form-label required-field')
@@ -82,9 +77,6 @@ block content
                           option(value=category.id 
                                  selected=(isEdit ? (asset.category_id === category.id || formData.category_id == category.id) : (formData.category_id == category.id)))
                             = category.name
-                    .invalid-feedback
-                      | Please select a category
-                
                 .col-md-6
                   .form-group.mb-3
                     label(for='serial_number' class='form-label')
@@ -93,7 +85,7 @@ block content
                     input(type='text' class='form-control' id='serial_number' name='serial_number' 
                           value=(isEdit ? (asset.serial_number || formData.serial_number) : (formData.serial_number || ''))
                           placeholder='Enter serial number')
-              .row.mt-3
+              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='model' class='form-label')
@@ -102,7 +94,6 @@ block content
                     input(type='text' class='form-control' id='model' name='model' 
                           value=(isEdit ? (asset.model || formData.model) : (formData.model || ''))
                           placeholder='Enter model')
-                
                 .col-md-6
                   .form-group.mb-3
                     label(for='manufacturer' class='form-label')
@@ -111,7 +102,7 @@ block content
                     input(type='text' class='form-control' id='manufacturer' name='manufacturer' 
                           value=(isEdit ? (asset.manufacturer || formData.manufacturer) : (formData.manufacturer || ''))
                           placeholder='Enter manufacturer')
-              .row
+              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='purchase_date' class='form-label')
@@ -119,7 +110,6 @@ block content
                       | Purchase Date
                     input(type='date' class='form-control' id='purchase_date' name='purchase_date' 
                           value=(isEdit ? (asset.purchase_date ? asset.purchase_date.toISOString().split('T')[0] : formData.purchase_date) : (formData.purchase_date || '')))
-                
                 .col-md-6
                   .form-group.mb-3
                     label(for='purchase_cost' class='form-label')
@@ -128,17 +118,7 @@ block content
                     input(type='number' class='form-control' id='purchase_cost' name='purchase_cost' 
                           value=(isEdit ? (asset.purchase_cost || formData.purchase_cost) : (formData.purchase_cost || '')) step='0.01' min='0'
                           placeholder='0.00')
-              
-              .row
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='warranty_months' class='form-label')
-                      i.fas.fa-shield-alt.me-2
-                      | Warranty (months)
-                    input(type='number' class='form-control' id='warranty_months' name='warranty_months' 
-                          value=(isEdit ? (asset.warranty_months || formData.warranty_months) : (formData.warranty_months || '')) min='0'
-                          placeholder='12')
-                
+              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='current_value' class='form-label')
@@ -147,7 +127,15 @@ block content
                     input(type='number' class='form-control' id='current_value' name='current_value' 
                           value=(isEdit ? (asset.current_value || formData.current_value) : (formData.current_value || '')) step='0.01' min='0'
                           placeholder='0.00')
-              .row.mt-3
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='warranty_months' class='form-label')
+                      i.fas.fa-shield-alt.me-2
+                      | Warranty (months)
+                    input(type='number' class='form-control' id='warranty_months' name='warranty_months' 
+                          value=(isEdit ? (asset.warranty_months || formData.warranty_months) : (formData.warranty_months || '')) min='0'
+                          placeholder='12')
+              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='branch' class='form-label')
@@ -164,7 +152,7 @@ block content
                     input(type='text' class='form-control' id='location' name='location' 
                           value=(isEdit ? (asset.location || formData.location) : (formData.location || ''))
                           placeholder='Enter location')
-              .row.mt-3
+              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='status' class='form-label required-field')
@@ -175,14 +163,13 @@ block content
                       option(value='assigned' selected=(isEdit ? (asset.status === 'assigned' || formData.status === 'assigned') : (formData.status === 'assigned'))) Assigned
                       option(value='maintenance' selected=(isEdit ? (asset.status === 'maintenance' || formData.status === 'maintenance') : (formData.status === 'maintenance'))) Maintenance
                       option(value='retired' selected=(isEdit ? (asset.status === 'retired' || formData.status === 'retired') : (formData.status === 'retired'))) Retired
-                
                 .col-md-6
                   if isEdit
                     .form-group.mb-3
                       label(for='current_assignment' class='form-label')
                         i.fas.fa-user.me-2
                         | Currently Assigned To
-                        small.text-muted (Read-only - use asset assignments to change)
+                        small.text-muted (Read-only)
                       if asset.assignments && asset.assignments.length > 0 && asset.assignments[0].employee
                         input(type='text' class='form-control' id='current_assignment' name='current_assignment' 
                               value=asset.assignments[0].employee.first_name + ' ' + asset.assignments[0].employee.last_name + ' (' + asset.assignments[0].employee.employee_id + ')' readonly)
@@ -195,48 +182,43 @@ block content
                       label(for='employee_id' class='form-label')
                         i.fas.fa-user.me-2
                         | Assign to Employee
-                        small.text-muted (Only if status is "Assigned")
+                        small.text-muted (If status is "Assigned")
                       select(class='form-select' id='employee_id' name='employee_id')
                         option(value='') Select Employee
                         if employees && employees.length > 0
                           each employee in employees
                             option(value=employee.id selected=formData.employee_id == employee.id)
                               = employee.first_name + ' ' + employee.last_name + ' (' + employee.employee_id + ')'
-              
-              // Assignment Notes (conditional - only for create)
+              .row.mb-3
+                .col-12
+                  .form-group.mb-3
+                    label(for='is_active' class='form-label')
+                      i.fas.fa-toggle-on.me-2
+                      | Active Status
+                    select(class='form-select' id='is_active' name='is_active')
+                      option(value='true' selected=(isEdit ? (asset.is_active === true || formData.is_active === 'true') : (formData.is_active === 'true'))) Active
+                      option(value='false' selected=(isEdit ? (asset.is_active === false || formData.is_active === 'false') : (formData.is_active === 'false'))) Inactive
               unless isEdit
-                .row.mt-3#assignmentNotesRow(style='display: none;')
+                .row.mb-3#assignmentNotesRow(style='display: none;')
                   .col-12
                     .form-group.mb-3
                       label(for='assignment_notes' class='form-label')
                         i.fas.fa-sticky-note.me-2
                         | Assignment Notes
+                        small.text-muted (Optional)
                       textarea(class='form-control' id='assignment_notes' name='assignment_notes' rows='3'
-                            placeholder='Enter assignment notes')
+                            placeholder='Enter assignment notes...')
                         = formData.assignment_notes || ''
-              
-              // General Notes
-              .row.mt-3
+              .row.mb-4
                 .col-12
-                  .form-group.mb-3
-                    label(for='notes' class='form-label')
-                      i.fas.fa-sticky-note.me-2
-                      | Notes
-                    textarea(class='form-control' id='notes' name='notes' rows='3'
-                          placeholder='Enter any additional notes')
-                      = (isEdit ? (asset.notes || formData.notes) : (formData.notes || ''))
-              
-              // Active Status
-              .row.mt-3
-                .col-12
-                  .form-check.mb-3
-                    input(class='form-check-input' type='checkbox' id='is_active' name='is_active' 
-                          value='true' checked=(isEdit ? (asset.is_active !== false && formData.is_active !== 'false') : (formData.is_active !== 'false')))
-                    label(class='form-check-label' for='is_active')
-                      i.fas.fa-toggle-on.me-2
-                      | Active Asset
-              
-              // Form Actions
+                  .card.border-primary
+                    .card-header.bg-light
+                      h6.mb-0.text-primary
+                        i.fas.fa-sticky-note.me-2
+                        | Notes
+                      .form-group.mb-0
+                        textarea(class='form-control' id='notes' name='notes' rows='4')
+                          = (isEdit ? (asset.notes || formData.notes) : (formData.notes || ''))
               .row.mt-4
                 .col-6
                   a(href='/assets' class='btn btn-secondary')
@@ -254,47 +236,3 @@ block content
                     button(type='submit' class='btn btn-primary')
                       i.fas.fa-save.me-2
                       | Create
-
-block scripts
-  script.
-    // Form validation
-    (function() {
-      'use strict';
-      const form = document.getElementById('assetForm');
-      const isEdit = #{isEdit ? 'true' : 'false'};
-      
-      if (form) {
-        form.addEventListener('submit', function(event) {
-          if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-          }
-          form.classList.add('was-validated');
-        }, false);
-      }
-
-      if (!isEdit) {
-        const statusSelect = document.getElementById('status');
-        const employeeSelect = document.getElementById('employee_id');
-        const assignmentNotesRow = document.getElementById('assignmentNotesRow');
-        
-        statusSelect.addEventListener('change', function() {
-          if (this.value === 'assigned') {
-            employeeSelect.setAttribute('required', '');
-            employeeSelect.closest('.form-group').querySelector('.form-label').classList.add('required-field');
-            assignmentNotesRow.style.display = 'block';
-          } else {
-            employeeSelect.removeAttribute('required');
-            employeeSelect.closest('.form-group').querySelector('.form-label').classList.remove('required-field');
-            assignmentNotesRow.style.display = 'none';
-            employeeSelect.value = '';
-          }
-        });
-        
-        if (statusSelect.value === 'assigned') {
-          employeeSelect.setAttribute('required', '');
-          employeeSelect.closest('.form-group').querySelector('.form-label').classList.add('required-field');
-          assignmentNotesRow.style.display = 'block';
-        }
-      }
-    })();

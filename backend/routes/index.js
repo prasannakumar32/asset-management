@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const { ensureAuthenticated } = require('../middleware/authhandler');
-
 const assets = require('../asset/assetRoute');
 const employees = require('../employee/employeeRoute');
 const assetCategories = require('../assetCategories/assetCategoryRoute');
@@ -13,14 +12,14 @@ const stock = require('../stock/stockRoute');
 // Assets page
 router.get('/assets', ensureAuthenticated, require('../asset/assetController').list);
 
-// Asset form
+//create asset and edit assert 
 router.get('/assets/form', ensureAuthenticated, require('../asset/assetController').showAssetForm);
 router.get('/assets/:id/form', ensureAuthenticated, require('../asset/assetController').showAssetForm);
 
 // Get single asset
 router.get('/assets/:id', ensureAuthenticated, require('../asset/assetController').getById);
 
-// Create Asset (handle form submission)
+// Create Asset 
 router.post('/assets', ensureAuthenticated, require('../asset/assetController').create);
 
 // Update asset
@@ -28,6 +27,9 @@ router.put('/assets/:id', ensureAuthenticated, require('../asset/assetController
 
 // Delete asset
 router.delete('/assets/:id', ensureAuthenticated, require('../asset/assetController').delete);
+router.post('/assets/:id/delete', (req, res) => {
+  require('../asset/assetController').delete(req, res);
+});
 
 // Employees page
 router.get('/employee', ensureAuthenticated, (req, res) => {
@@ -56,19 +58,16 @@ router.use('/api/asset-history', assetHistory);
 router.get('/asset-assignment', ensureAuthenticated, (req, res) => {
   res.render('asset-assignment/asset-assignment');
 });
-
 // Login page (JADE)
 router.get('/login', (req, res) => {
   res.render('login');
 });
-
 // Logout
 router.get('/logout', (req, res) => { 
   req.logout(() => {
     res.redirect('/login');
   });
 });
-
 // Form login
 router.post('/login', (req, res, next) => {
   passport.authenticate('local', { 
@@ -77,7 +76,6 @@ router.post('/login', (req, res, next) => {
     failureFlash: false
   })(req, res, next);
 });
-
 // API login
 router.post('/api/login', (req, res, next) => {
   passport.authenticate('local', (err, user) => {

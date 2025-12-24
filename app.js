@@ -6,8 +6,7 @@ const app = express();
 const db = require('./backend/models');
 const bcrypt=require('bcryptjs');
 const path = require('path');
-
-
+const methodOverride = require('method-override');
 
 //check database connection
 const connectDB = async () => {
@@ -42,6 +41,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(methodOverride('_method'));
+
 // Enable CORS for local API calls
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -86,5 +87,4 @@ const startServer = async () => {
     console.log(`Server running on port ${PORT}`);
   });
 };
-
 startServer().catch(console.error);
