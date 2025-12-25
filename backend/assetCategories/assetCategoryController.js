@@ -6,13 +6,10 @@ exports.list = async (req, res) => {
     try {
         const { 
             status = 'active',
-            sortBy = 'name',
-            sortOrder = 'ASC'
         } = req.query;
         whereClause.is_active = status === 'active' ? true : status === 'inactive' ? false : undefined;
         const categories = await AssetCategory.findAll({
             where: whereClause,
-            order: [[sortBy, sortOrder.toUpperCase()]]
         });
 
         return res.json({

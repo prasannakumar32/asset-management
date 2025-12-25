@@ -85,23 +85,6 @@ assignments.forEach(assignment => {
     });
   }
 });
-    
-    // Sort timeline by date
-    timeline.sort((a, b) => new Date(b.date) - new Date(a.date));
-    const totalDays = asset.purchase_date ? 
-      Math.ceil((new Date() - new Date(asset.purchase_date)) / (1000 * 60 * 60 * 24)) : 0;
-    let assignedDays = 0;
-    assignments.forEach(assignment => {
-      try {
-        const startDate = new Date(assignment.assigned_date);
-        const endDate = assignment.return_date ? new Date(assignment.return_date) : new Date();
-        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-          assignedDays += Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-        }
-      } catch (dateError) {
-        console.warn('Invalid date in assignment:', assignment.id);
-      }
-    });
 
     res.render('assetHistory/assetHistory', {
       asset,

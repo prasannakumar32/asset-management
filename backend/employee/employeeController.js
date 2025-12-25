@@ -20,7 +20,6 @@ exports.list = async (req, res) => {
 
         const employees = await Employee.findAll({
             where: whereClause,
-            order: [[sortBy, sortOrder.toUpperCase()]],
             raw: true
         });
 

@@ -1,9 +1,6 @@
 const { Op } = require('sequelize');
 const db = require('../models');
-const Asset = db.Asset;
-const AssetHistory = db.AssetHistory;
-const AssetCategory = db.AssetCategory;
-const Employee = db.Employee;
+const { Asset, AssetHistory, AssetCategory, Employee } = db;
 
 exports.showAssetForm = async (req, res) => {
     try {
@@ -88,7 +85,6 @@ exports.list = async (req, res) => {
                     name: category,
                     is_active: true 
                 },
-                raw: true
             });
             if (foundCategory) {
                 whereClause.category_id = foundCategory.id;
@@ -97,10 +93,10 @@ exports.list = async (req, res) => {
         
 // Status filter
         status && ['available', 'assigned', 'maintenance', 'retired'].includes(status) ? whereClause.status = status : null;
-        
         is_active === 'true' || is_active === 'false' ? whereClause.is_active = is_active === 'true' : null;
         // Branch filter
         branch ? whereClause.branch = branch : null;
+
         const assets = await Asset.findAll({
             where: whereClause,
             include: [
@@ -393,21 +389,15 @@ exports.update = async (req, res) => {
         if (assetData.is_active !== undefined) {
             assetData.is_active = assetData.is_active === 'true';
         }
-// Don't allow asset_tag to be updated
+// Don't allow asset_tag to be update
         delete assetData.asset_tag;
         delete assetData.current_assignment; 
-
-        const [updatedRowsCount] = await Asset.update(assetData, { where: { id } });
-        
-        if (updatedRowsCount === 0) {
-            return res.redirect(`/assets/${id}/form?error=Asset not found`);
-        }
+        Asset.update(assetData, { where: { id } });
 // Create history record for asset update
         await AssetHistory.create({
             asset_id: parseInt(id),
             action_type: 'updated',
             action_date: new Date(),
-            notes: `Asset updated with new status: ${assetData.status || 'unchanged'}`
         });
 // Redirect to assets list
         return res.redirect('/assets');
@@ -422,28 +412,20 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
     try {
         const { id } = req.params;
-// Start transaction to ensure data consistency
         const transaction = await db.sequelize.transaction();
         try {
-// First delete related asset histories
             await AssetHistory.destroy({ 
                 where: { asset_id: id },
                 transaction 
             });  
-// Then delete related asset assignments
             await db.AssetAssignment.destroy({ 
                 where: { asset_id: id },
                 transaction 
             });    
-// Finally delete the asset
-            const deletedRowsCount = await Asset.destroy({ 
+            await Asset.destroy({ 
                 where: { id },
                 transaction 
             });   
-            if (deletedRowsCount === 0) {
-                await transaction.rollback();
-                return res.redirect('/assets?error=Asset not found');
-            }
 // Commit the transaction
             await transaction.commit();
 // Redirect to assets list

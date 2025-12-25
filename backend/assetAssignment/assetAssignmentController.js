@@ -6,20 +6,12 @@ const { Asset, Employee, AssetAssignment } = db;
 exports.listAssignments = async (req, res) => {
   try {
     const { 
-      search = '',
       status = '', 
       sortBy = 'assigned_date',
       sortOrder = 'DESC' } = req.query;
 
-// Build where clause
-    const whereClause = {
-      ...(search && { [Op.or]: [{ notes: { [Op.like]: `%${search}%` } }] }),
-      ...(status && { status })
-    };
-
     const assignments = await AssetAssignment.findAll({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-      order: [[sortBy, sortOrder.toUpperCase()]],
       include: [
         {
           model: Asset,
@@ -83,7 +75,6 @@ exports.getAssignment = async (req, res) => {
         error: 'Assignment not found'
       });
     }
-
     res.json({
       success: true,
       data: assignment
@@ -97,7 +88,6 @@ exports.getAssignment = async (req, res) => {
     });
   }
 };
-
 // Create assignment
 exports.createAssignment = async (req, res) => {
   try {
