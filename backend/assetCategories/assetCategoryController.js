@@ -5,24 +5,11 @@ const AssetCategory = db.AssetCategory;
 exports.list = async (req, res) => {
     try {
         const { 
-            search = '', 
             status = 'active',
             sortBy = 'name',
             sortOrder = 'ASC'
         } = req.query;
-
-        const whereClause = {};
-        if (search) {
-            whereClause[Op.or] = [
-                { name: { [Op.like]: `%${search}%` } },
-                { description: { [Op.like]: `%${search}%` } }
-            ];
-        }
-        if (status === 'active') {
-            whereClause.is_active = true;
-        } else if (status === 'inactive') {
-            whereClause.is_active = false;
-        }
+        whereClause.is_active = status === 'active' ? true : status === 'inactive' ? false : undefined;
         const categories = await AssetCategory.findAll({
             where: whereClause,
             order: [[sortBy, sortOrder.toUpperCase()]]
@@ -51,16 +38,15 @@ exports.getById = async (req, res) => {
         
         const category = await AssetCategory.findByPk(id);
         
-        if (!category) {
-            return res.status(404).json({
+        return !category 
+            ? res.status(404).json({
                 success: false,
                 error: 'Category not found'
-            });
-        }
-        return res.json({
-            success: true,
-            data: category
-        });
+              })
+            : res.json({
+                success: true,
+                data: category
+              });
         
     } catch (error) {
         console.error('Error fetching category:', error);
@@ -97,18 +83,19 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         const categoryData = req.body;
         const [updatedRowsCount] = await AssetCategory.update(categoryData, { where: { id } });
-        if (updatedRowsCount === 0) {
-            return res.status(404).json({
+        return updatedRowsCount === 0
+            ? res.status(404).json({
                 success: false,
-                error: 'Category not found'
-            });
-        }
-        const updatedCategory = await AssetCategory.findByPk(id);
-        return res.json({
-            success: true,
-            data: updatedCategory,
-            message: 'Category updated successfully'
-        });
+                error: 'Category not found or no changes made'
+              })
+            : (async () => {
+                const updatedCategory = await AssetCategory.findByPk(id);
+                return res.json({
+                    success: true,
+                    data: updatedCategory,
+                    message: 'Category updated successfully'
+                });
+            })();
     } catch (error) {
         console.error('Error updating category:', error);
         return res.status(500).json({

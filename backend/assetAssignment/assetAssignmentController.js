@@ -12,15 +12,10 @@ exports.listAssignments = async (req, res) => {
       sortOrder = 'DESC' } = req.query;
 
 // Build where clause
-    const whereClause = {};
-    if (search) {
-      whereClause[Op.or] = [
-        { notes: { [Op.like]: `%${search}%` } }
-      ];
-    }
-    if (status) {
-      whereClause.status = status;
-    }
+    const whereClause = {
+      ...(search && { [Op.or]: [{ notes: { [Op.like]: `%${search}%` } }] }),
+      ...(status && { status })
+    };
 
     const assignments = await AssetAssignment.findAll({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
@@ -109,9 +104,7 @@ exports.createAssignment = async (req, res) => {
     const assignmentData = req.body;
     
 // Set assigned date if not provided
-    if (!assignmentData.assigned_date) {
-      assignmentData.assigned_date = new Date().toISOString().split('T')[0];
-    }
+    assignmentData.assigned_date = assignmentData.assigned_date || new Date().toISOString().split('T')[0];
 
 // Set default status
     assignmentData.status = 'assigned';
@@ -181,7 +174,6 @@ exports.updateAssignment = async (req, res) => {
 exports.deleteAssignment = async (req, res) => {
   try {
     const assignment = await AssetAssignment.findByPk(req.params.id);
-    
     if (!assignment) {
       return res.status(404).json({
         success: false,
@@ -262,6 +254,7 @@ exports.returnAsset = async (req, res) => {
         status: 'assigned'
       }
     });
+    
     if (!assignment) {
       return res.status(404).json({
         success: false,
@@ -323,12 +316,13 @@ exports.showReturnForm = async (req, res) => {
     });
   }
 };
+
 // Show issue form
 exports.showIssueForm = async (req, res) => {
   try {
     return res.render('asset-assignment/issue-form', {
-      error: req.query.error,
-      success: req.query.success
+      error: req.query.error || null,
+      success: req.query.success || null
     });
   } catch (error) {
     console.error('Error loading issue form:', error);
@@ -336,4 +330,4 @@ exports.showIssueForm = async (req, res) => {
       error: req.query.error || 'Error loading issue form'
     });
   }
-};
+}

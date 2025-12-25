@@ -78,44 +78,29 @@ exports.list = async (req, res) => {
             status = '', 
             is_active = '',
             branch = '',
-            sortBy = 'name',
-            sortOrder = 'ASC'
         } = req.query;
-        
-// Build where clause for filtering
         const whereClause = {};
-        
-// Category filter
-        if (category) {
- // First try to find category by ID
-            if (!isNaN(category)) {
-                whereClause.category_id = parseInt(category);
-            } else {
-                const foundCategory = await db.AssetCategory.findOne({
-                    where: { 
-                        name: { [Op.iLike]: `%${category}%` },
-                        is_active: true 
-                    },
-                    raw: true
-                });
-                if (foundCategory) {
-                    whereClause.category_id = foundCategory.id;
-                }
+        // Category filter
+        category && !isNaN(category) ? whereClause.category_id = parseInt(category) : 
+        category ? (async () => {
+            const foundCategory = await db.AssetCategory.findOne({
+                where: { 
+                    name: category,
+                    is_active: true 
+                },
+                raw: true
+            });
+            if (foundCategory) {
+                whereClause.category_id = foundCategory.id;
             }
-        }
+        })() : null;
         
 // Status filter
-        if (status && ['available', 'assigned', 'maintenance', 'retired'].includes(status)) {
-            whereClause.status = status;
-        }
-        // Active/Inactive filter
-        if (is_active === 'true' || is_active === 'false') {
-            whereClause.is_active = is_active === 'true';
-        }
+        status && ['available', 'assigned', 'maintenance', 'retired'].includes(status) ? whereClause.status = status : null;
+        
+        is_active === 'true' || is_active === 'false' ? whereClause.is_active = is_active === 'true' : null;
         // Branch filter
-        if (branch) {
-            whereClause.branch = branch;
-        }
+        branch ? whereClause.branch = branch : null;
         const assets = await Asset.findAll({
             where: whereClause,
             include: [
@@ -140,7 +125,6 @@ exports.list = async (req, res) => {
                     limit: 1
                 }
             ],
-            order: [[sortBy, sortOrder.toUpperCase()]]
         });
 // categories for the dropdown
         const categories = await AssetCategory.findAll({ 
@@ -167,8 +151,6 @@ exports.list = async (req, res) => {
             status,
             is_active,
             branch,
-            sortBy,
-            sortOrder,
             success: req.query.success,
             error: req.query.error
         });
@@ -182,8 +164,6 @@ exports.list = async (req, res) => {
             status: req.query.status || '',
             is_active: req.query.is_active || 'true',
             branch: req.query.branch || '',
-            sortBy: req.query.sortBy || 'name',
-            sortOrder: req.query.sortOrder || 'ASC',
             error: 'Failed to load assets'
         });
     }
@@ -196,33 +176,28 @@ exports.listAPI = async (req, res) => {
             category = '', 
             status = '', 
             is_active = 'true',
-            branch = '',
-            sortBy = 'name',
-            sortOrder = 'ASC'
+            branch = ''
         } = req.query;
         const whereClause = {};
-                if (category) {
- // First try to find category by ID
-            if (!isNaN(category)) {
-                whereClause.category_id = parseInt(category);
-            } else {
-                const foundCategory = await db.AssetCategory.findOne({
-                    where: { 
-                        name: { [Op.iLike]: `%${category}%` },
-                        is_active: true 
-                    },
-                    raw: true
-                });
-                if (foundCategory) {
-                    whereClause.category_id = foundCategory.id;
-                }
+        category && !isNaN(category) ? whereClause.category_id = parseInt(category) : 
+        category ? (async () => {
+            const foundCategory = await db.AssetCategory.findOne({
+                where: { 
+                    name: category,
+                    is_active: true 
+                },
+                raw: true
+            });
+            if (foundCategory) {
+                whereClause.category_id = foundCategory.id;
             }
-        }
-        if (status) whereClause.status = status;
-        if (branch) whereClause.branch = branch;
-        if (is_active) {
-            whereClause.is_active = is_active === 'true';
-        }
+        })() : null;
+        
+        status ? whereClause.status = status : null;
+        
+        branch ? whereClause.branch = branch : null;
+        
+        is_active ? whereClause.is_active = is_active === 'true' : null;
         const assets = await Asset.findAll({
             where: whereClause,
             include: [
@@ -232,7 +207,6 @@ exports.listAPI = async (req, res) => {
                     attributes: ['id', 'name']
                 }
             ],
-            order: [[sortBy, sortOrder.toUpperCase()]]
         });
 
         return res.json({

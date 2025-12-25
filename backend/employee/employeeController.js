@@ -4,8 +4,7 @@ const Employee = db.Employee;
 
 exports.list = async (req, res) => {
     try {
-        const { 
-            search = '', 
+        const {
             department = '', 
             status = '', 
             branch = '',
@@ -13,19 +12,11 @@ exports.list = async (req, res) => {
             sortOrder = 'ASC'
         } = req.query;
 
-        const whereClause = {};
-
-        if (search) {
-            whereClause[Op.or] = [
-                { first_name: { [Op.like]: `%${search}%` } },
-                { last_name: { [Op.like]: `%${search}%` } },
-                { employee_id: { [Op.like]: `%${search}%` } }
-            ];
-        }
-
-        if (department) whereClause.department = department;
-        if (status) whereClause.status = status;
-        if (branch) whereClause.branch = branch;
+        const whereClause = {
+            ...(department && { department }),
+            ...(status && { status }),
+            ...(branch && { branch })
+        };
 
         const employees = await Employee.findAll({
             where: whereClause,
@@ -57,17 +48,15 @@ exports.getById = async (req, res) => {
         
         const employee = await Employee.findByPk(id);
         
-        if (!employee) {
-            return res.status(404).json({
+        return !employee
+            ? res.status(404).json({
                 success: false,
                 error: 'Employee not found'
-            });
-        }
-        
-        return res.json({
-            success: true,
-            data: employee
-        });
+              })
+            : res.json({
+                success: true,
+                data: employee
+              });
         
     } catch (error) {
         console.error('Error fetching employee:', error);
@@ -110,20 +99,19 @@ exports.update = async (req, res) => {
 
         const [updatedRowsCount] = await Employee.update(employeeData, { where: { id } });
         
-        if (updatedRowsCount === 0) {
-            return res.status(404).json({
+        return updatedRowsCount === 0
+            ? res.status(404).json({
                 success: false,
-                error: 'Employee not found'
-            });
-        }
-
-        const updatedEmployee = await Employee.findByPk(id);
-        
-        return res.json({
-            success: true,
-            data: updatedEmployee,
-            message: 'Employee updated successfully'
-        });
+                error: 'Employee not found or no changes made'
+              })
+            : (async () => {
+                const updatedEmployee = await Employee.findByPk(id);
+                return res.json({
+                    success: true,
+                    data: updatedEmployee,
+                    message: 'Employee updated successfully'
+                });
+            })();
 
     } catch (error) {
         console.error('Error updating employee:', error);
@@ -142,17 +130,15 @@ exports.delete = async (req, res) => {
         
         const deletedRowsCount = await Employee.destroy({ where: { id } });
         
-        if (deletedRowsCount === 0) {
-            return res.status(404).json({
+        return deletedRowsCount === 0
+            ? res.status(404).json({
                 success: false,
                 error: 'Employee not found'
-            });
-        }
-        
-        return res.json({
-            success: true,
-            message: 'Employee deleted successfully'
-        });
+              })
+            : res.json({
+                success: true,
+                message: 'Employee deleted successfully'
+              });
 
     } catch (error) {
         console.error('Error deleting employee:', error);
