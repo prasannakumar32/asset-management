@@ -17,9 +17,9 @@ block content
               .row.mb-3
                 .col-12
                   .d-flex.justify-content-start
-                    a(href='/asset-assignment' class='btn btn-outline-secondary btn-sm')
+                    a(href='/assets' class='btn btn-outline-primary btn-sm')
                       i.fas.fa-arrow-left.me-2
-                      | Back to Asset Assignments
+                      | Back to Assets
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
@@ -83,16 +83,14 @@ block scripts
         const assetSelect = document.getElementById('assetId');
         
         if (result.success && result.data) {
-          const availableAssets = result.data.assets ? result.data.assets.filter(asset => asset.is_active && asset.status === 'available') : [];
+          // Display all active assets except those that are assigned
+          const availableAssets = result.data.assets ? result.data.assets.filter(asset => asset.is_active && asset.status !== 'assigned') : [];
           
           if (availableAssets.length === 0) {
-            console.warn('No available assets found');
             return;
           }
-          
           // Clear existing options
           assetSelect.innerHTML = '<option value="">Select Asset</option>';
-          
           // Populate dropdown
           availableAssets.forEach(asset => {
             const option = document.createElement('option');
@@ -103,9 +101,11 @@ block scripts
           
         } else {
           console.error('Error loading assets:', result.error || 'Unknown error');
+          console.error('Full result object:', result);
         }
       } catch (error) {
         console.error('Error loading assets:', error);
+        console.error('Error details:', error.message);
       }
     }
 
@@ -113,10 +113,7 @@ block scripts
       try {
         const response = await fetch('/api/employee');
         const result = await response.json();
-        const select = document.getElementById('employeeId');
-        
-        console.log('Employee API response:', result);
-        
+        const select = document.getElementById('employeeId');        
         if (result.success && result.data && result.data.employees) {
           // Clear existing options
           select.innerHTML = '<option value="">Select Employee</option>';
@@ -146,9 +143,6 @@ block scripts
         const response = await fetch('/api/employee');
         const result = await response.json();
         const select = document.getElementById('assignedBy');
-        
-        console.log('Assigners API response:', result);
-        
         if (result.success && result.data && result.data.employees) {
           // Clear existing options
           select.innerHTML = '<option value="">Select Manager/Staff</option>';

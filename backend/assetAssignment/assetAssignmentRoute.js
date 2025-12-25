@@ -17,4 +17,10 @@ router.put('/:id', assetAssignmentController.updateAssignment);
 // Delete asset assignment 
 router.delete('/:id', assetAssignmentController.deleteAssignment);
 
+// Return asset
+router.post('/return', assetAssignmentController.returnAsset);
+
+// Get assignments by employee
+router.get('/employee/:employeeId', assetAssignmentController.getAssignmentsByEmployee);
+
 module.exports = router;

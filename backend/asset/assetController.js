@@ -13,7 +13,6 @@ exports.showAssetForm = async (req, res) => {
         const categories = await AssetCategory.findAll({ 
             where: { is_active: true },
             order: [['name', 'ASC']],
-            raw: true 
         });
         const employees = await Employee.findAll({ 
             where: { status: 'active' },
@@ -61,21 +60,6 @@ exports.showAssetForm = async (req, res) => {
         });
     } catch (error) {
         console.error('Error loading asset form:', error);
-        let categories = [];
-        let employees = [];
-        try {
-            categories = await AssetCategory.findAll({ 
-                where: { is_active: true },
-                order: [['name', 'ASC']],
-                raw: true  
-            });
-            employees = await Employee.findAll({ 
-                where: { status: 'active' },
-                order: [['first_name', 'ASC'], ['last_name', 'ASC']]
-            });
-        } catch (fetchError) {
-            console.error('Error fetching dropdown data:', fetchError);
-        }
         return res.render('asset/asset-form', {
             isEdit: !!req.params.id,
             asset: null,
@@ -87,11 +71,9 @@ exports.showAssetForm = async (req, res) => {
     }
 };
 
-
 exports.list = async (req, res) => {
     try {
         const { 
-            search = '', 
             category = '', 
             status = '', 
             is_active = '',
@@ -99,21 +81,40 @@ exports.list = async (req, res) => {
             sortBy = 'name',
             sortOrder = 'ASC'
         } = req.query;
+        
+// Build where clause for filtering
         const whereClause = {};
-        if (search) {
-            whereClause[Op.or] = [
-                { name: { [Op.like]: `%${search}%` } },
-                { asset_tag: { [Op.like]: `%${search}%` } },
-                { serial_number: { [Op.like]: `%${search}%` } },
-                { model: { [Op.like]: `%${search}%` } },
-                { manufacturer: { [Op.like]: `%${search}%` } }
-            ];
+        
+// Category filter
+        if (category) {
+ // First try to find category by ID
+            if (!isNaN(category)) {
+                whereClause.category_id = parseInt(category);
+            } else {
+                const foundCategory = await db.AssetCategory.findOne({
+                    where: { 
+                        name: { [Op.iLike]: `%${category}%` },
+                        is_active: true 
+                    },
+                    raw: true
+                });
+                if (foundCategory) {
+                    whereClause.category_id = foundCategory.id;
+                }
+            }
         }
-        if (category) whereClause.category_id = category;
-        if (status) whereClause.status = status;
-        if (branch) whereClause.branch = branch;
-        if (is_active) {
+        
+// Status filter
+        if (status && ['available', 'assigned', 'maintenance', 'retired'].includes(status)) {
+            whereClause.status = status;
+        }
+        // Active/Inactive filter
+        if (is_active === 'true' || is_active === 'false') {
             whereClause.is_active = is_active === 'true';
+        }
+        // Branch filter
+        if (branch) {
+            whereClause.branch = branch;
         }
         const assets = await Asset.findAll({
             where: whereClause,
@@ -147,10 +148,21 @@ exports.list = async (req, res) => {
             order: [['name', 'ASC']],
             raw: true  
         });
+// Get  branches for branch filter
+        const branches = await Asset.findAll({
+            attributes: [
+                [db.Sequelize.fn('DISTINCT', db.Sequelize.col('branch')), 'branch']
+            ],
+            where: {
+                branch: { [Op.ne]: null }
+            },
+            order: [['branch', 'ASC']],
+            raw: true
+        });
         return res.render('asset/asset', {
             assets,
             categories,
-            search,
+            branches: branches.map(b => b.branch).filter(b => b), 
             category,
             status,
             is_active,
@@ -162,38 +174,25 @@ exports.list = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching assets:', error);
-// Still try to fetch categories for the dropdown even if assets fail
-        let categories = [];
-        try {
-            categories = await AssetCategory.findAll({ 
-                where: { is_active: true },
-                order: [['name', 'ASC']],
-                raw: true  
-            });
-        } catch (catError) {
-            console.error('Error fetching categories:', catError);
-        }
-        
+
         return res.render('asset/asset', {
             assets: [],
             categories,
-            search,
-            category,
-            status,
-            is_active,
-            branch,
-            sortBy,
-            sortOrder,
+            category: req.query.category || '',
+            status: req.query.status || '',
+            is_active: req.query.is_active || 'true',
+            branch: req.query.branch || '',
+            sortBy: req.query.sortBy || 'name',
+            sortOrder: req.query.sortOrder || 'ASC',
             error: 'Failed to load assets'
         });
     }
 };
 
-// API endpoint to get assets as JSON
+// API endpoint to list asset
 exports.listAPI = async (req, res) => {
     try {
         const { 
-            search = '', 
             category = '', 
             status = '', 
             is_active = 'true',
@@ -202,16 +201,23 @@ exports.listAPI = async (req, res) => {
             sortOrder = 'ASC'
         } = req.query;
         const whereClause = {};
-        if (search) {
-            whereClause[Op.or] = [
-                { name: { [Op.like]: `%${search}%` } },
-                { asset_tag: { [Op.like]: `%${search}%` } },
-                { serial_number: { [Op.like]: `%${search}%` } },
-                { model: { [Op.like]: `%${search}%` } },
-                { manufacturer: { [Op.like]: `%${search}%` } }
-            ];
+                if (category) {
+ // First try to find category by ID
+            if (!isNaN(category)) {
+                whereClause.category_id = parseInt(category);
+            } else {
+                const foundCategory = await db.AssetCategory.findOne({
+                    where: { 
+                        name: { [Op.iLike]: `%${category}%` },
+                        is_active: true 
+                    },
+                    raw: true
+                });
+                if (foundCategory) {
+                    whereClause.category_id = foundCategory.id;
+                }
+            }
         }
-        if (category) whereClause.category_id = category;
         if (status) whereClause.status = status;
         if (branch) whereClause.branch = branch;
         if (is_active) {

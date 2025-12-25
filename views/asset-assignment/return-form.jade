@@ -1,0 +1,196 @@
+extends ../navbar
+
+block content
+  .container-fluid.px-4.py-4
+    .row.mb-4
+      .col-12
+        h1.text-center.mb-4
+          i.fas.fa-undo.me-2
+          | Return Asset from Employee
+    
+    .row.justify-content-center
+      .col-lg-9.col-md-9
+        .card.shadow
+          .card-header
+          .card-body
+            form(action='/api/asset-assignment/return', method='POST', id='returnForm', novalidate, class='asset-form-container')
+              .row.mb-3
+                .col-12
+                  .d-flex.justify-content-start
+                    a(href='/assets' class='btn btn-outline-primary btn-sm')
+                      i.fas.fa-arrow-left.me-2
+                      | Back to Asset
+              .row.mb-3
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='employeeId' class='form-label required-field')
+                      i.fas.fa-user.me-2
+                      | Employee *
+                    select#employeeId.form-select(name='employee_id', required)
+                      option(value='') Select Employee
+                    .invalid-feedback
+                      | Please select an employee
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='assetId' class='form-label required-field')
+                      i.fas.fa-cube.me-2
+                      | Asset *
+                    select#assetId.form-select(name='asset_id', required)
+                      option(value='') Select Asset
+                    .invalid-feedback
+                      | Please select an asset
+              .row.mb-3
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='returnDate' class='form-label required-field')
+                      i.fas.fa-calendar.me-2
+                      | Return Date *
+                    input#returnDate.form-control(name='return_date', type='date', value=new Date().toISOString().split('T')[0], required)
+                    .invalid-feedback
+                      | Please select return date
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='returnCondition' class='form-label required-field')
+                      i.fas.fa-check-circle.me-2
+                      | Return Condition *
+                    select#returnCondition.form-select(name='return_condition', required)
+                      option(value='') Select Condition
+                      option(value='excellent') Excellent
+                      option(value='good') Good
+                      option(value='fair') Fair
+                      option(value='poor') Poor
+                      option(value='damaged') Damaged
+                    .invalid-feedback
+                      | Please select return condition
+              .row.mb-3
+                .col-12
+                  .form-group.mb-3
+                    label(for='notes' class='form-label')
+                      i.fas.fa-sticky-note.me-2
+                      | Notes
+                    textarea#notes.form-control(name='notes', rows='3')
+              .row.mt-4
+                .col-6
+                  a(href='/asset-assignment' class='btn btn-secondary')
+                    i.fas.fa-times.me-2
+                    | Cancel
+                .col-6.text-end
+                  button(type='submit' class='btn btn-primary')
+                    i.fas fa-undo.me-2
+                    | Return Asset
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      loadEmployees();
+      setupEmployeeChangeHandler();
+    });
+
+    async function loadEmployees() {
+      try {
+        const response = await fetch('/api/employee');
+        const result = await response.json();
+        const select = document.getElementById('employeeId');
+        
+        if (result.success && result.data && result.data.employees) {
+          // Clear existing options
+          select.innerHTML = '<option value="">Select Employee</option>';
+          
+          result.data.employees.forEach(employee => {
+            if (employee.status === 'active') {
+              const option = document.createElement('option');
+              option.value = employee.id;
+              option.textContent = `${employee.first_name} ${employee.last_name} (${employee.email})`;
+              select.appendChild(option);
+            }
+          });
+          
+          if (select.children.length === 1) {
+            console.warn('No active employees found');
+          }
+        } else {
+          console.error('Error loading employees:', result.error || 'Invalid response format');
+        }
+      } catch (error) {
+        console.error('Error loading employees:', error);
+      }
+    }
+
+    function setupEmployeeChangeHandler() {
+      const employeeSelect = document.getElementById('employeeId');
+      employeeSelect.addEventListener('change', loadEmployeeAssets);
+    }
+
+    async function loadEmployeeAssets() {
+      const employeeId = document.getElementById('employeeId').value;
+      const assetSelect = document.getElementById('assetId');
+      
+      if (!employeeId) {
+        assetSelect.innerHTML = '<option value="">Select Employee First</option>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/asset-assignment/employee/${employeeId}`);
+        const result = await response.json();
+        
+        // Clear existing options
+        assetSelect.innerHTML = '<option value="">Select Asset</option>';
+        
+        if (result.success && result.data && result.data.assignments) {
+          const assignments = result.data.assignments;
+          
+          if (assignments.length === 0) {
+            assetSelect.innerHTML = '<option value="">No assigned assets found</option>';
+            return;
+          }
+          
+          assignments.forEach(assignment => {
+            const option = document.createElement('option');
+            option.value = assignment.asset.id;
+            option.textContent = `${assignment.asset.name} (${assignment.asset.asset_tag})`;
+            assetSelect.appendChild(option);
+          });
+        } else {
+          assetSelect.innerHTML = '<option value="">No assigned assets found</option>';
+        }
+      } catch (error) {
+        console.error('Error loading employee assets:', error);
+        assetSelect.innerHTML = '<option value="">Error loading assets</option>';
+      }
+    }
+
+    // Form validation
+    document.getElementById('returnForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const form = event.target;
+      form.classList.add('was-validated');
+      
+      if (form.checkValidity()) {
+        // Submit form via fetch API
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        fetch('/api/asset-assignment/return', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            window.location.href = '/asset-assignment?success=' + encodeURIComponent(result.message);
+          } else {
+            alert('Error: ' + (result.error || 'Failed to return asset'));
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error returning asset. Please try again.');
+        });
+      }
+    });

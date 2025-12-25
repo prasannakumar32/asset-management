@@ -208,3 +208,132 @@ exports.deleteAssignment = async (req, res) => {
   }
 };
 
+// Get assignments by employee
+exports.getAssignmentsByEmployee = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const assignments = await AssetAssignment.findAll({
+      where: { 
+        employee_id: employeeId,
+        status: 'assigned'
+      },
+      include: [
+        {
+          model: Asset,
+          as: 'asset',
+          attributes: ['id', 'name', 'asset_tag', 'status']
+        },
+        {
+          model: Employee,
+          as: 'employee',
+          attributes: ['id', 'first_name', 'last_name', 'email']
+        },
+        {
+          model: Employee,
+          as: 'assignedBy',
+          attributes: ['id', 'first_name', 'last_name', 'email']
+        }
+      ],
+      order: [['assigned_date', 'DESC']]
+    });
+    res.json({
+      success: true,
+      data: {
+        assignments
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching employee assignments:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching employee assignments',
+      message: error.message
+    });
+  }
+};
+// Return asset
+exports.returnAsset = async (req, res) => {
+  try {
+    const { employee_id, asset_id, return_date, return_condition, notes } = req.body;
+    const assignment = await AssetAssignment.findOne({
+      where: {
+        employee_id: employee_id,
+        asset_id: asset_id,
+        status: 'assigned'
+      }
+    });
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Active assignment not found'
+      });
+    }
+    // Start transaction
+    const transaction = await db.sequelize.transaction();
+    try {
+      await assignment.update({
+        status: 'returned',
+        return_date: new Date(return_date),
+        return_condition: return_condition || 'good',
+        return_notes: notes || ''
+      }, { transaction });
+      await Asset.update(
+        { status: 'available' },
+        { where: { id: asset_id } },
+        { transaction }
+      );
+      // Create history record
+      await db.AssetHistory.create({
+        asset_id: asset_id,
+        employee_id: employee_id,
+        action_type: 'returned',
+        action_date: new Date(),
+        notes: `Asset returned on ${return_date}. Condition: ${return_condition || 'good'}. ${notes || ''}`
+      }, { transaction });
+      await transaction.commit();
+      res.json({
+        success: true,
+        message: 'Asset returned successfully'
+      });
+    } catch (transactionError) {
+      await transaction.rollback();
+      throw transactionError;
+    }
+  } catch (error) {
+    console.error('Error returning asset:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error returning asset',
+      message: error.message
+    });
+  }
+};
+
+// Show return form
+exports.showReturnForm = async (req, res) => {
+  try {
+    return res.render('asset-assignment/return-form', {
+      error: req.query.error,
+      success: req.query.success
+    });
+  } catch (error) {
+    console.error('Error loading return form:', error);
+    return res.render('asset-assignment/return-form', {
+      error: req.query.error || 'Error loading return form'
+    });
+  }
+};
+// Show issue form
+exports.showIssueForm = async (req, res) => {
+  try {
+    return res.render('asset-assignment/issue-form', {
+      error: req.query.error,
+      success: req.query.success
+    });
+  } catch (error) {
+    console.error('Error loading issue form:', error);
+    return res.render('asset-assignment/issue-form', {
+      error: req.query.error || 'Error loading issue form'
+    });
+  }
+};

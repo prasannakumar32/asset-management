@@ -20,15 +20,33 @@ const connectDB = async () => {
   }
 };
 
-//set up session
+// Initialize Passport and session
 app.use(
   session({
     secret: "mysecretkey",
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === 'production' }
   })
-)
+);
 
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Serialize and deserialize user
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await db.User.findByPk(id);
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+});
 
 // 🔑 Set JADE as view engine
 app.set('view engine', 'jade');

@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
-const { ensureAuthenticated } = require('../middleware/authhandler');
 const assets = require('../asset/assetRoute');
 const employees = require('../employee/employeeRoute');
 const assetCategories = require('../assetCategories/assetCategoryRoute');
@@ -10,51 +9,54 @@ const assetHistory = require('../assetHistory/assetHistoryRoute');
 const stock = require('../stock/stockRoute');
 
 // Assets page
-router.get('/assets', ensureAuthenticated, require('../asset/assetController').list);
+router.get('/assets', require('../asset/assetController').list);
 
 //create asset and edit assert 
-router.get('/assets/form', ensureAuthenticated, require('../asset/assetController').showAssetForm);
-router.get('/assets/:id/form', ensureAuthenticated, require('../asset/assetController').showAssetForm);
+router.get('/assets/form', require('../asset/assetController').showAssetForm);
+router.get('/assets/:id/form', require('../asset/assetController').showAssetForm);
 
 // Get single asset (view page)
-router.get('/assets/:id', ensureAuthenticated, require('../asset/assetController').viewAsset);
+router.get('/assets/:id' , require('../asset/assetController').viewAsset);
 
 // Create Asset 
-router.post('/assets', ensureAuthenticated, require('../asset/assetController').create);
+router.post('/assets' , require('../asset/assetController').create);
 
 // Update asset
-router.put('/assets/:id', ensureAuthenticated, require('../asset/assetController').update);
+router.put('/assets/:id' , require('../asset/assetController').update);
 
 // Delete asset
-router.delete('/assets/:id', ensureAuthenticated, require('../asset/assetController').delete);
+router.delete('/assets/:id' , require('../asset/assetController').delete);
 router.post('/assets/:id/delete', (req, res) => {
   require('../asset/assetController').delete(req, res);
 });
 
 // Employees page
-router.get('/employee', ensureAuthenticated, (req, res) => {
+router.get('/employee' , (req, res) => {
   res.render('employee/employee');
 });
 
 // Asset Assignment page
-router.get('/asset-assignment', ensureAuthenticated, (req, res) => {
+router.get('/asset-assignment' , (req, res) => {
   res.render('asset-assignment/asset-assignment');
 });
 
 // Asset Assignment Issue Form page
-router.get('/asset-assignments/issue', ensureAuthenticated, (req, res) => {
+router.get('/asset-assignments/issue' , (req, res) => {
   res.render('asset-assignment/issue-form');
 });
 
+// Asset Assignment Return Form page
+router.get('/asset-assignments/return' , require('../assetAssignment/assetAssignmentController').showReturnForm);
+
 // Asset Categories page
-router.get('/asset-categories', ensureAuthenticated, (req, res) => {
+router.get('/asset-categories' , (req, res) => {
   res.render('asset-categories/asset-categories');
 });
 
 // API routes are handled in app.js, no need to duplicate here
 
 // Asset Assignment Page
-router.get('/asset-assignment', ensureAuthenticated, (req, res) => {
+router.get('/asset-assignment' , (req, res) => {
   res.render('asset-assignment/asset-assignment');
 });
 // Login page (JADE)
@@ -101,7 +103,7 @@ const statusColors = {
   'damaged': 'grey'
 };
 
-router.get('/dashboard', ensureAuthenticated, async (req, res) => {
+router.get('/dashboard' , async (req, res) => {
   try {
     
     const allAssets = await db.Asset.findAll();
@@ -124,7 +126,7 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
     const availableCount = Math.max(0, assetCount - assignedCount);
     
     res.render('dashboard', {
-      username: req.user.username,
+      username: req.user ? req.user.username : 'Guest',
       assetCount,
       employeeCount,
       assignedCount,
@@ -136,13 +138,14 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
   } catch (error) {
     console.error('Dashboard error:', error);
     res.render('dashboard', {
-      username: req.user.username,
+      username: req.user ? req.user.username : 'Guest',
       assetCount: 0,
       employeeCount: 0,
       assignedCount: 0,
       availableCount: 0,
       assignments: [],
-      statusColors
+      statusColors,
+      error: 'Failed to load dashboard data'
     });
   }
 });
