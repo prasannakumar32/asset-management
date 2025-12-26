@@ -399,10 +399,8 @@ exports.update = async (req, res) => {
         } else {
             assetData.category_id = null;
         }
-// Only handle is_active field if it's present in the form data
-        if (assetData.is_active !== undefined) {
-            assetData.is_active = assetData.is_active === 'true';
-        }
+        assetData.is_active = assetData.is_active === 'true';
+
 // Don't allow asset_tag to be update
         delete assetData.asset_tag;
         delete assetData.current_assignment;
