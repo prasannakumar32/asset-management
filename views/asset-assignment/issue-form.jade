@@ -78,13 +78,12 @@ block scripts
 
     async function loadAvailableAssets() {
       try {
-        const response = await fetch('/api/assets');
+        const response = await fetch('/api/assets?status=available&is_active=true');
         const result = await response.json();
         const assetSelect = document.getElementById('assetId');
         
         if (result.success && result.data) {
-          // Display all active assets except those that are assigned
-          const availableAssets = result.data.assets ? result.data.assets.filter(asset => asset.is_active && asset.status !== 'assigned') : [];
+          const availableAssets = result.data.assets || [];
           
           if (availableAssets.length === 0) {
             return;

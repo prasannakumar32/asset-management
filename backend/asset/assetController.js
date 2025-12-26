@@ -405,7 +405,8 @@ exports.update = async (req, res) => {
         }
 // Don't allow asset_tag to be update
         delete assetData.asset_tag;
-        delete assetData.current_assignment; 
+        delete assetData.current_assignment;
+        delete assetData.currently_assigned_to;
         Asset.update(assetData, { where: { id } });
 // Create history record for asset update
         await AssetHistory.create({
