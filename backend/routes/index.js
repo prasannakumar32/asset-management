@@ -31,8 +31,12 @@ router.post('/assets/:id/delete', (req, res) => {
 });
 
 // Employees page
-router.get('/employee' , (req, res) => {
-  res.render('employee/employee');
+router.get('/employee' , require('../employee/employeeController').list);
+
+// Delete employee
+router.delete('/employee/:id', require('../employee/employeeController').delete);
+router.post('/employee/:id/delete', (req, res) => {
+  require('../employee/employeeController').delete(req, res);
 });
 
 // Asset Assignment page

@@ -11,7 +11,7 @@ block content
         .asset-actions
           a.btn.btn-primary.shadow(href='/assets/form')
             i.fas.fa-plus.me-2
-            | Add New Asset
+            | Add New
           a.btn.btn-success.shadow(href='/asset-assignment/issue')
             i.fas.fa-hand-holding-box.me-2
             | Issue Asset
@@ -73,7 +73,7 @@ block content
         .card
           .card-header.mb-3
             .d-flex.justify-content-between.align-items-center
-              h5.mb-0.asset-card-title
+              h5.mb-0.card-title
                 i.fas.fa-list.me-2
                 | Asset List
               .ms-auto
@@ -108,7 +108,7 @@ block content
                         each b in branches
                           option(value=b, selected=branch === b)= b
           .card-body.pt-3
-                table.table.table-hover.mb-0.asset-table.mt-3
+                table.table.table-hover.mb-0.table.mt-3
                   thead
                     tr
                       th.name-col Name
@@ -125,10 +125,8 @@ block content
                         td.category-td
                           if asset.category
                             span= asset.category.name
-                          else
-                            span.text-muted N/A
                         td.serial-td
-                          span= asset.serial_number || 'N/A'
+                          span= asset.serial_number
                         td.status-td
                           = asset.status
                         td.assigned-td

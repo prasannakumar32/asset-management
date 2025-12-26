@@ -1,0 +1,141 @@
+extends ../navbar
+
+block content
+  .container-fluid.px-4.py-4.asset-page-container
+    .row.mb-4.asset-page-row
+      .col-12
+        h1.text-center.mb-4.asset-page-header Employee Directory 
+    
+    .row.mb-4.asset-actions-row
+      .col-12
+        .asset-actions
+          a.btn.btn-primary.shadow(href='/employee/form')
+            i.fas.fa-plus.me-2
+            | Add New
+          a.btn.btn-success.shadow(href='/asset-assignment/issue')
+            i.fas.fa-hand-holding-box.me-2
+            | Issue Asset
+          a.btn.btn-warning.shadow(href='/asset-assignment/return')
+            i.fas.fa-undo.me-2
+            | Return Asset
+          a.btn.btn-danger.shadow(href='/asset-assignment/scrap')
+            i.fas.fa-trash.me-2
+            | Scrap Asset
+          if department || status || branch
+            button.btn.btn-info.shadow.ms-2(type='button', onclick='clearAllFilters()')
+              i.fas.fa-filter-circle-xmark.me-2
+              | Clear Filters
+    
+    script.
+      // Wait for DOM to be fully loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        // Auto submit for filters
+        const filterForm = document.getElementById('filterForm');
+        const departmentSelect = document.getElementById('department');
+        const statusSelect = document.getElementById('status');
+        const branchSelect = document.getElementById('branch');
+        
+        // Helper function to add event listener if element exists
+        function addFilterListener(element, callback) {
+          if (element) {
+            element.addEventListener('change', callback);
+          }
+        }
+
+        // Add event listeners for filter controls
+        const branchSelect = document.getElementById('branch');
+        addFilterListener(departmentSelect, () => filterForm && filterForm.submit());
+        addFilterListener(statusSelect, () => filterForm && filterForm.submit());
+        addFilterListener(branchSelect, () => filterForm && filterForm.submit());
+      });
+      // Delete confirmation 
+      function confirmDelete(employeeId, employeeName) {
+        if (confirm('Are you sure you want to delete "' + employeeName + '"? This action cannot be undone.')) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/employee/' + employeeId + '/delete';
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+      
+      // Clear all filters function
+      function clearAllFilters() {
+        document.getElementById('department').value = '';
+        document.getElementById('status').value = '';
+        document.getElementById('branch').value = '';
+        window.location.href = '/employee';
+      }
+    .row.asset-list-row
+      .col-12
+        .card
+          .card-header.mb-3
+            .d-flex.justify-content-between.align-items-center
+              h5.mb-0.card-title
+                i.fas.fa-list.me-2
+                | Employee List
+              .ms-auto
+              form.d-flex.align-items-end.justify-content-end.gap-3(method='GET', action='/employee')#filterForm
+                  .filter-form-group
+                    label.form-label.mb-0.fs-sm.text-muted(for='department') Department
+                    select.form-select.form-select-sm(name='department', id='department')
+                      option(value='') All
+                      if departments && departments.length > 0
+                        each dept in departments
+                            option(value=dept, selected=department === dept)= dept
+                  .filter-form-group
+                    label.form-label.mb-0.fs-sm.text-muted(for='status') Status
+                    select.form-select.form-select-sm(name='status', id='status')
+                      option(value='') All
+                      option(value='active', selected=status === 'active') Active
+                      option(value='inactive', selected=status === 'inactive') Inactive
+                  .filter-form-group
+                    label.form-label.mb-0.fs-sm.text-muted(for='branch') Branch
+                    select.form-select.form-select-sm(name='branch', id='branch')
+                      option(value='') All
+                      if branches && branches.length > 0
+                        each b in branches
+                          option(value=b, selected=branch === b)= b
+            .card-body.pt-3
+                .table-responsive
+                  table.table.table-hover.mb-0.table.mt-3
+                    thead
+                      tr
+                        th.name-col Name
+                        th.position-col Position
+                        th.department-col Department
+                        th.status-col Status
+                        th.phone-col Phone 
+                        th.email-col Email
+                        th.assigned-col Assigned Asset
+                        th.actions-col Actions
+                    tbody
+                      if employee && Array.isArray(employee) && employee.length > 0
+                        each emp in employee
+                          tr
+                            td.name-td
+                              span= emp.first_name + ' ' + emp.last_name
+                            td.position-td
+                              span= emp.position 
+                            td.department-td
+                              span= emp.department 
+                            td.status-td
+                              span.badge(class=emp.status === 'active' ? 'bg-success' : 'bg-danger')= emp.status === 'active' ? 'Active' : 'Inactive'
+                            td.phone-td
+                              span= emp.phone
+                            td.email-td
+                              span= emp.email
+                            td.assigned-td
+                              .d-flex.align-items-center
+                                if emp.assignments && emp.assignments.length > 0 && emp.assignments[0] && emp.assignments[0].asset
+                                  span= emp.assignments[0].asset.name
+                                else
+                                  span.text-muted Unassigned
+                            td.actions-td
+                              .d-flex.gap-1.justify-content-end
+                                a.btn.btn-outline-primary.btn-sm.action-btn(href='/employee/#{emp.id}/form' title='Edit Employee')
+                                  i.fas.fa-edit
+                                a.btn.btn-outline-info.btn-sm.action-btn(href='/employee/#{emp.id}' title='View Employee Details')
+                                  i.fas.fa-eye
+                                button.asset-action-btn.asset-btn-danger(type='button', onclick='confirmDelete(#{emp.id}, "#{emp.first_name} #{emp.last_name}")' title='Delete Employee')
+                                  i.fas.fa-trash.btn-icon
