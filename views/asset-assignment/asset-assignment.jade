@@ -1,0 +1,21 @@
+extends ../navbar
+
+block content
+  .container-fluid.px-4.py-4.asset-page-container
+    .row.mb-4.asset-page-row
+      .col-12
+        h1.text-center.mb-4.asset-page-header Asset Assignment
+    .row.mb-4.asset-actions-row
+      .col-12
+        .asset-actions
+          a.btn.btn-success.shadow(href='/asset-assignment/issue')
+            i.fas.fa-hand-holding-box.me-2
+            | Issue Asset
+          a.btn.btn-warning.shadow(href='/asset-assignment/return')
+            i.fas.fa-undo.me-2
+            | Return Asset
+          a.btn.btn-danger.shadow(href='/asset-assignment/scrap')
+            i.fas.fa-trash.me-2
+            | Scrap Asset
+            
+    
