@@ -16,13 +16,11 @@ body {
   align-items: flex-start;
   flex-wrap: wrap;
 }
-
 .card-header .d-flex {
   width: 100%;
   align-items: center;
   position: relative;
 }
-
 .card-header .asset-card-title {
   margin: 0;
   white-space: nowrap;
@@ -32,7 +30,6 @@ body {
   padding: 0.25rem 0;
   margin-right: auto;
 }
-
 .card-header form {
   margin-left: auto;
   display: flex;
@@ -48,7 +45,6 @@ body {
   width: auto;
   margin-top: 0;
 }
-
 .filter-form-group {
   display: flex;
   flex-direction: column;
@@ -57,7 +53,6 @@ body {
   margin-bottom: 0;
   flex-shrink: 0;
 }
-
 .filter-form-group label {
   font-size: 0.75rem;
   margin-bottom: 0.25rem;
@@ -65,14 +60,12 @@ body {
   color: #6c757d;
   font-weight: 500;
 }
-
 .filter-form-group .form-select-sm {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   height: 28px;
   line-height: 1.2;
 }
-
 .card-header .btn-sm {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
@@ -81,7 +74,6 @@ body {
   align-items: center;
   white-space: nowrap;
 }
-
 /* Ensure proper spacing and alignment */
 .card-header > .d-flex {
   flex-wrap: nowrap;
@@ -89,7 +81,6 @@ body {
   width: 100%;
   align-items: center;
 }
-
 /* Add a subtle border to separate title and filters */
 .card-header::after {
   content: '';
@@ -100,7 +91,6 @@ body {
   border-bottom: 1px solid #eee;
   z-index: 0;
 }
-
 .filter-form-vertical {
   display: flex;
   gap: 1rem;
@@ -114,7 +104,6 @@ body {
   top: 0;
   right: 0;
 }
-
 .filters-row .row > [class*='col-'] {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -265,47 +254,22 @@ body {
   color: black;
   font-style: italic;
 }
-
-/* Responsive adjustments for filter form */
-@media (max-width: 992px) {
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 1rem;
-  }
-  
   .card-header form {
     width: 100%;
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid #eee;
     justify-content: flex-start;
-  }
-  
+  } 
   .card-header .asset-card-title {
     width: 100%;
     padding-bottom: 0.75rem;
     margin-bottom: 0.75rem;
     border-bottom: 1px solid #eee;
   }
-  
   .filter-form-group {
     min-width: calc(33.333% - 0.67rem);
   }
-}
-
-@media (max-width: 768px) {
-  .filter-form-group {
-    min-width: calc(50% - 0.5rem);
-  }
-}
-
-@media (max-width: 480px) {
-  .filter-form-group {
-    min-width: 100%;
-  }
-}
-
 h1.mb-4 {
   text-align: center;
   margin-bottom: 30px;
@@ -507,6 +471,11 @@ h1.mb-4 {
 .asset-view-header {
   margin-bottom: 2rem;
 }
+.asset-title-centered {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
 .asset-details-container .row {
   display: flex;
   flex-wrap: wrap;
@@ -633,19 +602,16 @@ h1.mb-4 {
   max-width: 100%;
   margin: 0 auto;
 }
-
 .asset-form-container .row {
   display: flex;
   flex-wrap: wrap;
   margin: 0 -1rem;
 }
-
 .asset-form-container .col-md-6 {
   width: 50%;
   padding: 0 8px;
   box-sizing: border-box;
 }
-
 .asset-form-container .col-12 {
   width: 100%;
   padding: 0 8px;
