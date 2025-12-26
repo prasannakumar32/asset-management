@@ -10,11 +10,12 @@ body {
 /* Filter form */
 .card-header {
   position: relative;
-  padding: 0.75rem 1.25rem;
-  min-height: 56px;
+  padding: 1rem 1.25rem;
+  min-height: auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 1rem;
 }
 .card-header .d-flex {
   width: 100%;
@@ -26,24 +27,26 @@ body {
   white-space: nowrap;
   position: relative;
   z-index: 1;
-  background: white;
-  padding: 0.25rem 0;
+  background: transparent;
+  padding: 0;
   margin-right: auto;
+  flex-shrink: 0;
 }
 .card-header form {
   margin-left: auto;
   display: flex;
-  align-items: flex-end;
-  flex-wrap: nowrap;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
   position: relative;
   z-index: 1;
-  background: white;
+  background: transparent;
   padding: 0;
   justify-content: flex-end;
-  min-height: 100%;
+  min-height: auto;
   width: auto;
   margin-top: 0;
+  flex-shrink: 0;
 }
 .filter-form-group {
   display: flex;
@@ -76,10 +79,11 @@ body {
 }
 /* Ensure proper spacing and alignment */
 .card-header > .d-flex {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   overflow: visible;
   width: 100%;
   align-items: center;
+  gap: 1rem;
 }
 /* Add a subtle border to separate title and filters */
 .card-header::after {
@@ -90,19 +94,6 @@ body {
   bottom: 0;
   border-bottom: 1px solid #eee;
   z-index: 0;
-}
-.filter-form-vertical {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: nowrap;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  position: absolute;
-  top: 0;
-  right: 0;
 }
 .filters-row .row > [class*='col-'] {
   padding-left: 0.5rem;
@@ -167,6 +158,11 @@ body {
   justify-content: space-between;
   align-items: center;
   height: 60px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 .navbar-nav li {
   height: 100%;
@@ -217,6 +213,8 @@ body {
 .container-fluid {
   padding: 20px 20px 30px;
   position: relative;
+  margin-top: 60px;
+  min-height: calc(100vh - 60px);
 }
 .dashboard-grid {
   display: grid;
@@ -254,22 +252,6 @@ body {
   color: black;
   font-style: italic;
 }
-  .card-header form {
-    width: 100%;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
-    justify-content: flex-start;
-  } 
-  .card-header .asset-card-title {
-    width: 100%;
-    padding-bottom: 0.75rem;
-    margin-bottom: 0.75rem;
-    border-bottom: 1px solid #eee;
-  }
-  .filter-form-group {
-    min-width: calc(33.333% - 0.67rem);
-  }
 h1.mb-4 {
   text-align: center;
   margin-bottom: 30px;
@@ -472,9 +454,10 @@ h1.mb-4 {
   margin-bottom: 2rem;
 }
 .asset-title-centered {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative;
+  left: auto;
+  transform: none;
+  text-align: center;
 }
 .asset-details-container .row {
   display: flex;
@@ -587,16 +570,21 @@ h1.mb-4 {
   transform: translateY(-1px);
 }
 .asset-btn-danger {
-  background: red;
-  color: white;
-  border: none;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
+  color: #dc3545;
+  border-color: #dc3545;
+  background: transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  margin-right: 0.60rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 .asset-btn-danger:hover {
-  background: darkred;
+  background: #dc3545;
+  color: #fff;
 }
-
 /* Asset Form */
 .asset-form-container {
   max-width: 100%;
