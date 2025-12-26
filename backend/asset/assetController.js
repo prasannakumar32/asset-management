@@ -92,7 +92,7 @@ exports.list = async (req, res) => {
         })() : null;
         
 // Status filter
-        status && ['available', 'assigned', 'maintenance', 'retired'].includes(status) ? whereClause.status = status : null;
+        status && ['available', 'assigned', 'maintenance', 'retired', 'scrapped'].includes(status) ? whereClause.status = status : null;
         is_active === 'true' || is_active === 'false' ? whereClause.is_active = is_active === 'true' : null;
         // Branch filter
         branch ? whereClause.branch = branch : null;

@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     action_type: {
-      type: DataTypes.ENUM('created', 'updated', 'assigned', 'returned', 'maintenance', 'retired', 'deleted'),
+      type: DataTypes.ENUM('created', 'updated', 'assigned', 'returned', 'maintenance', 'retired', 'deleted','scrapped'),
       allowNull: false
     },
     action_date: {

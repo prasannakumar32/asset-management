@@ -163,6 +163,8 @@ block content
                       option(value='assigned' selected=(isEdit ? (asset.status === 'assigned' || formData.status === 'assigned') : (formData.status === 'assigned'))) Assigned
                       option(value='maintenance' selected=(isEdit ? (asset.status === 'maintenance' || formData.status === 'maintenance') : (formData.status === 'maintenance'))) Maintenance
                       option(value='retired' selected=(isEdit ? (asset.status === 'retired' || formData.status === 'retired') : (formData.status === 'retired'))) Retired
+                      option(value='scrapped' selected=(isEdit ? (asset.status === 'scrapped' || formData.status === 'scrapped') : (formData.status === 'scrapped'))) Scrapped
+                    .invalid-feedback
                 .col-md-6
                   if isEdit
                     .form-group.mb-3
