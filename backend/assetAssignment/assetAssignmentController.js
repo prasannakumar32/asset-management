@@ -310,14 +310,97 @@ exports.showReturnForm = async (req, res) => {
 // Show issue form
 exports.showIssueForm = async (req, res) => {
   try {
-    return res.render('asset-assignment/issue-form', {
-      error: req.query.error || null,
-      success: req.query.success || null
-    });
+    res.render('asset-assignment/issue-form');
   } catch (error) {
     console.error('Error loading issue form:', error);
-    return res.render('asset-assignment/issue-form', {
-      error: req.query.error || 'Error loading issue form'
+    res.status(500).send('Error loading the issue form');
+  }
+};
+
+// Show scrap form
+exports.showScrapForm = async (req, res) => {
+  try {
+    res.render('asset-assignment/scrap-form');
+  } catch (error) {
+    console.error('Error loading scrap form:', error);
+    res.status(500).send('Error loading the scrap form');
+  }
+};
+
+// Scrap asset
+exports.scrapAsset = async (req, res) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    const { asset_id, scrap_date, reason, method, notes } = req.body;
+    
+    if (!asset_id || !scrap_date || !reason || !method) {
+      await transaction.rollback();
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    // Find the asset
+    const asset = await Asset.findByPk(asset_id, { transaction });
+    
+    if (!asset) {
+      await transaction.rollback();
+      return res.status(404).json({
+        success: false,
+        message: 'Asset not found'
+      });
+    }
+
+    // If the asset is currently assigned, mark the assignment as returned
+    if (asset.status === 'assigned') {
+      const assignment = await AssetAssignment.findOne({
+        where: { 
+          asset_id,
+          status: 'assigned',
+          return_date: null
+        },
+        transaction
+      });
+
+      if (assignment) {
+        assignment.status = 'returned';
+        assignment.return_date = scrap_date;
+        assignment.return_condition = 'scrapped';
+        assignment.notes = `Asset marked as scrapped. ${notes || ''}`.trim();
+        await assignment.save({ transaction });
+      }
+    }
+
+    // Update asset status to scrapped
+    asset.status = 'scrapped';
+    await asset.save({ transaction });
+
+    // Create asset history record
+    await db.AssetHistory.create({
+      asset_id,
+      action: 'scrapped',
+      action_date: scrap_date,
+      performed_by: req.user?.id || null,
+      notes: `Asset marked as scrapped. Reason: ${reason}. Method: ${method}. ${notes || ''}`.trim()
+    }, { transaction });
+
+    await transaction.commit();
+    
+    res.json({
+      success: true,
+      message: 'Asset has been marked as scrapped successfully',
+      data: { asset_id }
+    });
+
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Error scrapping asset:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to scrap asset',
+      error: error.message
     });
   }
-}
+};

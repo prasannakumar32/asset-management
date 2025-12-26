@@ -76,7 +76,7 @@ block content
                     | Cancel
                 .col-6.text-end
                   button(type='submit' class='btn btn-primary')
-                    i.fas fa-undo.me-2
+                    i.fas.fa-undo.me-2
                     | Return Asset
 
 block scripts
@@ -160,37 +160,38 @@ block scripts
       }
     }
 
-    // Form validation
-    document.getElementById('returnForm').addEventListener('submit', function(event) {
-      event.preventDefault();
-      event.stopPropagation();
+    // Simple form submission
+    document.getElementById('returnForm').onsubmit = async function(e) {
+      e.preventDefault();
       
-      const form = event.target;
-      form.classList.add('was-validated');
+      const form = e.target;
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
       
-      if (form.checkValidity()) {
-        // Submit form via fetch API
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+      
+      try {
         const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        
-        fetch('/api/asset-assignment/return', {
+        const response = await fetch('/api/asset-assignment/return', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(result => {
-          if (result.success) {
-            window.location.href = '/asset-assignment?success=' + encodeURIComponent(result.message);
-          } else {
-            alert('Error: ' + (result.error || 'Failed to return asset'));
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('Error returning asset. Please try again.');
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.fromEntries(formData.entries()))
         });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          window.location.href = '/asset-assignment';
+        } else {
+          alert(result.message || 'Failed to process return');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
       }
-    });
+    }

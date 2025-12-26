@@ -41,12 +41,15 @@ router.get('/asset-assignment' , (req, res) => {
 });
 
 // Asset Assignment Issue Form page
-router.get('/asset-assignments/issue' , (req, res) => {
+router.get('/asset-assignment/issue' , (req, res) => {
   res.render('asset-assignment/issue-form');
 });
 
 // Asset Assignment Return Form page
-router.get('/asset-assignments/return' , require('../assetAssignment/assetAssignmentController').showReturnForm);
+router.get('/asset-assignment/return' , require('../assetAssignment/assetAssignmentController').showReturnForm);
+
+// Asset Scrap Form page
+router.get('/asset-assignment/scrap' , require('../assetAssignment/assetAssignmentController').showScrapForm);
 
 // Asset Categories page
 router.get('/asset-categories' , (req, res) => {
@@ -54,11 +57,6 @@ router.get('/asset-categories' , (req, res) => {
 });
 
 // API routes are handled in app.js, no need to duplicate here
-
-// Asset Assignment Page
-router.get('/asset-assignment' , (req, res) => {
-  res.render('asset-assignment/asset-assignment');
-});
 // Login page (JADE)
 router.get('/login', (req, res) => {
   res.render('login');

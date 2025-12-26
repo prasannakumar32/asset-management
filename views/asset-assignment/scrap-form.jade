@@ -1,0 +1,204 @@
+extends ../navbar
+
+block content
+  .container-fluid.px-4.py-4
+    .row.mb-4
+      .col-12
+        h1.text-center.mb-4
+          i.fas.fa-trash-alt.me-2
+          | Scrap Asset
+    
+    .row.justify-content-center
+      .col-lg-9.col-md-9
+        .card.shadow
+          .card-header
+          .card-body
+            form(action='/api/asset-assignment/scrap', method='POST', id='scrapForm', novalidate, class='asset-form-container')
+              .row.mb-3
+                .col-12
+                  .d-flex.justify-content-start
+                    a(href='/assets' class='btn btn-outline-primary btn-sm')
+                      i.fas.fa-arrow-left.me-2
+                      | Back to Assets
+              .row.mb-3
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='assetId' class='form-label required-field')
+                      i.fas.fa-cube.me-2
+                      | Asset *
+                    select#assetId.form-select(name='asset_id', required)
+                      option(value='') Select Asset
+                    .invalid-feedback
+                      | Please select an asset
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='scrapDate' class='form-label required-field')
+                      i.fas.fa-calendar.me-2
+                      | Scrap Date *
+                    input#scrapDate.form-control(name='scrap_date', type='date', value=new Date().toISOString().split('T')[0], required)
+                    .invalid-feedback
+                      | Please select scrap date
+              .row.mb-3
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='method' class='form-label required-field')
+                      i.fas.fa-tools.me-2
+                      | Scrap Method *
+                    select#method.form-select(name='method', required)
+                      option(value='') Select Method
+                      option(value='recycled') Recycled
+                      option(value='disposed') Disposed
+                      option(value='sold') Sold
+                      option(value='donated') Donated
+                      option(value='other') Other
+                    .invalid-feedback
+                      | Please select a scrap method
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='employeeId' class='form-label required-field')
+                      i.fas.fa-user.me-2
+                      | scrapped by Employee *
+                    select#employeeId.form-select(name='employee_id', required)
+                    .invalid-feedback
+                      | Please select an employee
+              .row.mb-3
+                .col-12
+                  .form-group.mb-3
+                    label(for='reason' class='form-label required-field')
+                      i.fas.fa-comment-dots.me-2
+                      | Reason for Scrapping *
+                    textarea#reason.form-control(name='reason', rows='3', required, placeholder='Enter the reason for scrapping this asset...')
+                    .invalid-feedback
+                      | Please provide a reason for scrapping
+              .row.mt-4
+                .col-6
+                  a(href='/assets' class='btn btn-secondary')
+                    i.fas.fa-times.me-2
+                    | Cancel
+                .col-6.text-end
+                  button(type='submit' class='btn btn-danger')
+                    i.fas.fa-trash-alt.me-2
+                    | Confirm Scrap
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      loadAvailableAssets();
+      loadEmployees();
+    });
+    async function loadEmployees() {
+      try {
+        const response = await fetch('/api/employee');
+        const result = await response.json();
+        const select = document.getElementById('employeeId');
+        
+        if (!select) {
+          console.error('Employee select element not found');
+          return;
+        }
+        
+        if (result.success && result.data && Array.isArray(result.data.employees)) {
+          // Clear existing options
+          select.innerHTML = '<option value="">Select Employee</option>';
+          
+          const activeEmployees = result.data.employees.filter(employee => employee.status === 'active');
+          
+          if (activeEmployees.length === 0) {
+            console.warn('No active employees found');
+            return;
+          }
+          
+          activeEmployees.forEach(employee => {
+            const option = document.createElement('option');
+            option.value = employee.id;
+            option.textContent = `${employee.first_name} ${employee.last_name} (${employee.employee_id || employee.email})`;
+            select.appendChild(option);
+          });
+          
+          // If there's only one employee, select it by default
+          if (activeEmployees.length === 1) {
+            select.value = activeEmployees[0].id;
+          }
+          
+        } else {
+          console.error('Error loading employees:', result.error || 'Invalid response format');
+          select.innerHTML = '<option value="">Error loading employees</option>';
+        }
+      } catch (error) {
+        console.error('Error loading employees:', error);
+        const select = document.getElementById('employeeId');
+        if (select) {
+          select.innerHTML = '<option value="">Error loading employees</option>';
+        }
+      }
+    }
+
+    async function loadAvailableAssets() {
+      try {
+        const response = await fetch('/api/assets');
+        const result = await response.json();
+        const assetSelect = document.getElementById('assetId');
+        
+        if (result.success && result.data) {
+          // Display all assets that are not already scrapped
+          const availableAssets = result.data.assets ? result.data.assets.filter(asset => asset.status !== 'scrapped') : [];
+          
+          // Clear existing options
+          assetSelect.innerHTML = '<option value="">Select Asset</option>';
+          
+          if (availableAssets.length === 0) {
+            assetSelect.innerHTML = '<option value="">No assets available for scrapping</option>';
+            return;
+          }
+          
+          // Populate dropdown
+          availableAssets.forEach(asset => {
+            const option = document.createElement('option');
+            option.value = asset.id;
+            option.textContent = `${asset.name} (${asset.asset_tag || 'No Tag'}) - ${asset.status}`;
+            assetSelect.appendChild(option);
+          });
+          
+        } else {
+          console.error('Error loading assets:', result.error || 'Unknown error');
+        }
+      } catch (error) {
+        console.error('Error loading assets:', error);
+      }
+    }
+
+    // Form submission
+    document.getElementById('scrapForm').onsubmit = async function(e) {
+      e.preventDefault();
+      
+      const form = e.target;
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
+      
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas.fa-spinner fa-spin me-2"></i>Processing...';
+      
+      try {
+        const formData = new FormData(form);
+        const response = await fetch('/api/asset-assignment/scrap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.fromEntries(formData.entries()))
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          window.location.href = '/assets?success=Asset marked as scrapped successfully';
+        } else {
+          alert(result.message || 'Failed to scrap asset');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
+    };
