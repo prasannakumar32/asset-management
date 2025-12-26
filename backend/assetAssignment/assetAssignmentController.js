@@ -380,7 +380,7 @@ exports.scrapAsset = async (req, res) => {
     // Create asset history record
     await db.AssetHistory.create({
       asset_id,
-      action: 'scrapped',
+      action_type: 'scrapped',
       action_date: scrap_date,
       performed_by: req.user?.id || null,
       notes: `Asset marked as scrapped. Reason: ${reason}. Method: ${method}. ${notes || ''}`.trim()
