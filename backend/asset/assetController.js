@@ -92,17 +92,9 @@ exports.list = async (req, res) => {
                 foundCategory ? whereClause.category_id = foundCategory.id : null;
             }
         }
-// Status filter with ternary
-        status && ['available', 'assigned', 'maintenance', 'retired', 'scrapped'].includes(status) 
-            ? whereClause.status = status 
-            : null;
-            
- // is_active filter with ternary
-        whereClause.is_active = is_active === 'true' || is_active === 'false' 
-            ? is_active === 'true' 
-            : true;
-            
-// Branch filter with ternary
+//filter 
+        status && ['available', 'assigned', 'maintenance', 'retired', 'scrapped'].includes(status) ? whereClause.status = status : null;
+        whereClause.is_active = is_active === 'true' || is_active === 'false' ? is_active === 'true' : true;
         branch ? whereClause.branch = branch : null;
 
         const assets = await Asset.findAll({
@@ -160,7 +152,6 @@ exports.list = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching assets:', error);
-
         return res.render('asset/asset', {
             assets: [],
             categories,
@@ -183,7 +174,6 @@ exports.listAPI = async (req, res) => {
             branch = ''
         } = req.query;
         const whereClause = {};
-// Handle category filter with proper async/await
 if (category) {
     if (!isNaN(category)) {
         whereClause.category_id = parseInt(category);
@@ -205,9 +195,9 @@ if (category) {
     }
 }
 
-status ? whereClause.status = status : null;
-branch ? whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) } : null;
-whereClause.is_active = is_active ? is_active === 'true' : true;
+        status ? whereClause.status = status : null;
+        branch ? whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) } : null;
+        whereClause.is_active = is_active ? is_active === 'true' : true;
         const assets = await Asset.findAll({
             where: whereClause,
             include: [
@@ -361,7 +351,6 @@ exports.create = async (req, res) => {
                 notes: `Asset created with status: ${assetData.status}`
             }, { transaction });
             await transaction.commit();
-// Redirect to assets list with success message
             return res.redirect('/assets?success=Asset created successfully');
         } catch (transactionError) {
             await transaction.rollback();
@@ -369,7 +358,6 @@ exports.create = async (req, res) => {
         }
     } catch (error) {
         console.error('Error creating asset:', error);
- // Redirect back with error message
         return res.redirect('/assets/form?error=Error creating asset: ' + error.message);
     }
 };
