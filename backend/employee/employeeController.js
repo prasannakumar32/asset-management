@@ -240,7 +240,7 @@ exports.create = async (req, res) => {
             hire_date: new Date()
         };
 
-// Generate employee ID if not provided 
+// Generate employee ID if not exist 
         if (!employee_id || employee_id.trim() === '') {
             const lastEmployee = await Employee.findOne({
                 attributes: ['employee_id'],

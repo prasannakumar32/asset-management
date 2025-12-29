@@ -27,29 +27,22 @@ block content
               | Clear Filters
     
     script.
-      // Wait for DOM to be fully loaded
-      document.addEventListener('DOMContentLoaded', function() {
-        // Auto submit for filters
+        document.addEventListener('DOMContentLoaded', function() {
         const filterForm = document.getElementById('filterForm');
         const categorySelect = document.getElementById('category');
         const statusSelect = document.getElementById('status');
         const isActiveSelect = document.getElementById('is_active');
-        
-        // Helper function to add event listener if element exists
         function addFilterListener(element, callback) {
           if (element) {
             element.addEventListener('change', callback);
           }
         }
-
-        // Add event listeners for filter controls
         const branchSelect = document.getElementById('branch');
         addFilterListener(categorySelect, () => filterForm && filterForm.submit());
         addFilterListener(statusSelect, () => filterForm && filterForm.submit());
         addFilterListener(isActiveSelect, () => filterForm && filterForm.submit());
         addFilterListener(branchSelect, () => filterForm && filterForm.submit());
       });
-      // Delete confirmation 
       function confirmDelete(assetId, assetName) {
         if (confirm('Are you sure you want to delete "' + assetName + '"? This action cannot be undone.')) {
           const form = document.createElement('form');
@@ -59,8 +52,6 @@ block content
           form.submit();
         }
       }
-      
-      // Clear all filters function
       function clearAllFilters() {
         document.getElementById('category').value = '';
         document.getElementById('status').value = '';
