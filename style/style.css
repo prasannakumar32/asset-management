@@ -438,7 +438,7 @@ h1.mb-4 {
 .bg-warning {
   background-color:yellow;
 }
-.asset-form-container {
+.form-container {
   margin-bottom: 1rem;
 }
 /* Asset View -  */
@@ -585,34 +585,34 @@ h1.mb-4 {
   color: #fff;
 }
 /* Asset Form */
-.asset-form-container {
+.form-container {
   max-width: 100%;
   margin: 0 auto;
 }
-.asset-form-container .row {
+.form-container .row {
   display: flex;
   flex-wrap: wrap;
   margin: 0 -1rem;
 }
-.asset-form-container .col-md-6 {
+.form-container .col-md-6 {
   width: 50%;
   padding: 0 8px;
   box-sizing: border-box;
 }
-.asset-form-container .col-12 {
+.form-container .col-12 {
   width: 100%;
   padding: 0 8px;
   box-sizing: border-box;
 }
-.asset-form-container .form-control,
-.asset-form-container .form-select {
+.form-container .form-control,
+.form-container .form-select {
   width: 100%;
   padding: 5px;
   border: 1px solid #ccc;
   font-size: 12px;
   box-sizing: border-box;
 }
-.asset-form-container .row.mt-4 {
+.form-container .row.mt-4 {
   display: flex;
   justify-content: space-between;
   align-items: center;

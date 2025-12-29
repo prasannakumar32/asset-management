@@ -34,7 +34,7 @@ block content
               .alert.alert-success(role='alert')
                 i.fas.fa-check-circle.me-2
                 = success
-            form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate, class='asset-form-container')
+            form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate, class='form-container')
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
