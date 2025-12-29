@@ -52,6 +52,7 @@ router.post('/assets/:id/delete', (req, res) => assetController.delete(req, res)
 
 // Employee Routes
 const employeeRoutes = require('../employee/employeeRoute');
+router.get('/employee', employeeController.list);
 router.use('/employee', employeeRoutes);
 
 // Asset Assignment Routes

@@ -1,8 +1,6 @@
 const { Op } = require('sequelize');
 const db = require('../models');
 const Employee = db.Employee;
-const AssetAssignment = db.AssetAssignment;
-const Asset = db.Asset;
 
 // Utility function to generate employee ID in format EMP0001
 const generateEmployeeId = async () => {
@@ -77,32 +75,9 @@ exports.list = async (req, res) => {
             return true;
         });
         
-        // 4. Get asset assignments for filtered employees
-        const employeeIds = filteredEmployees.map(emp => emp.id);
-        const assignments = await AssetAssignment.findAll({
-            where: { employee_id: { [Op.in]: employeeIds } },
-            include: [{
-                model: Asset,
-                as: 'asset',
-                where: { status: 'assigned' },
-                required: false
-            }],
-            raw: true,
-            nest: true
-        });
-        
-        // 5. Map assignments to employees
-        const employeeData = filteredEmployees.map(emp => {
-            const empAssignments = assignments.filter(a => a.employee_id === emp.id);
-            return {
-                ...emp,
-                assignments: empAssignments
-            };
-        });
-        
-        // 6. Render the view with the filtered data
+        // 3. Render the view for web requests
         return res.render('employee/employee', {
-            employee: employeeData,
+            employee: filteredEmployees,
             departments: departments,
             branches: branches,
             statuses: ['active', 'inactive'],
@@ -122,6 +97,57 @@ exports.list = async (req, res) => {
             status: '',
             branch: '',
             error: 'Error loading employee data. Please try again.'
+        });
+    }
+}
+
+// API endpoint to list employees
+exports.listAPI = async (req, res) => {
+    try {
+        const { department = '', status = '', branch = '' } = req.query;
+        
+        // 1. Get all employees first
+        const employees = await Employee.findAll({
+            order: [['first_name', 'ASC']],
+            raw: true
+        });
+
+        // 2. Filter employees based on query parameters
+        const filteredEmployees = employees.filter(emp => {
+            // Filter by department (case-insensitive)
+            if (department && emp.department && 
+                !emp.department.toLowerCase().includes(department.toLowerCase())) {
+                return false;
+            }
+            
+            // Filter by status
+            if (status && emp.status !== status) {
+                return false;
+            }
+            
+            // Filter by branch (case-insensitive)
+            if (branch && emp.branch && 
+                !emp.branch.toLowerCase().includes(branch.toLowerCase())) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // 2. Return JSON response for API requests
+        return res.json({
+            success: true,
+            data: {
+                employees: filteredEmployees
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error in employee list API:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error loading employee data. Please try again.',
+            error: error.message
         });
     }
 }
@@ -207,16 +233,7 @@ exports.view = async (req, res) => {
     try {
         const { id } = req.params;
         
-        const employee = await Employee.findByPk(id, {
-            include: [{
-                model: AssetAssignment,
-                as: 'assignments',
-                include: [{
-                    model: Asset,
-                    as: 'asset'
-                }]
-            }]
-        });
+        const employee = await Employee.findByPk(id);
 
         if (!employee) {
             req.flash('error', 'Employee not found');
@@ -407,26 +424,6 @@ exports.delete = async (req, res) => {
                 return res.status(404).json({ success: false, message: 'Employee not found' });
             }
             return res.redirect('/employee?error=Employee not found');
-        }
-        
-        // Check if employee has active assignments
-        const activeAssignments = await AssetAssignment.count({
-            where: { 
-                employee_id: id,
-                status: 'assigned'
-            },
-            transaction
-        });
-        
-        if (activeAssignments > 0) {
-            await transaction.rollback();
-            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Cannot delete employee with active asset assignments' 
-                });
-            }
-            return res.redirect(`/employee/${id}?error=Cannot delete employee with active asset assignments`);
         }
         
         // Delete the employee
