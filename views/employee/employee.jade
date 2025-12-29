@@ -43,14 +43,16 @@ block content
         }
 
         // Add event listeners for filter controls
-        const branchSelect = document.getElementById('branch');
-        addFilterListener(departmentSelect, () => filterForm && filterForm.submit());
-        addFilterListener(statusSelect, () => filterForm && filterForm.submit());
-        addFilterListener(branchSelect, () => filterForm && filterForm.submit());
+        if (filterForm) {
+          if (departmentSelect) addFilterListener(departmentSelect, () => filterForm.submit());
+          if (statusSelect) addFilterListener(statusSelect, () => filterForm.submit());
+          if (branchSelect) addFilterListener(branchSelect, () => filterForm.submit());
+        }
       });
+      
       // Delete confirmation 
       function confirmDelete(employeeId, employeeName) {
-        if (confirm('Are you sure you want to delete "' + employeeName + '"? This action cannot be undone.')) {
+        if (confirm('Are you sure you want to delete ' + JSON.stringify(employeeName) + '? This action cannot be undone.')) {
           const form = document.createElement('form');
           form.method = 'POST';
           form.action = '/employee/' + employeeId + '/delete';
@@ -61,9 +63,14 @@ block content
       
       // Clear all filters function
       function clearAllFilters() {
-        document.getElementById('department').value = '';
-        document.getElementById('status').value = '';
-        document.getElementById('branch').value = '';
+        const dept = document.getElementById('department');
+        const status = document.getElementById('status');
+        const branch = document.getElementById('branch');
+        
+        if (dept) dept.value = '';
+        if (status) status.value = '';
+        if (branch) branch.value = '';
+        
         window.location.href = '/employee';
       }
     .row.asset-list-row

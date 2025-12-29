@@ -1,0 +1,51 @@
+const db = require('../models');
+const { Op } = require('sequelize');
+
+const getDashboard = async (req, res) => {
+  try {
+    const [assetCount, employeeCount, assignedCount] = await Promise.all([
+      db.Asset.count({ 
+        where: { 
+          [Op.or]: [
+            { is_active: true },
+            { is_active: null }
+          ]
+        } 
+      }),
+      db.Employee.count({ 
+        where: { status: 'active' } 
+      }),
+      db.AssetAssignment.count({
+        where: { 
+          status: 'assigned',
+          return_date: null
+        }
+      })
+    ]);
+
+    // Calculate available assets
+    const availableCount = Math.max(0, assetCount - assignedCount);
+    res.render('dashboard', {
+      title: 'Dashboard',
+      username: req.user?.username || 'Guest',
+      assetCount: assetCount || 0,
+      employeeCount: employeeCount || 0,
+      assignedCount: assignedCount || 0,
+      availableCount: availableCount || 0
+    });
+    
+  } catch (error) {
+    console.error('Dashboard error:', error);
+    // Return zero values on error
+    res.render('dashboard', {
+      title: 'Dashboard',
+      username: req.user?.username || 'Guest',
+      assetCount: 0,
+      employeeCount: 0,
+      assignedCount: 0,
+      availableCount: 0
+    });
+  }
+};
+
+module.exports = { getDashboard };

@@ -178,7 +178,7 @@ exports.listAPI = async (req, res) => {
     try {
         const { 
             category = '', 
-            status = '', 
+            status = '',
             is_active = 'true',
             branch = ''
         } = req.query;

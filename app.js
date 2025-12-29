@@ -4,7 +4,7 @@ const session = require('express-session');
 const passport = require('passport');
 const app = express();
 const db = require('./backend/models');
-const bcrypt=require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 const methodOverride = require('method-override');
 
@@ -20,19 +20,29 @@ const connectDB = async () => {
   }
 };
 
-// Initialize Passport and session
+// Initialize session
 app.use(
   session({
-    secret: "mysecretkey",
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === 'production' }
+    cookie: { 
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
   })
 );
 
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Make user available to views
+app.use((req, res, next) => {
+  res.locals.user = req.user || null;
+  next();
+});
 
 // Serialize and deserialize user
 passport.serializeUser((user, done) => {

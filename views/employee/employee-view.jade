@@ -1,0 +1,249 @@
+extends ../navbar
+
+block content
+  style.
+    .employee-view-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+    
+    .employee-view-header {
+      height: 10px;
+      background: #4e73df;
+      background: linear-gradient(90deg, #4e73df 0%, #224abe 100%);
+    }
+    
+    .employee-details-container {
+      padding: 2rem;
+    }
+    
+    .employee-detail-item {
+      margin-bottom: 1.5rem;
+    }
+    
+    .employee-detail-label {
+      font-size: 0.8rem;
+      color: #858796;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .employee-detail-label i {
+      margin-right: 0.5rem;
+      width: 1.25rem;
+      text-align: center;
+    }
+    
+    .employee-detail-value {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #5a5c69;
+    }
+    
+    .employee-actions-section {
+      display: flex;
+      justify-content: flex-end;
+      padding: 1.5rem 2rem;
+      border-top: 1px solid #e3e6f0;
+      gap: 1rem;
+    }
+    
+    .employee-action-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.35rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .employee-action-btn i {
+      margin-right: 0.5rem;
+    }
+    
+    .employee-btn-primary {
+      background-color: #4e73df;
+      color: white;
+    }
+    
+    .employee-btn-primary:hover {
+      background-color: #2e59d9;
+      color: white;
+      text-decoration: none;
+    }
+    
+    .employee-btn-danger {
+      background-color: #e74a3b;
+      color: white;
+    }
+    
+    .employee-btn-danger:hover {
+      background-color: #e02d1b;
+      color: white;
+    }
+    
+    .employee-title-centered {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #5a5c69;
+    }
+    
+    @media (max-width: 768px) {
+      .employee-actions-section {
+        flex-direction: column;
+      }
+      
+      .employee-action-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  .container-fluid.px-4.py-4
+    .row.mb-4
+      .col-12.position-relative
+        .d-flex.align-items-center.justify-content-center(style="min-height: 50px;")
+          a.btn.btn-outline-primary.position-absolute.start-0(href='/employee')
+            i.fas.fa-arrow-left.me-2
+            | Back to Employees
+          h1.mb-0.employee-title-centered
+            i.fas.fa-user-circle.me-2.text-primary
+            | Employee Details
+    
+    .row.justify-content-center
+      .col-lg-8.col-md-10
+        .employee-view-card
+          .employee-view-header
+          .employee-details-container
+            .row
+              .col-md-6
+                .employee-detail-item
+                  .employee-detail-label
+                    i.fas.fa-user
+                    | Full Name
+                  .employee-detail-value= `${employee.first_name} ${employee.last_name}`
+              .col-md-6
+                .employee-detail-item
+                  .employee-detail-label
+                    i.fas.fa-envelope
+                    | Email
+                  .employee-detail-value= employee.email || 'N/A'
+            .row
+              .col-md-6
+                .employee-detail-item
+                  .employee-detail-label
+                    i.fas.fa-phone
+                    | Phone
+                  .employee-detail-value= employee.phone || 'N/A'
+              .col-md-6
+                .employee-detail-item
+                  .employee-detail-label
+                    i.fas.fa-building
+                    | Department
+                  .employee-detail-value= employee.department || 'N/A'
+            .row
+              .col-md-6
+                .employee-detail-item
+                  .employee-detail-label
+                    i.fas.fa-briefcase
+                    | Position
+                  .employee-detail-value= employee.position || 'N/A'
+              .col-md-6
+                .employee-detail-item
+                  .employee-detail-label
+                    i.fas.fa-map-marker-alt
+                    | Branch
+                  .employee-detail-value= employee.branch || 'N/A'
+            .row
+              .col-md-6
+                .employee-detail-item
+                  .employee-detail-label
+                    i.fas.fa-info-circle
+                    | Status
+                  .employee-detail-value
+                    span.badge(class=employee.status === 'active' ? 'bg-success' : 'bg-secondary')
+                      | #{employee.status || 'N/A'}
+          
+          .employee-actions-section
+            a.employee-action-btn.employee-btn-primary(href='/employee/#{employee.id}/form')
+              i.fas.fa-edit
+              | Edit Employee
+            button.employee-action-btn.employee-btn-danger(
+              type='button'
+              onclick='if(confirm("Are you sure you want to delete #{employee.first_name} #{employee.last_name}?")) { const form = document.createElement("form"); form.method = "POST"; form.action = "/employee/#{employee.id}?_method=DELETE"; document.body.appendChild(form); form.submit(); }'
+            )
+              i.fas.fa-trash
+              | Delete Employee
+
+        //- Asset Assignments Section
+        .card.shadow.mb-4
+          .card-header.bg-primary.text-white
+            h5.mb-0
+              i.fas.fa-laptop.me-2
+              | Assigned Assets
+          .card-body
+            if employee.assignments && employee.assignments.length > 0
+              .table-responsive
+                table.table.table-hover
+                  thead
+                    tr
+                      th Asset Name
+                      th Asset Tag
+                      th Assigned Date
+                      th Status
+                  tbody
+                    each assignment in employee.assignments
+                      tr
+                        td
+                          a(href=`/assets/${assignment.asset.id}`)= assignment.asset.name
+                        td= assignment.asset.asset_tag || 'N/A'
+                        td= new Date(assignment.assigned_date).toLocaleDateString()
+                        td
+                          span.badge(class=assignment.status === 'assigned' ? 'bg-success' : 'bg-warning')
+                            = assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)
+            else
+              .text-center.py-4
+                i.fas.fa-box-open.fa-3x.text-muted.mb-3
+                p.text-muted No assets assigned to this employee
+                a.btn.btn-outline-primary(href='/asset-assignment/issue')
+                  i.fas.fa-plus.me-2
+                  | Assign Asset
+        
+        //- Notes Section
+        if employee.notes
+          .card.shadow
+            .card-header.bg-light
+              h5.mb-0
+                i.fas.fa-sticky-note.me-2
+                | Notes
+            .card-body
+              p.mb-0= employee.notes
+
+  script.
+    // Delete confirmation
+    function confirmDelete(employeeId, employeeName) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: `You are about to delete ${employeeName}. This action cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = `/employee/${employeeId}?_method=DELETE`;
+          document.body.appendChild(form);
+          form.submit();
+        }
+      });
+    }

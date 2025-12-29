@@ -1,23 +1,23 @@
 extends navbar
 
 block content
- body  
-      .container-fluid
-    h1.mb-4 Asset Management Dashboard
-    .dashboard-grid
-      .card
-        h3 Total Assets
-        .number #{assetCount || 0}
-        .description Active assets in system
-      .card
-        h3 Assigned Assets
-        .number #{assignedCount || 0}
-        .description Currently assigned
-      .card
-        h3 Available Assets
-        .number #{availableCount || 0}
-        .description Available for assignment
-      .card
-        h3 Total Employees
-        .number #{employeeCount || 0}
-        .description Registered employees
+  body  
+    .container-fluid
+      h1.mb-4 Asset Management Dashboard
+      .dashboard-grid
+        .card
+          h3 Total Employees
+          .number #{employeeCount || 0}
+          .description Registered employees
+        .card
+          h3 Total Assets
+          .number #{assetCount || 0}
+          .description Active assets in system
+        .card
+          h3 Assigned Assets
+          .number #{assignedCount || 0}
+          .description Currently assigned
+        .card
+          h3 Available Assets
+          .number #{availableCount || 0}
+          .description Available for assignment
