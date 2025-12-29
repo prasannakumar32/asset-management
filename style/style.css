@@ -348,6 +348,80 @@ h1.mb-4 {
   font-size: 0.875rem;
 }
 
+/* Employee page - Full page layout */
+.employee-page-container {
+  padding: 20px;
+  margin-top: 60px;
+  min-height: calc(100vh - 60px);
+  background: #f8f9fa;
+}
+
+.employee-page-row {
+  margin-bottom: 30px;
+}
+
+.employee-page-header {
+  text-align: center;
+  margin-bottom: 30px;
+  color: black;
+  font-size: 32px;
+  font-weight: 300;
+  position: relative;
+}
+
+.employee-actions-row {
+  margin-bottom: 20px;
+}
+
+.employee-list-row {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.employee-list-row .card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin: 0;
+  height: calc(100vh - 280px);
+}
+
+.employee-list-row .card-header {
+  flex-shrink: 0;
+  border-bottom: 1px solid #dee2e6;
+  background: #f8f9fa;
+}
+
+.employee-list-row .card-body {
+  flex: 1;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.employee-list-row .table-responsive {
+  flex: 1;
+  overflow: auto;
+  height: 100%;
+}
+
+.employee-list-row .table {
+  margin: 0;
+  height: 100%;
+}
+
+.employee-list-row .table th {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 10;
+}
+
 /* Asset page */
 .asset-actions {
   display: flex;

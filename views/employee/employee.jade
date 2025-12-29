@@ -1,12 +1,12 @@
 extends ../navbar
 
 block content
-  .container-fluid.px-4.py-4.asset-page-container
-    .row.mb-4.asset-page-row
+  .container-fluid.employee-page-container
+    .row.employee-page-row
       .col-12
-        h1.text-center.mb-4.asset-page-header Employee Directory 
+        h1.employee-page-header Employee Directory 
     
-    .row.mb-4.asset-actions-row
+    .row.employee-actions-row
       .col-12
         .asset-actions
           a.btn.btn-primary.shadow(href='/employee/form')
@@ -73,7 +73,7 @@ block content
         
         window.location.href = '/employee';
       }
-    .row.asset-list-row
+    .row.employee-list-row
       .col-12
         .card
           .card-header.mb-3
