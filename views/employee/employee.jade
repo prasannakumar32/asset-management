@@ -114,7 +114,6 @@ block content
                         th.status-col Status
                         th.phone-col Phone 
                         th.email-col Email
-                        th.assigned-col Assigned Asset
                         th.actions-col Actions
                     tbody
                       if employee && Array.isArray(employee) && employee.length > 0
@@ -132,12 +131,6 @@ block content
                               span= emp.phone
                             td.email-td
                               span= emp.email
-                            td.assigned-td
-                              .d-flex.align-items-center
-                                if emp.assignments && emp.assignments.length > 0 && emp.assignments[0] && emp.assignments[0].asset
-                                  span= emp.assignments[0].asset.name
-                                else
-                                  span.text-muted Unassigned
                             td.actions-td
                               .d-flex.gap-1.justify-content-end
                                 a.btn.btn-outline-primary.btn-sm.action-btn(href='/employee/#{emp.id}/form' title='Edit Employee')

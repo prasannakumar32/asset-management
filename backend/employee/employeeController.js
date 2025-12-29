@@ -36,43 +36,71 @@ exports.list = async (req, res) => {
     try {
         const { department = '', status = '', branch = '' } = req.query;
         
-        // 1. Get all employees first
-        const employees = await Employee.findAll({
+        // 1. Get unique departments and branches using distinct queries
+        const [departments, branches] = await Promise.all([
+            // Get distinct departments
+            Employee.findAll({
+                attributes: [
+                    [db.sequelize.fn('DISTINCT', db.sequelize.col('department')), 'department']
+                ],
+                where: { 
+                    department: { 
+                        [Op.and]: [
+                            { [Op.ne]: null },
+                            { [Op.ne]: '' }
+                        ]
+                    } 
+                },
+                raw: true
+            }).then(results => {
+                return results
+                    .map(d => d.department)
+                    .filter(Boolean)
+                    .sort((a, b) => a.localeCompare(b));
+            }),
+            
+            // Get distinct branches
+            Employee.findAll({
+                attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('branch')), 'branch']],
+                where: { 
+                    branch: { 
+                        [Op.and]: [
+                            { [Op.ne]: null },
+                            { [Op.ne]: '' }
+                        ]
+                    } 
+                },
+                raw: true
+            }).then(results => {
+                return results
+                    .map(b => b.branch)
+                    .filter(Boolean)
+                    .sort((a, b) => a.localeCompare(b));
+            })
+        ]);
+            
+        // 2. Filter employees based on query parameters
+        const whereConditions = {};
+        
+        // Filter by department
+        if (department) {
+            whereConditions.department = department;
+        }
+        
+        // Filter by status
+        if (status) {
+            whereConditions.status = status;
+        }
+        
+        // Filter by branch
+        if (branch) {
+            whereConditions.branch = branch;
+        }
+        
+        const filteredEmployees = await Employee.findAll({
+            where: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
             order: [['first_name', 'ASC']],
             raw: true
-        });
-
-        // 2. Get unique departments and branches from the employees data
-        const departments = [...new Set(employees
-            .map(emp => emp.department)
-            .filter(Boolean))]
-            .sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
-            
-        const branches = [...new Set(employees
-            .map(emp => emp.branch)
-            .filter(Boolean))]
-            .sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
-            
-        // 3. Filter employees based on query parameters
-        const filteredEmployees = employees.filter(emp => {
-            // Filter by department (case-insensitive)
-            if (department && emp.department && 
-                !emp.department.toLowerCase().includes(department.toLowerCase())) {
-                return false;
-            }
-            
-            // Filter by status
-            if (status && emp.status !== status) {
-                return false;
-            }
-            
-            // Filter by branch (case-insensitive)
-            if (branch && emp.branch && 
-                !emp.branch.toLowerCase().includes(branch.toLowerCase())) {
-                return false;
-            }
-            
-            return true;
         });
         
         // 3. Render the view for web requests
@@ -106,32 +134,28 @@ exports.listAPI = async (req, res) => {
     try {
         const { department = '', status = '', branch = '' } = req.query;
         
-        // 1. Get all employees first
-        const employees = await Employee.findAll({
+        // 1. Filter employees based on query parameters using Sequelize where clause
+        const whereConditions = {};
+        
+        // Filter by department
+        if (department) {
+            whereConditions.department = department;
+        }
+        
+        // Filter by status
+        if (status) {
+            whereConditions.status = status;
+        }
+        
+        // Filter by branch
+        if (branch) {
+            whereConditions.branch = branch;
+        }
+        
+        const filteredEmployees = await Employee.findAll({
+            where: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
             order: [['first_name', 'ASC']],
             raw: true
-        });
-
-        // 2. Filter employees based on query parameters
-        const filteredEmployees = employees.filter(emp => {
-            // Filter by department (case-insensitive)
-            if (department && emp.department && 
-                !emp.department.toLowerCase().includes(department.toLowerCase())) {
-                return false;
-            }
-            
-            // Filter by status
-            if (status && emp.status !== status) {
-                return false;
-            }
-            
-            // Filter by branch (case-insensitive)
-            if (branch && emp.branch && 
-                !emp.branch.toLowerCase().includes(branch.toLowerCase())) {
-                return false;
-            }
-            
-            return true;
         });
         
         // 2. Return JSON response for API requests
@@ -171,7 +195,7 @@ exports.showForm = async (req, res) => {
 
         // Get unique values for dropdowns
         const [departments, branches] = await Promise.all([
-            // Get distinct departments with case-insensitive ordering
+            // Get distinct departments
             Employee.findAll({
                 attributes: [
                     [db.sequelize.fn('DISTINCT', db.sequelize.col('department')), 'department']
@@ -186,11 +210,11 @@ exports.showForm = async (req, res) => {
                 },
                 raw: true
             }).then(results => {
-                // Sort case-insensitive after fetching
+                // Sort after fetching
                 return results
                     .map(d => d.department)
                     .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
+                    .sort((a, b) => a.localeCompare(b));
             }),
             
             // Get distinct branches
@@ -209,7 +233,7 @@ exports.showForm = async (req, res) => {
                 return results
                     .map(b => b.branch)
                     .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
+                    .sort((a, b) => a.localeCompare(b));
             })
         ]);
 
@@ -261,36 +285,6 @@ exports.create = async (req, res) => {
             department, position, branch, status, notes 
         } = req.body;
 
-        // Basic validation
-        if (!first_name || !last_name || !email || !department || !status) {
-            return res.status(400).render('employee/employee-form', {
-                error: 'Please fill in all required fields',
-                formData: req.body,
-                departments: [],
-                branches: [],
-                statuses: ['active', 'inactive'],
-                isEdit: false
-            });
-        }
-
-        // Check if employee with email already exists
-        const existingEmployee = await Employee.findOne({ 
-            where: { email },
-            transaction 
-        });
-
-        if (existingEmployee) {
-            await transaction.rollback();
-            return res.status(400).render('employee/employee-form', {
-                error: 'An employee with this email already exists',
-                formData: req.body,
-                departments: [],
-                branches: [],
-                statuses: ['active', 'inactive'],
-                isEdit: false
-            });
-        }
-
         // Generate employee ID
         const employeeId = await generateEmployeeId();
 
@@ -311,7 +305,7 @@ exports.create = async (req, res) => {
 
         await transaction.commit();
         
-        return res.redirect(`/employee/${employee.id}?success=Employee created successfully`);
+        return res.redirect('/employee?success=Employee created successfully');
         
     } catch (error) {
         await transaction.rollback();
@@ -338,43 +332,11 @@ exports.update = async (req, res) => {
             department, position, branch, status, notes 
         } = req.body;
 
-        // Basic validation
-        if (!first_name || !last_name || !email || !department || !status) {
-            return res.status(400).render('employee/employee-form', {
-                error: 'Please fill in all required fields',
-                employee: { id, ...req.body },
-                departments: [],
-                branches: [],
-                statuses: ['active', 'inactive'],
-                isEdit: true
-            });
-        }
-
         const employee = await Employee.findByPk(id, { transaction });
         
         if (!employee) {
             await transaction.rollback();
             return res.redirect('/employee?error=Employee not found');
-        }
-
-        // Check if email is being changed to an existing one
-        if (email !== employee.email) {
-            const emailExists = await Employee.findOne({ 
-                where: { email },
-                transaction 
-            });
-
-            if (emailExists) {
-                await transaction.rollback();
-                return res.status(400).render('employee/employee-form', {
-                    error: 'An employee with this email already exists',
-                    employee: { id, ...req.body },
-                    departments: [],
-                    branches: [],
-                    statuses: ['active', 'inactive'],
-                    isEdit: true
-                });
-            }
         }
 
         // Update employee
@@ -410,47 +372,23 @@ exports.update = async (req, res) => {
 
 // Delete employee
 exports.delete = async (req, res) => {
-    const transaction = await db.sequelize.transaction();
-    
     try {
         const { id } = req.params;
-        
-        // Find the employee first
-        const employee = await Employee.findByPk(id, { transaction });
-        
-        if (!employee) {
+        const transaction = await db.sequelize.transaction();
+        try {
+            await Employee.destroy({ 
+                where: { id },
+                transaction 
+            });   
+            // Commit the transaction
+            await transaction.commit();
+            // Redirect to employee list
+            return res.redirect('/employee');
+        } catch (transactionError) {
             await transaction.rollback();
-            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.status(404).json({ success: false, message: 'Employee not found' });
-            }
-            return res.redirect('/employee?error=Employee not found');
+            throw transactionError;
         }
-        
-        // Delete the employee
-        await employee.destroy({ transaction });
-        await transaction.commit();
-        
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.json({ 
-                success: true, 
-                message: 'Employee deleted successfully' 
-            });
-        }
-        
-        return res.redirect('/employee?success=Employee deleted successfully');
-        
     } catch (error) {
-        await transaction.rollback();
         console.error('Error deleting employee:', error);
-        
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Error deleting employee',
-                error: error.message 
-            });
-        }
-        
-        return res.redirect(`/employee/${req.params.id}?error=Error deleting employee: ${encodeURIComponent(error.message)}`);
     }
 };
