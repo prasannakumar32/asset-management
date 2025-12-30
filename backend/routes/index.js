@@ -7,6 +7,7 @@ const assetController = require('../asset/assetController');
 const employeeController = require('../employee/employeeController');
 const assetAssignmentController = require('../assetAssignment/assetAssignmentController');
 const dashboardController = require('../dashboard/dashboardController');
+const assetCategoryController = require('../assetCategories/assetCategoryController');
 
 
 // Authentication Routes
@@ -67,10 +68,10 @@ router.get('/asset-assignment/issue', (req, res) => {
 router.get('/asset-assignment/return', assetAssignmentController.showReturnForm);
 router.get('/asset-assignment/scrap', assetAssignmentController.showScrapForm);
 
-// Asset Categories Route
-router.get('/asset-categories', (req, res) => {
-  res.render('asset-categories/asset-categories');
-});
+// Asset Categories Routes
+const assetCategoriesRoutes = require('../assetCategories/assetCategoryRoute');
+router.get('/asset-categories', assetCategoryController.showCategoryPage);
+router.use('/asset-categories', assetCategoriesRoutes);
 
 // Dashboard Routes
 router.get('/dashboard', dashboardController.getDashboard);

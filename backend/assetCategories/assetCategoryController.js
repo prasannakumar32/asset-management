@@ -2,11 +2,95 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const AssetCategory = db.AssetCategory;
 
+// Show asset categories page (for web interface)
+exports.showCategoryPage = async (req, res) => {
+    try {
+        const { status = 'active' } = req.query;
+        const whereClause = {};
+        whereClause.is_active = status === 'active' ? true : status === 'inactive' ? false : undefined;
+        
+        const categories = await AssetCategory.findAll({
+            where: whereClause,
+            order: [['name', 'ASC']]
+        });
+
+        res.render('asset-categories/asset-categories', {
+            categories,
+            status,
+            title: 'Asset Categories'
+        });
+    } catch (error) {
+        console.error('Error fetching categories for page:', error);
+        res.status(500).render('error', { 
+            message: 'Error loading asset categories',
+            error: error.message 
+        });
+    }
+};
+
+// Show category form (for create/edit)
+exports.showCategoryForm = async (req, res) => {
+    try {
+        const { id } = req.params;
+        let category = null;
+        
+        if (id) {
+            category = await AssetCategory.findByPk(id);
+            if (!category) {
+                return res.status(404).render('error', { 
+                    message: 'Category not found',
+                    error: 'The requested category does not exist'
+                });
+            }
+        }
+
+        res.render('asset-categories/asset-category-form', {
+            category,
+            title: id ? 'Edit Category' : 'Add New Category',
+            isEdit: !!id
+        });
+    } catch (error) {
+        console.error('Error showing category form:', error);
+        res.status(500).render('error', { 
+            message: 'Error loading category form',
+            error: error.message 
+        });
+    }
+};
+
+// View single category
+exports.viewCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const category = await AssetCategory.findByPk(id);
+        
+        if (!category) {
+            return res.status(404).render('error', { 
+                message: 'Category not found',
+                error: 'The requested category does not exist'
+            });
+        }
+
+        res.render('asset-categories/asset-category-view', {
+            category,
+            title: 'Category Details'
+        });
+    } catch (error) {
+        console.error('Error viewing category:', error);
+        res.status(500).render('error', { 
+            message: 'Error loading category details',
+            error: error.message 
+        });
+    }
+};
+
 exports.list = async (req, res) => {
     try {
         const { 
             status = 'active',
         } = req.query;
+        const whereClause = {};
         whereClause.is_active = status === 'active' ? true : status === 'inactive' ? false : undefined;
         const categories = await AssetCategory.findAll({
             where: whereClause,
@@ -106,23 +190,23 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
     try {
         const { id } = req.params;
-        const deletedRowsCount = await AssetCategory.destroy({ where: { id } });     
-        if (deletedRowsCount === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'Category not found'
-            });
+        const transaction = await db.sequelize.transaction();
+        try {
+            await AssetCategory.destroy({ 
+                where: { id },
+                transaction 
+            });   
+            await transaction.commit();
+            return res.redirect('/asset-categories');
+        } catch (transactionError) {
+            await transaction.rollback();
+            throw transactionError;
         }
-        return res.json({
-            success: true,
-            message: 'Category deleted successfully'
-        });
     } catch (error) {
-        console.error('Error deleting category:', error);  
-        return res.status(500).json({
-            success: false,
-            error: 'Error deleting category',
-            message: error.message
+        console.error('Error deleting category:', error);
+        return res.status(500).render('error', { 
+            message: 'Error deleting category',
+            error: error.message 
         });
     }
 };

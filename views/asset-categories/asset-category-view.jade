@@ -1,0 +1,66 @@
+extends ../navbar
+
+block content
+  .container-fluid.px-4.py-4.asset-category-view-container
+    .row.mb-4.asset-category-view-row
+      .col-12
+        h1.text-center.mb-4.asset-category-view-header= title
+    
+    .row.asset-category-view-content
+      .col-12.col-lg-8.mx-auto
+        .card
+          .card-header
+            .d-flex.justify-content-between.align-items-center
+              h5.card-title.mb-0
+                i.fas.fa-folder.me-2
+                | Category Details
+              .btn-group
+                a.btn.btn-outline-primary.btn-sm(href=`/asset-categories/${category.id}/form`, title='Edit Category')
+                  i.fas.fa-edit
+                  | Edit
+                a.btn.btn-outline-secondary.btn-sm(href='/asset-categories', title='Back to Categories')
+                  i.fas.fa-arrow-left
+                  | Back
+          .card-body
+            .row.g-3
+              .col-md-6
+                label.form-label.text-muted Name
+                .form-control-plaintext
+                  strong= category.name
+              
+              .col-md-6
+                label.form-label.text-muted Status
+                .form-control-plaintext
+                  span.badge(class=category.is_active ? 'bg-success' : 'bg-danger')= category.is_active ? 'Active' : 'Inactive'
+              
+              .col-12
+                label.form-label.text-muted Description
+                .form-control-plaintext
+                  if category.description
+                    p= category.description
+                  else
+                    p.text-muted No description provided
+              
+              .col-md-6
+                label.form-label.text-muted Category ID
+                .form-control-plaintext
+                  = category.id
+              
+              .col-md-6
+                label.form-label.text-muted Created Date
+                .form-control-plaintext
+                  = category.created_at ? new Date(category.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + new Date(category.created_at).toLocaleTimeString() : 'N/A'
+              
+              .col-md-6
+                label.form-label.text-muted Last Updated
+                .form-control-plaintext
+                  = category.updated_at ? new Date(category.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + new Date(category.updated_at).toLocaleTimeString() : 'N/A'
+              
+              .col-12.mt-4
+                .d-flex.justify-content-between
+                  a.btn.btn-secondary(href='/asset-categories')
+                    i.fas.fa-arrow-left.me-2
+                    | Back to Categories
+                  a.btn.btn-primary(href=`/asset-categories/${category.id}/form`)
+                    i.fas.fa-edit.me-2
+                    | Edit Category

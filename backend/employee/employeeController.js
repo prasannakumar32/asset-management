@@ -316,7 +316,6 @@ exports.update = async (req, res) => {
         }, { transaction });
         await transaction.commit();
         return res.redirect(`/employee/${id}?success=Employee updated successfully`);
-        
     } catch (error) {
         await transaction.rollback();
         console.error('Error updating employee:', error);
