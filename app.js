@@ -38,9 +38,14 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Make user available to views
+// Make user and messages available to views
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
+  res.locals.message = req.session.message;
+  // Clear message after it's been made available to views
+  if (req.session.message) {
+    delete req.session.message;
+  }
   next();
 });
 

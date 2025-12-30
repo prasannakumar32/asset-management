@@ -1,6 +1,11 @@
 extends ../navbar
 
 block content
+  // Display messages if any
+  if message
+    .alert(class=message.type === 'success' ? 'alert-success' : 'alert-danger', role='alert')
+      = message.text
+  
   .container-fluid.px-4.py-4.asset-category-page-container
     .row.mb-4.asset-category-page-row
       .col-12
@@ -98,8 +103,6 @@ block content
                           .d-flex.gap-1.justify-content-end
                             a.btn.btn-outline-primary.btn-sm.action-btn(href='/asset-categories/#{category.id}/form' title='Edit Category')
                               i.fas.fa-edit
-                            a.btn.btn-outline-info.btn-sm.action-btn(href='/asset-categories/#{category.id}' title='View Category Details')
-                              i.fas.fa-eye
                             button.asset-category-action-btn.asset-btn-danger(type='button', onclick='confirmDelete(#{category.id}, "#{category.name}")' title='Delete Category')
                               i.fas.fa-trash.btn-icon
                   else

@@ -142,20 +142,33 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
     try {
-        const categoryData = req.body;
-        const category = await AssetCategory.create(categoryData);
-        return res.status(201).json({
-            success: true,
-            data: category,
-            message: 'Category created successfully'
+        // Only extract the fields we want to allow
+        const { name, description } = req.body;
+        const is_active = req.body.is_active === 'true' || req.body.is_active === true;
+        
+        // Create the category with only the allowed fields
+        const category = await AssetCategory.create({
+            name: name.trim(),
+            description: description ? description.trim() : null,
+            is_active
         });
+
+        // For form submissions, redirect to the categories list
+        req.session.message = { type: 'success', text: 'Category created successfully' };
+        return res.redirect('/asset-categories');
     } catch (error) {
         console.error('Error creating category:', error);
-        return res.status(500).json({
-            success: false,
-            error: 'Error creating category',
-            message: error.message
-        });
+        
+        // Handle unique constraint violation
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            req.session.message = { type: 'error', text: 'A category with this name already exists. Please choose a different name.' };
+        } else {
+            req.session.message = { type: 'error', text: `Error creating category: ${error.message}` };
+        }
+        
+        // Store the form data to repopulate the form
+        req.session.formData = req.body;
+        return res.redirect(req.get('Referrer') || '/asset-categories/form');
     }
 };
 

@@ -10,15 +10,12 @@ router.post('/', assetCategoryController.create);
 
 // Form routes (must come before /:id routes)
 router.get('/form', assetCategoryController.showCategoryForm);
-
-// Get a single asset category
-router.get('/:id', assetCategoryController.getById);
+router.get('/:id/form', assetCategoryController.showCategoryForm);
 
 // Update an asset category
 router.put('/:id', assetCategoryController.update);
 
 // Delete an asset category
 router.delete('/:id', assetCategoryController.delete);
-router.post('/:id/delete', assetCategoryController.delete);
 
 module.exports = router;

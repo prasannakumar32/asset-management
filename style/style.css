@@ -729,3 +729,172 @@ h1.mb-4 {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
+
+/* Asset Category Table Styles */
+.asset-category-list-row {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.asset-category-list-row .card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin: 0;
+  height: calc(100vh - 280px);
+}
+
+.asset-category-list-row .card-header {
+  flex-shrink: 0;
+  border-bottom: 1px solid #dee2e6;
+  background: #f8f9fa;
+}
+
+.asset-category-list-row .card-body {
+  flex: 1;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.asset-category-list-row .table-responsive {
+  flex: 1;
+  overflow: auto;
+  height: 100%;
+}
+
+.asset-category-list-row .table {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.asset-category-list-row .table th {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 10;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1rem 1.25rem;
+}
+
+.asset-category-list-row .table td {
+  vertical-align: middle;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.asset-category-list-row .table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Column width classes for asset category table */
+.asset-category-list-row .name-col {
+  width: 20%;
+  min-width: 150px;
+}
+
+.asset-category-list-row .description-col {
+  width: 35%;
+  min-width: 200px;
+}
+
+.asset-category-list-row .status-col {
+  width: 15%;
+  min-width: 100px;
+  text-align: center;
+}
+
+.asset-category-list-row .created-col {
+  width: 15%;
+  min-width: 120px;
+}
+
+.asset-category-list-row .actions-col {
+  width: 15%;
+  min-width: 150px;
+  text-align: right;
+}
+
+.asset-category-list-row .name-td {
+  font-weight: 500;
+  color: #212529;
+}
+
+.asset-category-list-row .description-td {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.asset-category-list-row .status-td {
+  text-align: center;
+}
+
+.asset-category-list-row .created-td {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.asset-category-list-row .actions-td {
+  text-align: right;
+}
+
+.asset-category-list-row .badge {
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  font-weight: 500;
+}
+
+.asset-category-list-row .action-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  margin-right: 0.25rem;
+}
+
+.asset-category-list-row .asset-category-action-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  border: 1px solid #dc3545;
+  background: transparent;
+  color: #dc3545;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.asset-category-list-row .asset-category-action-btn:hover {
+  background: #dc3545;
+  color: white;
+}
+
+.asset-category-list-row .btn-icon {
+  font-size: 0.75rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .asset-category-list-row .name-col,
+  .asset-category-list-row .description-col,
+  .asset-category-list-row .status-col,
+  .asset-category-list-row .created-col,
+  .asset-category-list-row .actions-col {
+    min-width: 120px;
+  }
+  
+  .asset-category-list-row .table th,
+  .asset-category-list-row .table td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}

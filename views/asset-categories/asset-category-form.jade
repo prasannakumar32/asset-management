@@ -1,6 +1,11 @@
 extends ../navbar
 
 block content
+  // Display messages if any
+  if message
+    .alert(class=message.type === 'success' ? 'alert-success' : 'alert-danger', role='alert')
+      = message.text
+  
   .container-fluid.px-4.py-4
     .row.mb-4
       .col-12
@@ -15,6 +20,7 @@ block content
     .row.justify-content-center
       .col-lg-9.col-md-9
         .card.shadow
+          .card-header
           .card-body
             .row.mb-3
               .col-12
@@ -23,46 +29,47 @@ block content
                     i.fas.fa-arrow-left.me-2
                     | Back to Categories
             
-            form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', novalidate, class='form-container')
-              .row
+            form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', novalidate, class='form-container', enctype='application/x-www-form-urlencoded')
+              .row.mb-3
                 .col-md-6
-                  // Left Column
-                  .form-group.mb-4
-                    .row.align-items-end
-                      .col-6
-                        label(for='name' class='form-label required-field')
-                          i.fas.fa-folder.me-2
-                          | Category Name *
-                        input(type='text' class='form-control' id='name' name='name' 
-                              value=(isEdit && category ? category.name : (formData && formData.name ? formData.name : '')) 
-                              required
-                              placeholder='Enter category name')
-                        .invalid-feedback
-                          | Category name is required
-                      .col-6
-                        label(for='category_id' class='form-label')
-                          i.fas.fingerprint.me-2
-                          | Category ID
-                        input(type='text' class='form-control-plaintext' id='category_id' 
-                              value=(isEdit && category ? category.id : 'New') 
-                              readonly)
+                  .form-group.mb-3
+                    label(for='name' class='form-label required-field')
+                      i.fas.fa-folder.me-2
+                      | Category Name *
+                    input(type='text' class='form-control' id='name' name='name' 
+                          value=(isEdit && category ? category.name : (formData && formData.name ? formData.name : '')) 
+                          required
+                          placeholder='Enter category name')
+                    .invalid-feedback
+                      | Category name is required
                 
-                  .form-group.mb-4
+                if isEdit
+                  .col-md-6
+                    .form-group.mb-3
+                      label(for='category_id' class='form-label')
+                        i.fas.fa-hashtag.me-2
+                        | Category ID
+                      .input-group
+                        input(type='text' class='form-control' 
+                              id='category_id' 
+                              value=(category ? category.id : '')
+                              readonly)
+                        span.input-group-text
+                          i.fas.fa-lock
+              
+              .row.mb-3
+                .col-md-6
+                  .form-group.mb-3
                     label(for='is_active' class='form-label')
                       i.fas.fa-toggle-on.me-2
                       | Status
                     select(class='form-select' id='is_active' name='is_active')
                       option(value='true' selected=(isEdit ? (category && category.is_active) : true)) Active
                       option(value='false' selected=(isEdit ? (category && !category.is_active) : false)) Inactive
-                
-                // Right Column - Empty column for alignment
-                .col-md-6
-                  // Space for additional fields if needed in the future
               
-              // Full width row for description
-              .row.mb-4
+              .row.mb-3
                 .col-12
-                  .form-group
+                  .form-group.mb-3
                     label(for='description' class='form-label')
                       i.fas.fa-align-left.me-2
                       | Description
@@ -79,27 +86,4 @@ block content
                     i.fas.fa-save.me-2
                     = isEdit ? 'Update Category' : 'Create Category'
                 
-                if isEdit
-                  .col-12.mt-3.text-end
-                    button.btn.btn-outline-danger(type='button', data-bs-toggle='modal', data-bs-target='#deleteModal')
-                      i.fas.fa-trash.me-2
-                      | Delete Category
-
-    // Delete Confirmation Modal
-    if isEdit
-      .modal.fade(id='deleteModal', tabindex='-1', aria-labelledby='deleteModalLabel', aria-hidden='true')
-        .modal-dialog
-          .modal-content
-            .modal-header
-              h5.modal-title(id='deleteModalLabel') Confirm Delete
-              button.btn-close(type='button', data-bs-dismiss='modal', aria-label='Close')
-            .modal-body
-              p Are you sure you want to delete this category?
-              p.text-danger
-                strong Warning: This action cannot be undone and may affect assets assigned to this category.
-            .modal-footer
-              button.btn.btn-secondary(type='button', data-bs-dismiss='modal') Cancel
-              form(method='POST', action='/asset-categories/#{category.id}/delete', style='display: inline;')
-                button.btn.btn-danger(type='submit')
-                  i.fas.fa-trash.me-2
-                  | Delete Category
+                
