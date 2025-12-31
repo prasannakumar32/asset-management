@@ -12,10 +12,14 @@ router.post('/', assetCategoryController.create);
 router.get('/form', assetCategoryController.showCategoryForm);
 router.get('/:id/form', assetCategoryController.showCategoryForm);
 
+// View single category
+router.get('/:id', assetCategoryController.viewCategory);
+
 // Update an asset category
 router.put('/:id', assetCategoryController.update);
 
 // Delete an asset category
 router.delete('/:id', assetCategoryController.delete);
+router.post('/:id/delete', assetCategoryController.delete);
 
 module.exports = router;

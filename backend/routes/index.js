@@ -71,7 +71,6 @@ router.get('/asset-assignment/scrap', assetAssignmentController.showScrapForm);
 // Asset Categories Routes
 const assetCategoriesRoutes = require('../assetCategories/assetCategoryRoute');
 router.get('/asset-categories', assetCategoryController.showCategoryPage);
-router.get('/asset-categories/:id', assetCategoryController.viewCategory);
 router.use('/asset-categories', assetCategoriesRoutes);
 
 // Dashboard Routes

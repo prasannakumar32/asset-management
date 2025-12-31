@@ -2,7 +2,7 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const AssetCategory = db.AssetCategory;
 
-// Show asset categories page (for web interface)
+// Show asset categories page 
 exports.showCategoryPage = async (req, res) => {
     try {
         const { status = 'active' } = req.query;
@@ -28,7 +28,7 @@ exports.showCategoryPage = async (req, res) => {
     }
 };
 
-// Show category form (for create/edit)
+// Show category form 
 exports.showCategoryForm = async (req, res) => {
     try {
         const { id } = req.params;

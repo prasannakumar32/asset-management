@@ -1,11 +1,6 @@
 extends ../navbar
 
 block content
-  // Display messages if any
-  if message
-    .alert(class=message.type === 'success' ? 'alert-success' : 'alert-danger', role='alert')
-      = message.text
-  
   .container-fluid.px-4.py-4
     .row.mb-4
       .col-12
