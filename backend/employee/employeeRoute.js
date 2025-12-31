@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const employeeController = require('./employeeController');
-//list all employees in api
+//list employee for postman 
 router.get('/', employeeController.listAPI);
+//list employee for ui
+router.get('/', employeeController.list);
 
 // Show form for creating a new employee
 router.get('/form', employeeController.showForm);

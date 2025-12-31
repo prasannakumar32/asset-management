@@ -58,7 +58,7 @@ exports.list = async (req, res) => {
             whereConditions.status = status;
         }
         if (branch) {
-            whereConditions.branch = branch;
+            whereConditions.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
         }
         
         const filteredEmployees = await Employee.findAll({
@@ -104,7 +104,7 @@ exports.listAPI = async (req, res) => {
             whereConditions.status = status;
         }
         if (branch) {
-            whereConditions.branch = branch;
+            whereConditions.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
         }
         const filteredEmployees = await Employee.findAll({
             where: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
@@ -198,7 +198,7 @@ exports.showForm = async (req, res) => {
     }
 };
 
-// View employee details
+// View employee details (UI)
 exports.view = async (req, res) => {
     try {
         const { id } = req.params;
@@ -348,5 +348,6 @@ exports.delete = async (req, res) => {
         }
     } catch (error) {
         console.error('Error deleting employee:', error);
+        return res.redirect('/employee?error=Error deleting employee');
     }
 };
