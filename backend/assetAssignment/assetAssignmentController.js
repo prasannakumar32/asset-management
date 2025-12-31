@@ -10,6 +10,11 @@ exports.listAssignments = async (req, res) => {
       sortBy = 'assigned_date',
       sortOrder = 'DESC' } = req.query;
 
+    const whereClause = {};
+    if (status) {
+      whereClause.status = status;
+    }
+
     const assignments = await AssetAssignment.findAll({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       include: [

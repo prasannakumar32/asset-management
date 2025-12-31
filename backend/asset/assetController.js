@@ -17,7 +17,7 @@ exports.showAssetForm = async (req, res) => {
         });
         let asset = null;
         if (isEdit) {
-// Fetch the asset with its associations for edit
+// Fetch the asset with its asset data  for edit
             asset = await Asset.findByPk(id, {
                 include: [
                     { 
@@ -92,7 +92,8 @@ exports.list = async (req, res) => {
                 foundCategory ? whereClause.category_id = foundCategory.id : null;
             }
         }
-//filter 
+
+//filter for asset
         status && ['available', 'assigned', 'maintenance', 'retired', 'scrapped'].includes(status) ? whereClause.status = status : null;
         whereClause.is_active = is_active === 'true' || is_active === 'false' ? is_active === 'true' : true;
         branch ? whereClause.branch = branch : null;
@@ -294,7 +295,7 @@ exports.create = async (req, res) => {
         }
 // Convert active to boolean 
         assetData.is_active = assetData.is_active === 'true';
-// Generate asset tag if not provided or if it already exists
+// Generate asset tag if not provided 
         if (!assetData.asset_tag || assetData.asset_tag.trim() === '') {
             const lastAsset = await Asset.findOne({
                 attributes: ['asset_tag'],
