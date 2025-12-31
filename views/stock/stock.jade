@@ -3,7 +3,6 @@ extends ../navbar
 block content
   .container-fluid
     h1.mb-4 Stock View
-    
     // Dashboard Cards
     .dashboard-horizontal
       .card
@@ -34,7 +33,6 @@ block content
           h3 Branches
           .number #{Object.keys(assetsByBranch).length}
           .description Active branches
-    
     // Branch-wise Stock Section
     each branchData, branch in assetsByBranch
       .card.mb-4
@@ -92,27 +90,3 @@ block content
                   .row
                     .col-6.fw-bold Total Value:
                     .col-6.text-end.fw-bold ₹#{branchData.totalValue.toFixed(2)}
-
-// JavaScript for interactive functionality
-block scripts
-  script.
-    // Waiting page to fully load before running JavaScript
-    document.addEventListener('DOMContentLoaded', function() {
-      // Simple table functionality without jQuery
-      console.log('Stock page loaded successfully');
-      
-      // Add basic sorting functionality to tables if needed
-      const tables = document.querySelectorAll('table');
-      tables.forEach(table => {
-        // Add basic hover effects
-        const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-          row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-          });
-          row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-          });
-        });
-      });
-    });
