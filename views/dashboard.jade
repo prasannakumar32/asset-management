@@ -4,20 +4,32 @@ block content
   body  
     .container-fluid
       h1.mb-4 Asset Management Dashboard
-      .dashboard-grid
+      .dashboard-horizontal
         .card
-          h3 Total Employees
-          .number #{employeeCount || 0}
-          .description Registered employees
+          .card-icon
+            i.fa.fa-users.fa-2x
+          .card-content
+            h3 Total Employees
+            .number #{employeeCount || 0}
+            .description Registered employees
         .card
-          h3 Total Assets
-          .number #{assetCount || 0}
-          .description Active assets in system
+          .card-icon
+            i.fa.fa-cubes.fa-2x
+          .card-content
+            h3 Total Assets
+            .number #{assetCount || 0}
+            .description Active assets in system
         .card
-          h3 Assigned Assets
-          .number #{assignedCount || 0}
-          .description Currently assigned
+          .card-icon
+            i.fa.fa-user.fa-2x
+          .card-content
+            h3 Assigned Assets
+            .number #{assignedCount || 0}
+            .description Currently assigned
         .card
-          h3 Available Assets
-          .number #{availableCount || 0}
-          .description Available for assignment
+          .card-icon
+            i.fa.fa-check-circle.fa-2x
+          .card-content
+            h3 Available Assets
+            .number #{availableCount || 0}
+            .description Available for assignment

@@ -1,86 +1,60 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 
-//display stock in birds eye 
+// display Stock in birds eye 
 exports.stockView = async (req, res) => {
-    try {
-//fetch all available asset 
-        const availableAssets = await db.Asset.findAll({
-            where: {
-                status: 'available',
-                is_active: true
-            },
-            include: [{
-                model: db.AssetCategory,
-                as: 'category'
-            }],
-            order: [['branch', 'ASC'], ['name', 'ASC']]
-        });
-        
-//set asset fetch by branch
-        const assetsByBranch = {};
-        let totalValue = 0;
+  try {
+    //fetch all assets (not just available ones)
+    const allAssets = await db.Asset.findAll({
+      where: {
+        is_active: true
+      },
+      order: [['branch', 'ASC'], ['name', 'ASC']]
+    });
 
-        availableAssets.forEach(asset => {
-            const branch = asset.branch || 'unassigned';
-            if (!assetsByBranch[branch]) {
-                assetsByBranch[branch] = {
-                    assets: [],
-                    count: 0,
-                    totalvalue: 0
-                };
-            }
-            assetsByBranch[branch].assets.push(asset);
-            assetsByBranch[branch].count++;
-            
-            const assetValue = parseFloat(asset.current_value || asset.purchase_cost || 0);
-            assetsByBranch[branch].totalvalue += assetValue;
-            totalValue += assetValue;
-        });
+    //set asset fetch by branch 
+    const assetsByBranch = {};
+    let totalValue = 0;
+    const availableCount = { available: 0, assigned: 0, maintenance: 0, retired: 0, scrapped: 0 };
 
-// display category summary
-        const categorySummary = {};
-        availableAssets.forEach(asset => {
-            const categoryName = asset.category ? asset.category.name : 'Uncategorized';
-            if (!categorySummary[categoryName]) {
-                categorySummary[categoryName] = 0;
-            }
-            categorySummary[categoryName]++;
-        });
-
-        res.json({
-            assetsByBranch,
-            categorySummary,
-            totalValue,
-            totalAssets: availableAssets.length
-        });
-    } catch (error) {
-        console.error('Error loading stock view:', error);
-        res.status(500).json({ error: 'Error loading stock data' });
-    }
-};
-
-exports.stockData = async (req, res) => {
-    try {
-        const { branch, category } = req.query;
-        const whereClause = {
-            status: 'available',
-            is_active: true
+    allAssets.forEach(asset => {
+      const branch = asset.branch || 'Unassigned';
+      
+      if (!assetsByBranch[branch]) {
+        assetsByBranch[branch] = {
+          assets: [],
+          count: 0,
+          totalValue: 0,
+          available: 0,
+          assigned: 0,
+          maintenance: 0,
+          retired: 0,
+          scrapped: 0
         };
-        if (branch && branch !== 'all') {
-            whereClause.branch = branch;
-        }
-        const assets = await db.Asset.findAll({
-            where: whereClause,
-            include: [{
-                model: db.AssetCategory,
-                as: 'category'
-            }],
-            order: [['name', 'ASC']]
-        });
-        res.json(assets);
-    } catch (error) {
-        console.error('Error fetching stock data:', error);
-        res.status(500).json({ error: 'Error fetching stock data' });
-    }
+      }
+      
+      assetsByBranch[branch].assets.push(asset);
+      assetsByBranch[branch].count++;
+      assetsByBranch[branch][asset.status]++;
+      availableCount[asset.status]++;
+      
+      const assetValue = parseFloat(asset.current_value || asset.purchase_cost || 0);
+      assetsByBranch[branch].totalValue += assetValue;
+      totalValue += assetValue;
+    });
+
+    res.render('stock/stock', {
+      assetsByBranch,
+      totalValue,
+      totalAssets: allAssets.length,
+      availableCount
+    });
+  } catch (error) {
+    console.error('Error loading stock view:', error);
+    req.session.message = {
+      type: 'error',
+      text: 'Error loading stock view'
+    };
+    res.redirect('/');
+  }
 };

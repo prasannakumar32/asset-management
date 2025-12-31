@@ -8,6 +8,7 @@ const employeeController = require('../employee/employeeController');
 const assetAssignmentController = require('../assetAssignment/assetAssignmentController');
 const dashboardController = require('../dashboard/dashboardController');
 const assetCategoryController = require('../assetCategories/assetCategoryController');
+const stockController = require('../stock/stockController');
 
 
 // Authentication Routes
@@ -75,5 +76,8 @@ router.use('/asset-categories', assetCategoriesRoutes);
 
 // Dashboard Routes
 router.get('/dashboard', dashboardController.getDashboard);
+
+// Stock Routes
+router.get('/stock', stockController.stockView);
 
 module.exports = router;

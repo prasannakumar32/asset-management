@@ -1,0 +1,118 @@
+extends ../navbar
+
+block content
+  .container-fluid
+    h1.mb-4 Stock View
+    
+    // Dashboard Cards
+    .dashboard-horizontal
+      .card
+        .card-icon
+          i.fa.fa-cubes.fa-2x
+        .card-content
+          h3 Total Assets
+          .number #{totalAssets || 0}
+          .description Active assets in system
+      .card
+        .card-icon
+          i.fa.fa-check-circle.fa-2x
+        .card-content
+          h3 Available
+          .number #{(typeof availableCount !== 'undefined' && availableCount.available) ? availableCount.available : 0}
+          .description Available for assignment
+      .card
+        .card-icon
+          i.fa.fa-user.fa-2x
+        .card-content
+          h3 Assigned
+          .number #{(typeof availableCount !== 'undefined' && availableCount.assigned) ? availableCount.assigned : 0}
+          .description Currently assigned
+      .card
+        .card-icon
+          i.fa.fa-code-branch.fa-2x
+        .card-content
+          h3 Branches
+          .number #{Object.keys(assetsByBranch).length}
+          .description Active branches
+    
+    // Branch-wise Stock Section
+    each branchData, branch in assetsByBranch
+      .card.mb-4
+        .card-header.d-flex.justify-content-between.align-items-center
+          h5.mb-0
+            i.fas.fa-building.me-2
+            = branch
+          // Status badges
+          .d-flex
+            if branchData.available > 0
+              span.badge.bg-success.me-1= branchData.available + ' available'
+            if branchData.assigned > 0
+              span.badge.bg-info.me-1= branchData.assigned + ' assigned'
+            if branchData.maintenance > 0
+              span.badge.bg-warning.me-1= branchData.maintenance + ' maintenance'
+            if branchData.scrapped > 0
+              span.badge.bg-danger.me-1= branchData.scrapped + ' scrapped'
+        .card-body
+          .row
+            .col-md-8
+              .table-responsive
+                table.table.table-sm.table-striped
+                  thead
+                    tr
+                      th Asset Tag
+                      th Name
+                      th Category
+                      th Status
+                      th Value
+                  tbody
+                    each asset in branchData.assets
+                      tr
+                        td= asset.asset_tag || 'N/A'
+                        td
+                          a(href='/assets/' + asset.id)= asset.name
+                        td= asset.Category ? asset.Category.name : 'Uncategorized'
+                        td
+                          - var statusClass = asset.status === 'available' ? 'bg-success' : (asset.status === 'assigned' ? 'bg-info' : (asset.status === 'maintenance' ? 'bg-warning' : 'bg-danger'))
+                          span.badge(class=statusClass)= asset.status.charAt(0).toUpperCase() + asset.status.slice(1)
+                        td= asset.current_value ? `₹${parseFloat(asset.current_value).toFixed(2)}` : (asset.purchase_cost ? `₹${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A')
+            .col-md-4
+              .card.bg-light
+                .card-header
+                  h6.mb-0 Branch Summary
+                .card-body
+                  .row.mb-2
+                    .col-6.fw-bold Total Items:
+                    .col-6.text-end= branchData.count
+                  .row.mb-2
+                    .col-6.fw-bold Available:
+                    .col-6.text-end.text-success= branchData.available || 0
+                  .row.mb-2
+                    .col-6.fw-bold Assigned:
+                    .col-6.text-end.text-info= branchData.assigned || 0
+                  .row
+                    .col-6.fw-bold Total Value:
+                    .col-6.text-end.fw-bold ₹#{branchData.totalValue.toFixed(2)}
+
+// JavaScript for interactive functionality
+block scripts
+  script.
+    // Waiting page to fully load before running JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+      // Simple table functionality without jQuery
+      console.log('Stock page loaded successfully');
+      
+      // Add basic sorting functionality to tables if needed
+      const tables = document.querySelectorAll('table');
+      tables.forEach(table => {
+        // Add basic hover effects
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+          row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+          });
+          row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+          });
+        });
+      });
+    });
