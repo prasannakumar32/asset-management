@@ -5,7 +5,6 @@ const { Op } = require('sequelize');
 exports.getAssetHistory = async(req, res) => {
   try {
     const { id } = req.params;
-    // Get asset with the specified ID
     const asset = await db.Asset.findByPk(id, {
       include: [{
         model: db.AssetCategory,
@@ -13,7 +12,7 @@ exports.getAssetHistory = async(req, res) => {
       }]
     });
     if(!asset){
-      req.flash('error_msg','Asset not found');
+      req.session.message = { type: 'error', text: 'Asset not found' };
       return res.redirect('/assets');
     }
 // Get all asset assignments
@@ -86,21 +85,22 @@ assignments.forEach(assignment => {
   }
 });
 
-    res.render('assetHistory/assetHistory', {
+    res.render('assetHistory/asset-history', {
       asset,
       assignments,
       histories,
       timeline,
       metrics: {
-        totalDays,
-        assignedDays,
         totalAssignments: assignments.length,
         currentAssignment: assignments.find(a => a.status === 'assigned')
       }
     });
   } catch (error) {
     console.error('Asset history error:', error.message);
-    res.status(500).json({ error: 'error loading asset history'})
+    res.status(500).render('error', {
+      message: 'Error retrieving asset history',
+      error: error
+    });
   }
 };
 
@@ -113,10 +113,17 @@ exports.listAllAssetHistories = async(req, res) => {
       }],
       order: [['name', 'ASC']]
     });
-    res.json(assets);
-  } catch(error) {
+
+    res.render('assetHistory/asset-history', { 
+      assets,
+      asset: null,
+      timeline: null
+    });
+
+  } catch (error) {
     console.error('Error fetching assets:', error.message);
-    res.status(500).json({ error: 'Error loading asset history' });
+    req.session.message = { type: 'error', text: 'Error loading asset history' };
+    res.redirect('/');
   }
 };
 

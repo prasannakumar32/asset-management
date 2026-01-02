@@ -933,3 +933,64 @@ h1.mb-4 {
   gap: 0.25rem;
   justify-content: flex-end;
 }
+
+/*  Asset History timeline */
+.asset-history-timeline {
+  position: relative;
+  padding-left: 1.5rem;
+}
+.asset-history-timeline::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #dee2e6;
+}
+
+.asset-history-timeline .list-group {
+  background: transparent;
+  padding: 0;
+}
+
+.asset-history-timeline .list-group-item {
+  border: 1px solid #e9ecef;
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.asset-history-timeline .list-group-item::before {
+  content: '';
+  position: absolute;
+  left: -1.25rem;
+  top: 1rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: #007bff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+}
+
+.asset-history-timeline .list-group-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(2px);
+}
+
+.asset-history-timeline .list-group-item strong {
+  color: #212529;
+  font-weight: 600;
+  font-size: 1rem;
+  flex: 1;
+}
+
+.asset-history-timeline .list-group-item .text-muted {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6c757d;
+}

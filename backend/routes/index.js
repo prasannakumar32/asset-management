@@ -9,7 +9,7 @@ const assetAssignmentController = require('../assetAssignment/assetAssignmentCon
 const dashboardController = require('../dashboard/dashboardController');
 const assetCategoryController = require('../assetCategories/assetCategoryController');
 const stockController = require('../stock/stockController');
-
+const assetHistoryRoute = require('../assetHistory/assetHistoryRoute');
 
 // Authentication Routes
 router.get('/login', (req, res) => res.render('login'));

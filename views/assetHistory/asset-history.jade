@@ -1,0 +1,78 @@
+extends ../navbar
+
+block content
+  .container-fluid.px-4.py-4.asset-page-container
+    .row.mb-4.asset-page-row
+      .col-12
+        h1.text-center.mb-4.asset-page-header Asset History
+    
+    if asset && timeline
+      .row
+        .col-md-4.mb-4
+          .card
+            .card-header.bg-light
+              h6.mb-0 Asset Details
+            .card-body
+              p.mb-1
+                strong Name: 
+                | #{asset.name}
+              p.mb-1
+                strong Tag: 
+                | #{asset.asset_tag || 'N/A'}
+              p.mb-1
+                strong Category: 
+                | #{asset.category ? asset.category.name : 'N/A'}
+              p.mb-0
+                strong Status: 
+                | #{asset.status || 'N/A'}
+
+        .col-md-8
+          .card
+            .card-header.bg-light
+              h6.mb-0
+                i.fas.fa-clock.me-2
+                | Timeline
+            .card-body
+              if timeline && timeline.length > 0
+                .asset-history-timeline
+                  .list-group.list-group-flush
+                    each event in timeline
+                      .list-group-item
+                        .d-flex.w-100.justify-content-between
+                          strong= event.title
+                          span.badge.bg-light.text-muted= new Date(event.date).toLocaleString()
+                        .mb-1
+                          if event.description
+                            div= event.description
+                          if event.details
+                            small= event.details
+              else
+                .text-center.py-4
+                  i.fas.fa-history.text-muted.mb-3(style="font-size: 2.5rem;")
+                  h5.text-muted No Timeline Events
+                  p.text-muted No timeline events found for this asset.
+    else if assets && assets.length > 0
+      .card
+        .card-body
+          .table-responsive
+            table.table.table-sm.table-hover
+              thead
+                tr
+                  th Name
+                  th Tag
+                  th Category
+                  th Status
+                  th Actions
+              tbody
+                each asset in assets
+                  tr
+                    td= asset.name
+                    td= asset.asset_tag || 'N/A'
+                    td= asset.category ? asset.category.name : 'N/A'
+                    td= asset.status
+                    td
+                      a.btn.btn-sm.btn-outline-primary(href=`/asset-history/${asset.id}`)
+                        i.fas.fa-eye.me-1
+                        | View
+    else
+      .alert.alert-info No assets found.

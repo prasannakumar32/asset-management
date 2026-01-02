@@ -66,7 +66,6 @@ exports.list = async (req, res) => {
             order: [['first_name', 'ASC']],
             raw: true
         });
-// Render the view for web requests
         return res.render('employee/employee', {
             employee: filteredEmployees,
             departments: departments,
@@ -198,13 +197,13 @@ exports.showForm = async (req, res) => {
     }
 };
 
-// View employee details (UI)
+// View employee details for ui
 exports.view = async (req, res) => {
     try {
         const { id } = req.params;
         const employee = await Employee.findByPk(id);
         if (!employee) {
-            req.flash('error', 'Employee not found');
+            req.session.message = { type: 'error', text: 'Employee not found' };
             return res.redirect('/employee');
         }
         res.render('employee/employee-view', {
@@ -212,7 +211,7 @@ exports.view = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching employee:', error);
-        req.flash('error', 'Error loading employee details');
+        req.session.message = { type: 'error', text: 'Error loading employee details' };
         res.redirect('/employee');
     }
 };

@@ -105,7 +105,7 @@ const assetCategoriesRoutes = require('./backend/assetCategories/assetCategoryRo
 app.use('/api/asset-categories', assetCategoriesRoutes);
 // AssetHistory routes
 const assetHistoryRoutes = require('./backend/assetHistory/assetHistoryRoute');
-app.use('/api/asset-history', assetHistoryRoutes);
+app.use('/asset-history', assetHistoryRoutes);
 
 // Main routes (should be after API routes)
 const mainRoutes = require('./backend/routes');
