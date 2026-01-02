@@ -939,6 +939,7 @@ h1.mb-4 {
   position: relative;
   padding-left: 1.5rem;
 }
+/* line */
 .asset-history-timeline::before {
   content: '';
   position: absolute;
@@ -953,7 +954,7 @@ h1.mb-4 {
   background: transparent;
   padding: 0;
 }
-
+/* box*/
 .asset-history-timeline .list-group-item {
   border: 1px solid #e9ecef;
   background: #fff;
@@ -964,7 +965,7 @@ h1.mb-4 {
   transition: all 0.2s ease;
   position: relative;
 }
-
+/*blue dots */
 .asset-history-timeline .list-group-item::before {
   content: '';
   position: absolute;
@@ -976,19 +977,16 @@ h1.mb-4 {
   border: 2px solid #fff;
   border-radius: 50%;
 }
-
 .asset-history-timeline .list-group-item:hover {
   background-color: #f8f9fa;
   transform: translateX(2px);
 }
-
 .asset-history-timeline .list-group-item strong {
-  color: #212529;
+  color: #00b7ff;
   font-weight: 600;
   font-size: 1rem;
   flex: 1;
 }
-
 .asset-history-timeline .list-group-item .text-muted {
   font-size: 0.8rem;
   font-weight: 500;
