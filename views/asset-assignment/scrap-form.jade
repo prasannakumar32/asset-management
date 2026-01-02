@@ -12,38 +12,27 @@ block content
       .col-lg-9.col-md-9
         .card.shadow
           .card-header
+            .row
+              .col-12
+                a(href='/assets' class='btn btn-outline-primary btn-sm')
+                  i.fas.fa-arrow-left.me-2
+                  | Back to Assets
           .card-body
             form(action='/api/asset-assignment/scrap', method='POST', id='scrapForm', novalidate, class='form-container')
               .row.mb-3
-                .col-12
-                  .d-flex.justify-content-start
-                    a(href='/assets' class='btn btn-outline-primary btn-sm')
-                      i.fas.fa-arrow-left.me-2
-                      | Back to Assets
-              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='assetId' class='form-label required-field')
-                      i.fas.fa-cube.me-2
-                      | Asset *
+                    label(for='assetId' class='form-label required-field') Asset
                     select#assetId.form-select(name='asset_id', required)
                       option(value='') Select Asset
-                    .invalid-feedback
-                      | Please select an asset
                 .col-md-6
                   .form-group.mb-3
-                    label(for='scrapDate' class='form-label required-field')
-                      i.fas.fa-calendar.me-2
-                      | Scrap Date *
+                    label(for='scrapDate' class='form-label required-field') Scrap Date
                     input#scrapDate.form-control(name='scrap_date', type='date', value=new Date().toISOString().split('T')[0], required)
-                    .invalid-feedback
-                      | Please select scrap date
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='method' class='form-label required-field')
-                      i.fas.fa-tools.me-2
-                      | Scrap Method *
+                    label(for='method' class='form-label required-field') Scrap Method
                     select#method.form-select(name='method', required)
                       option(value='') Select Method
                       option(value='recycled') Recycled
@@ -51,25 +40,15 @@ block content
                       option(value='sold') Sold
                       option(value='donated') Donated
                       option(value='other') Other
-                    .invalid-feedback
-                      | Please select a scrap method
                 .col-md-6
                   .form-group.mb-3
-                    label(for='employeeId' class='form-label required-field')
-                      i.fas.fa-user.me-2
-                      | scrapped by Employee *
+                    label(for='employeeId' class='form-label required-field') Scrapped By
                     select#employeeId.form-select(name='employee_id', required)
-                    .invalid-feedback
-                      | Please select an employee
               .row.mb-3
                 .col-12
                   .form-group.mb-3
-                    label(for='reason' class='form-label required-field')
-                      i.fas.fa-comment-dots.me-2
-                      | Reason for Scrapping *
+                    label(for='reason' class='form-label required-field') Reason for Scrapping
                     textarea#reason.form-control(name='reason', rows='3', required, placeholder='Enter the reason for scrapping this asset...')
-                    .invalid-feedback
-                      | Please provide a reason for scrapping
               .row.mt-4
                 .col-6
                   a(href='/assets' class='btn btn-secondary')

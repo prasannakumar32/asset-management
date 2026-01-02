@@ -28,41 +28,34 @@ block content
                 .col-md-6
                   .form-group.mb-3
                     label(for='first_name' class='form-label required-field')
-                      i.fas.fa-user.me-2
                       | First Name
                     input(type='text' class='form-control' id='first_name' name='first_name' 
                           value=(isEdit ? (employee && employee.first_name) || (formData && formData.first_name) || '' : (formData && formData.first_name) || '')
                           required
                           placeholder='Enter first name')
-                    .invalid-feedback Please provide a first name.
                 
                 .col-md-6
                   .form-group.mb-3
                     label(for='last_name' class='form-label required-field')
-                      i.fas.fa-user.me-2
                       | Last Name
                     input(type='text' class='form-control' id='last_name' name='last_name' 
                           value=(isEdit ? (employee && employee.last_name) || (formData && formData.last_name) || '' : (formData && formData.last_name) || '')
                           required
                           placeholder='Enter last name')
-                    .invalid-feedback Please provide a last name.
               
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='email' class='form-label required-field')
-                      i.fas.fa-envelope.me-2
                       | Email
                     .input-group
                       input(type='email' class='form-control' id='email' name='email' 
                             value=(isEdit ? (employee && employee.email) || (formData && formData.email) || '' : (formData && formData.email) || '')
                             required
                             placeholder='Enter email address')
-                    .invalid-feedback Please provide a valid email address.
                 .col-md-6
                   .form-group.mb-3
                     label(for='phone' class='form-label')
-                      i.fas.fa-phone.me-2
                       | Phone
                     .input-group
                       input(type='tel' class='form-control' id='phone' name='phone' 
@@ -72,7 +65,6 @@ block content
                 .col-md-6
                   .form-group.mb-3
                     label(for='employee_id' class='form-label')
-                      i.fas.fa-id-badge.me-2
                       | Employee ID
                       if isEdit
                         small.text-muted (Cannot be modified)
@@ -81,12 +73,10 @@ block content
                           readonly=isEdit
                           placeholder='Will be auto-generated')
                     if isEdit
-                      .form-text.text-muted Employee ID cannot be changed after creation
                 
                 .col-md-6
                   .form-group.mb-3
                     label(for='department' class='form-label required-field')
-                      i.fas.fa-building.me-2
                       | Department
                     select(class='form-select' id='department' name='department' required)
                       option(value='') Select Department
@@ -94,24 +84,20 @@ block content
                         each dept in departments
                           - const isSelected = (isEdit && employee && employee.department === dept) || (formData && formData.department === dept);
                           option(value=dept selected=isSelected)= dept
-                    .invalid-feedback Please select a department.
               
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='position' class='form-label required-field')
-                      i.fas.fa-briefcase.me-2
                       | Position
                     input(type='text' class='form-control' id='position' name='position' 
                           value=(isEdit ? (employee && employee.position) || (formData && formData.position) || '' : (formData && formData.position) || '')
                           required
                           placeholder='Enter job position')
-                    .invalid-feedback Please provide a job position.
                 
                 .col-md-6
                   .form-group.mb-3
                     label(for='branch' class='form-label')
-                      i.fas.fa-map-marker-alt.me-2
                       | Branch
                     select(class='form-select' id='branch' name='branch')
                       option(value='') Select Branch
@@ -124,19 +110,16 @@ block content
                 .col-md-6
                   .form-group.mb-3
                     label(for='status' class='form-label required-field')
-                      i.fas.fa-info-circle.me-2
                       | Status
                     select(class='form-select' id='status' name='status' required)
                       option(value='') Select Status
                       - const statusValue = isEdit ? ((employee && employee.status) || (formData && formData.status)) : (formData && formData.status);
                       option(value='active' selected=(statusValue === 'active')) Active
                       option(value='inactive' selected=(statusValue === 'inactive')) Inactive
-                    .invalid-feedback Please select a status.
                 
                 .col-md-6
                   .form-group.mb-3
                     label(for='hire_date' class='form-label')
-                      i.fas.fa-calendar-alt.me-2
                       | Hire Date
                     - let hireDateValue = '';
                     - if (isEdit && employee && employee.hire_date) {

@@ -16,57 +16,51 @@ block content
       .col-lg-9.col-md-9
         .card.shadow
           .card-header
-          .card-body
-            .row.mb-3
+            .row.mb-2
               .col-12
-                .d-flex.justify-content-start
-                  a(href='/asset-categories' class='btn btn-outline-primary btn-sm')
-                    i.fas.fa-arrow-left.me-2
-                    | Back to Categories
-            
+                a(href='/asset-categories' class='btn btn-outline-primary btn-sm')
+                  i.fas.fa-arrow-left.me-2
+                  | Back to Categories
+          .card-body
             form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', novalidate, class='form-container', enctype='application/x-www-form-urlencoded')
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='name' class='form-label required-field')
-                      i.fas.fa-folder.me-2
-                      | Category Name *
+                    label(for='name' class='form-label required-field') Category Name
                     input(type='text' class='form-control' id='name' name='name' 
                           value=(isEdit && category ? category.name : (formData && formData.name ? formData.name : '')) 
                           required
                           placeholder='Enter category name')
-                    .invalid-feedback
-                      | Category name is required
-                
-                if isEdit
-                  .col-md-6
-                    .form-group.mb-3
-                      label(for='category_id' class='form-label')
-                        i.fas.fa-hashtag.me-2
-                        | Category ID
-                      .input-group
-                        input(type='text' class='form-control' 
-                              id='category_id' 
-                              value=(category ? category.id : '')
-                              readonly)
-                        span.input-group-text
-                          i.fas.fa-lock
+                .col-md-6
+                  .form-group.mb-3
+                    label(for='category_id' class='form-label') Category ID
+                    if isEdit && category
+                      input(type='text' class='form-control' 
+                            id='category_id' 
+                            name='id'
+                            value=category.id
+                            readonly
+                            style='background-color: #e9ecef; cursor: not-allowed;')
+                    else
+                      input(type='text' class='form-control' 
+                            id='category_id' 
+                            name='id'
+                            placeholder='Enter category ID'
+                            required
+                            value=formData && formData.id ? formData.id : '')
               
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
                     label(for='is_active' class='form-label')
-                      i.fas.fa-toggle-on.me-2
                       | Status
                     select(class='form-select' id='is_active' name='is_active')
                       option(value='true' selected=(isEdit ? (category && category.is_active) : true)) Active
-                      option(value='false' selected=(isEdit ? (category && !category.is_active) : false)) Inactive
-              
+                      option(value='false' selected=(isEdit ? (category && !category.is_active) : false)) Inactive 
               .row.mb-3
                 .col-12
                   .form-group.mb-3
                     label(for='description' class='form-label')
-                      i.fas.fa-align-left.me-2
                       | Description
                     textarea(class='form-control' id='description' name='description' rows='3'
                             placeholder='Enter category description')= (isEdit && category ? (category.description || '') : (formData && formData.description ? formData.description : ''))

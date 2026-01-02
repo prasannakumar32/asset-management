@@ -24,19 +24,19 @@ block content
                   a(href='/assets' class='btn btn-outline-primary btn-sm')
                     i.fas.fa-arrow-left.me-2
                     | Back to Assets
-            form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate, class='form-container asset-form-container')
+            form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate, class='form-container')
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='name' class='form-label required-field')
-                      | Asset Name
+                    label(for='name' class='form-label required-field') Asset Name
                     input(type='text' class='form-control' id='name' name='name' 
-                          value=(isEdit ? (asset.name || formData.name) : (formData.name || '')) required
+                          value=(isEdit ? (asset.name || formData.name) : (formData.name || '')) 
+                          required
                           placeholder='Enter asset name')
+                
                 .col-md-6
                   .form-group.mb-3
-                    label(for='asset_tag' class='form-label')
-                      | Asset Tag
+                    label(for='asset_tag' class='form-label') Asset Tag
                     input(type='text' class='form-control' id='asset_tag' name='asset_tag' 
                           value=(isEdit ? (asset.asset_tag || formData.asset_tag) : (formData.asset_tag || '')) 
                           readonly=isEdit
@@ -44,9 +44,8 @@ block content
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='category_id' class='form-label required-field')
-                      | Category
-                    select(class='form-select' id='category_id' name='category_id' required)
+                    label(for='category_id' class='form-label required-field') Category
+                    select.form-control(id='category_id' name='category_id' required)
                       option(value='') Select Category
                       if categories && categories.length > 0
                         each category in categories
@@ -117,9 +116,9 @@ block content
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='status' class='form-label required-field')
-                      | Status
-                    select(class='form-select' id='status' name='status' required)
+                    label(for='status' class='form-label required-field') Status
+                    select.form-select(id='status' name='status' required)
+                      option(value='') Select Status
                       option(value='available' selected=(isEdit ? (asset.status === 'available' || formData.status === 'available') : (formData.status === 'available'))) Available
                       option(value='assigned' selected=(isEdit ? (asset.status === 'assigned' || formData.status === 'assigned') : (formData.status === 'assigned'))) Assigned
                       option(value='maintenance' selected=(isEdit ? (asset.status === 'maintenance' || formData.status === 'maintenance') : (formData.status === 'maintenance'))) Maintenance
@@ -140,9 +139,8 @@ block content
                               value='Unassigned' readonly)
                   else
                     .form-group.mb-3
-                      label(for='employee_id' class='form-label')
-                        | Assign to Employee
-                      select(class='form-select' id='employee_id' name='employee_id')
+                      label(for='employee_id' class='form-label') Assign to Employee
+                      select.form-control(id='employee_id' name='employee_id')
                         option(value='') Select Employee
                         if employees && employees.length > 0
                           each employee in employees
@@ -151,35 +149,21 @@ block content
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='is_active' class='form-label')
-                      | Active Status
-                    select(class='form-select' id='is_active' name='is_active')
+                    label(for='is_active' class='form-label') Active Status
+                    select.form-control(id='is_active' name='is_active')
                       option(value='true' selected=(isEdit ? (asset.is_active === true || formData.is_active === 'true') : (formData.is_active === 'true'))) Active
                       option(value='false' selected=(isEdit ? (asset.is_active === false || formData.is_active === 'false') : (formData.is_active === 'false'))) Inactive
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='notes' class='form-label')
-                      | Notes
-                    textarea(class='form-control' id='notes' name='notes' rows='3')
-                      = (isEdit ? (asset.notes || formData.notes) : (formData.notes || ''))
-              unless isEdit
-                .row.mb-3#assignmentNotesRow(style='display: none;')
-                  .col-12
-                    .form-group.mb-3-
-                      label(for='assignment_notes' class='form-label')
-                        | Assignment Notes
-                        small.text-muted (Optional)
-                      textarea(class='form-control' id='assignment_notes' name='assignment_notes' rows='3')
-                        = formData.assignment_notes || ''
-              .row.mb-4
                 .col-12
-                  .card.border-primary
-                    .card-header.bg-light
-                      h6.mb-0.text-primary
-                        | Notes
-                      .form-group.mb-0
-                        textarea(class='form-control' id='notes' name='notes' rows='4')
-                          = (isEdit ? (asset.notes || formData.notes) : (formData.notes || ''))
+                  .form-group
+                    label(for='notes' class='form-label') Notes
+                    textarea(
+                      class='form-control mt-1' 
+                      id='notes' 
+                      name='notes' 
+                      rows='4'
+                      style='min-height: 120px;'
+                      placeholder='Enter any additional notes about this asset...'
+                    )= (isEdit ? (asset.notes || formData.notes) : (formData.notes || ''))
               .row.mt-4
                 .col-6
                   a(href='/assets' class='btn btn-secondary')

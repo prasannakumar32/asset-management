@@ -12,49 +12,34 @@ block content
       .col-lg-9.col-md-9
         .card.shadow
           .card-header
+            .row
+              .col-12
+                a(href='/assets' class='btn btn-outline-primary btn-sm')
+                  i.fas.fa-arrow-left.me-2
+                  | Back to Assets
           .card-body
             form(action='/api/asset-assignment', method='POST', id='issueForm', novalidate, class='form-container')
               .row.mb-3
-                .col-12
-                  .d-flex.justify-content-start
-                    a(href='/assets' class='btn btn-outline-primary btn-sm')
-                      i.fas.fa-arrow-left.me-2
-                      | Back to Assets
-              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='assetId' class='form-label required-field')
-                      i.fas.fa-cube.me-2
-                      | Asset *
+                    label(for='assetId' class='form-label required-field') Asset
                     select#assetId.form-select(name='asset_id', required)
                       option(value='') Select Asset
-                    .invalid-feedback
-                      | Please select an asset
                 .col-md-6
                   .form-group.mb-3
-                    label(for='employeeId' class='form-label required-field')
-                      i.fas.fa-user.me-2
-                      | Employee *
+                    label(for='employeeId' class='form-label required-field') Employee
                     select#employeeId.form-select(name='employee_id', required)
                       option(value='') Select Employee
-                    .invalid-feedback
-                      | Please select an employee    
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='assignedBy' class='form-label required-field')
-                      i.fas.fa-user-tie.me-2
-                      | Assigned By *
+                    label(for='assignedBy' class='form-label required-field') Assigned By
                     select#assignedBy.form-select(name='assigned_by', required)
                       option(value='') Select Manager/Staff
-                      // Employees will be populated via JavaScript
-                    .invalid-feedback
-                      | Please select who is assigning this asset
                   
                 .col-md-6
                   .form-group.mb-3
                     label(for='assignedDate' class='form-label')
-                      i.fas.fa-calendar.me-2
                       | Assigned Date
                     input#assignedDate.form-control(name='assigned_date', type='date', value=new Date().toISOString().split('T')[0])
               

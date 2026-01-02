@@ -12,61 +12,43 @@ block content
       .col-lg-9.col-md-9
         .card.shadow
           .card-header
+            .row
+              .col-12
+                a(href='/assets' class='btn btn-outline-primary btn-sm')
+                  i.fas.fa-arrow-left.me-2
+                  | Back to Asset
           .card-body
             form(action='/api/asset-assignment/return', method='POST', id='returnForm', novalidate, class='form-container')
               .row.mb-3
-                .col-12
-                  .d-flex.justify-content-start
-                    a(href='/assets' class='btn btn-outline-primary btn-sm')
-                      i.fas.fa-arrow-left.me-2
-                      | Back to Asset
-              .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='employeeId' class='form-label required-field')
-                      i.fas.fa-user.me-2
-                      | Employee *
+                    label(for='employeeId' class='form-label required-field') Employee
                     select#employeeId.form-select(name='employee_id', required)
                       option(value='') Select Employee
-                    .invalid-feedback
-                      | Please select an employee
                 .col-md-6
                   .form-group.mb-3
-                    label(for='assetId' class='form-label required-field')
-                      i.fas.fa-cube.me-2
-                      | Asset *
+                    label(for='assetId' class='form-label required-field') Asset
                     select#assetId.form-select(name='asset_id', required)
                       option(value='') Select Asset
-                    .invalid-feedback
-                      | Please select an asset
               .row.mb-3
                 .col-md-6
                   .form-group.mb-3
-                    label(for='returnDate' class='form-label required-field')
-                      i.fas.fa-calendar.me-2
-                      | Return Date *
+                    label(for='returnDate' class='form-label required-field') Return Date
                     input#returnDate.form-control(name='return_date', type='date', value=new Date().toISOString().split('T')[0], required)
-                    .invalid-feedback
-                      | Please select return date
                 .col-md-6
                   .form-group.mb-3
-                    label(for='returnCondition' class='form-label required-field')
-                      i.fas.fa-check-circle.me-2
-                      | Return Condition *
-                    select#returnCondition.form-select(name='return_condition', required)
+                    label(for='returnCondition' class='form-label required-field') Return Condition
+                    select#returnCondition.form-select(name='return_condition')
                       option(value='') Select Condition
                       option(value='excellent') Excellent
                       option(value='good') Good
                       option(value='fair') Fair
                       option(value='poor') Poor
                       option(value='damaged') Damaged
-                    .invalid-feedback
-                      | Please select return condition
               .row.mb-3
                 .col-12
                   .form-group.mb-3
                     label(for='notes' class='form-label')
-                      i.fas.fa-sticky-note.me-2
                       | Notes
                     textarea#notes.form-control(name='notes', rows='3')
               .row.mt-4
