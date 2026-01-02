@@ -129,6 +129,12 @@ exports.list = async (req, res) => {
             order: [['name', 'ASC']],
             raw: true  
         });
+// Get employees for modal dropdown
+        const employees = await Employee.findAll({ 
+            where: { status: 'active' },
+            order: [['first_name', 'ASC'], ['last_name', 'ASC']],
+            raw: true
+        });
 // Get  branches for branch filter
         const branches = await Asset.findAll({
             attributes: [
@@ -143,6 +149,7 @@ exports.list = async (req, res) => {
         return res.render('asset/asset', {
             assets,
             categories,
+            employees,
             branches: branches.map(b => b.branch).filter(b => b), 
             category,
             status,
@@ -156,6 +163,7 @@ exports.list = async (req, res) => {
         return res.render('asset/asset', {
             assets: [],
             categories,
+            employees: [],
             category: req.query.category || '',
             status: req.query.status || '',
             is_active: req.query.is_active || 'true',
