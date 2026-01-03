@@ -4,12 +4,10 @@ block content
   .form-dialog-container
     .form-dialog
       .form-dialog-header
-      
       .form-dialog-content
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           i.fas.fa-undo.me-2(style="color: #4e73df;")
           | Return Asset from Employee
-        
         form(action='/api/asset-assignment/return', method='POST', id='returnForm', novalidate)
           .form-section
             h6.form-section-title
@@ -41,7 +39,6 @@ block content
                   option(value='fair') Fair
                   option(value='poor') Poor
                   option(value='damaged') Damaged
-          
           .form-section
             h6.form-section-title
               i.fas.fa-sticky-note.me-2
@@ -50,7 +47,6 @@ block content
               .form-group-wrapper
                 label(for='notes') Notes
                 textarea#notes.form-control(name='notes', placeholder='Enter any additional notes...')
-      
       .form-dialog-footer
         a.form-action-btn.form-action-btn-secondary(href='/assets')
           i.fas.fa-times

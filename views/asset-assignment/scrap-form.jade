@@ -4,12 +4,10 @@ block content
   .form-dialog-container
     .form-dialog
       .form-dialog-header
-      
       .form-dialog-content
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           i.fas.fa-trash-alt.me-2(style="color: #e74a3b;")
           | Scrap Asset
-        
         form(action='/api/asset-assignment/scrap', method='POST', id='scrapForm', novalidate)
           .form-section
             h6.form-section-title
@@ -40,7 +38,6 @@ block content
                 label(for='employeeId')
                   span.required-field Scrapped By
                 select#employeeId.form-control(name='employee_id', required)
-          
           .form-section
             h6.form-section-title
               i.fas.fa-comment.me-2
@@ -50,7 +47,6 @@ block content
                 label(for='reason')
                   span.required-field Reason
                 textarea#reason.form-control(name='reason', rows='4', required, placeholder='Enter the reason for scrapping this asset...', style="resize: vertical; min-height: 120px;")
-      
       .form-dialog-footer
         a.form-action-btn.form-action-btn-secondary(href='/assets')
           i.fas.fa-times
@@ -75,30 +71,24 @@ block scripts
           console.error('Employee select element not found');
           return;
         }
-        
         if (result.success && result.data && Array.isArray(result.data.employees)) {
           // Clear existing options
           select.innerHTML = '<option value="">Select Employee</option>';
-          
           const activeEmployees = result.data.employees.filter(employee => employee.status === 'active');
-          
           if (activeEmployees.length === 0) {
             console.warn('No active employees found');
             return;
           }
-          
           activeEmployees.forEach(employee => {
             const option = document.createElement('option');
             option.value = employee.id;
             option.textContent = `${employee.first_name} ${employee.last_name} (${employee.employee_id || employee.email})`;
             select.appendChild(option);
           });
-          
           // If there's only one employee, select it by default
           if (activeEmployees.length === 1) {
             select.value = activeEmployees[0].id;
           }
-          
         } else {
           console.error('Error loading employees:', result.error || 'Invalid response format');
           select.innerHTML = '<option value="">Error loading employees</option>';
@@ -121,7 +111,6 @@ block scripts
         if (result.success && result.data) {
           // Display all assets that are not already scrapped
           const availableAssets = result.data.assets ? result.data.assets.filter(asset => asset.status !== 'scrapped') : [];
-          
           // Clear existing options
           assetSelect.innerHTML = '<option value="">Select Asset</option>';
           
@@ -129,7 +118,6 @@ block scripts
             assetSelect.innerHTML = '<option value="">No assets available for scrapping</option>';
             return;
           }
-          
           // Populate dropdown
           availableAssets.forEach(asset => {
             const option = document.createElement('option');
@@ -137,7 +125,6 @@ block scripts
             option.textContent = `${asset.name} (${asset.asset_tag || 'No Tag'}) - ${asset.status}`;
             assetSelect.appendChild(option);
           });
-          
         } else {
           console.error('Error loading assets:', result.error || 'Unknown error');
         }

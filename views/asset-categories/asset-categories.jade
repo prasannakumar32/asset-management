@@ -29,13 +29,11 @@ block content
             element.addEventListener('change', callback);
           }
         }
-
         // Add event listeners for filter controls
         if (filterForm) {
           if (statusSelect) addFilterListener(statusSelect, () => filterForm.submit());
         }
       });
-      
       // Delete confirmation 
       function confirmDelete(categoryId, categoryName) {
         if (confirm('Are you sure you want to delete "' + categoryName + '"? This action cannot be undone.')) {
@@ -46,13 +44,11 @@ block content
           form.submit();
         }
       }
-      
       // Clear all filters function
       function clearAllFilters() {
         const status = document.getElementById('status');
         
         if (status) status.value = '';
-        
         window.location.href = '/asset-categories';
       }
     .row.asset-category-list-row

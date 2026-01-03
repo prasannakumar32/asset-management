@@ -10,10 +10,8 @@ html(lang='en')
       .login-header
         h1 Asset Management
         p Sign in to your account
-        
       if error
         .error-message= error
-      
       form(action='/login', method='POST')
         .form-group
           label(for='username') Username

@@ -4,12 +4,10 @@ block content
   .form-dialog-container
     .form-dialog
       .form-dialog-header
-      
       .form-dialog-content
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           i.fas.fa-hand-holding-box.me-2(style="color: #4e73df;")
           | Issue Asset to Employee
-        
         form(action='/api/asset-assignment', method='POST', id='issueForm', novalidate)
           .form-section
             h6.form-section-title
@@ -35,7 +33,6 @@ block content
               .form-group-wrapper
                 label(for='assignedDate') Assigned Date
                 input#assignedDate.form-control(name='assigned_date', type='date', value=new Date().toISOString().split('T')[0])
-      
       .form-dialog-footer
         a.form-action-btn.form-action-btn-secondary(href='/assets')
           i.fas.fa-times
@@ -71,7 +68,6 @@ block scripts
             option.textContent = `${asset.name} (${asset.asset_tag})`;
             assetSelect.appendChild(option);
           });
-          
         } else {
           console.error('Error loading assets:', result.error || 'Unknown error');
           console.error('Full result object:', result);

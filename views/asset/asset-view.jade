@@ -4,18 +4,13 @@ block content
   .view-dialog-container
     .view-dialog
       .view-dialog-header
-      
       .view-dialog-content
-        // Header with Title
         .row.mb-4
           .col-12
             h1.text-center.mb-0(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
               i.fas.fa-cube.me-2(style="color: #4e73df;")
               | Asset Details
-        
         hr(style="border: none; border-top: 1px solid #e3e6f0; margin: 2rem 0;")
-        
-        // Basic Information Section
         .view-detail-section
           h6.view-section-title
             i.fas.fa-info-circle.me-2
@@ -53,8 +48,6 @@ block content
                 i.fas.fa-industry
                 | Manufacturer
               .view-detail-value= asset.manufacturer || 'N/A'
-        
-        // Financial Information Section
         .view-detail-section
           h6.view-section-title
             i.fas.fa-dollar-sign.me-2
@@ -81,8 +74,6 @@ block content
                 i.fas.fa-chart-line
                 | Current Value
               .view-detail-value= asset.current_value ? `$${parseFloat(asset.current_value).toFixed(2)}` : 'N/A'
-        
-        // Location & Assignment Section
         .view-detail-section
           h6.view-section-title
             i.fas.fa-map-marker-alt.me-2
@@ -121,8 +112,6 @@ block content
                     | #{asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
                 else
                   .view-detail-value.text-muted N/A
-        
-        // Notes Section
         if asset.notes && asset.notes.trim()
           .view-detail-section
             .view-notes-section
@@ -130,7 +119,6 @@ block content
                 i.fas.fa-sticky-note
                 | Additional Notes
               .view-notes-content= asset.notes
-      
       .view-dialog-footer
         a.view-action-btn.view-action-btn-primary(href='/assets/#{asset.id}/form')
           i.fas.fa-edit
@@ -138,4 +126,3 @@ block content
         a.view-action-btn.view-action-btn-secondary(href='/assets')
           i.fas.fa-list
           | Back to List
-

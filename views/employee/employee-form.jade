@@ -4,9 +4,7 @@ block content
   .form-dialog-container
     .form-dialog
       .form-dialog-header
-      
       .form-dialog-content
-        // Header with Title
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           if isEdit
             i.fas.fa-edit.me-2(style="color: #4e73df;")
@@ -16,7 +14,6 @@ block content
             | Add New Employee
         
         form(action=(isEdit ? `/employee/${employee.id}?_method=PUT` : '/employee'), method='POST', id='employeeForm', novalidate)
-          // Personal Information Section
           .form-section
             h6.form-section-title
               i.fas.fa-user.me-2
@@ -56,8 +53,6 @@ block content
                       value=(isEdit ? (employee && employee.employee_id) || (formData && formData.employee_id) || '' : (formData && formData.employee_id) || '')
                       readonly=isEdit
                       placeholder='Will be auto-generated')
-          
-          // Job Information Section
           .form-section
             h6.form-section-title
               i.fas.fa-briefcase.me-2
@@ -118,4 +113,3 @@ block content
         button.form-action-btn.form-action-btn-primary(type='submit')
           i.fas.fa-save
           = isEdit ? 'Update Employee' : 'Add Employee'
-

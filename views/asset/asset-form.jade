@@ -4,9 +4,7 @@ block content
   .form-dialog-container
     .form-dialog
       .form-dialog-header
-      
       .form-dialog-content
-        // Header with Title
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           if isEdit
             i.fas.fa-edit.me-2(style="color: #4e73df;")
@@ -16,7 +14,6 @@ block content
             | Add New Asset
         
         form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate)
-          // Basic Information Section
           .form-section
             h6.form-section-title
               i.fas.fa-info-circle.me-2
@@ -59,8 +56,6 @@ block content
                 label(for='manufacturer') Manufacturer
                 input(type='text' class='form-control' id='manufacturer' name='manufacturer' 
                       value=(isEdit ? (asset.manufacturer || formData.manufacturer) : (formData.manufacturer || '')))
-          
-          // Financial Information Section
           .form-section
             h6.form-section-title
               i.fas.fa-dollar-sign.me-2
@@ -84,8 +79,6 @@ block content
                 label(for='warranty_months') Warranty (months)
                 input(type='number' class='form-control' id='warranty_months' name='warranty_months' 
                       value=(isEdit ? (asset.warranty_months || formData.warranty_months) : (formData.warranty_months || '')) min='0')
-          
-          // Location & Assignment Section
           .form-section
             h6.form-section-title
               i.fas.fa-map-marker-alt.me-2
@@ -128,8 +121,6 @@ block content
                       each employee in employees
                         option(value=employee.id selected=formData.employee_id == employee.id)
                           = employee.first_name + ' ' + employee.last_name + ' (' + employee.employee_id + ')'
-          
-          // Additional Section
           .form-section
             h6.form-section-title
               i.fas.fa-sticky-note.me-2
@@ -149,7 +140,6 @@ block content
                   name='notes' 
                   placeholder='Enter any additional notes about this asset...'
                 )= (isEdit ? (asset.notes || formData.notes) : (formData.notes || ''))
-      
       .form-dialog-footer
         a.form-action-btn.form-action-btn-secondary(href='/assets')
           i.fas.fa-times
@@ -161,4 +151,3 @@ block content
         button.form-action-btn.form-action-btn-primary(type='submit')
           i.fas.fa-save
           = isEdit ? 'Update Asset' : 'Create Asset'
-

@@ -4,18 +4,13 @@ block content
   .view-dialog-container
     .view-dialog
       .view-dialog-header
-      
       .view-dialog-content
-        // Header with Title
         .row.mb-4
           .col-12
             h1.text-center.mb-0(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
               i.fas.fa-folder.me-2(style="color: #4e73df;")
               | Category Details
-        
         hr(style="border: none; border-top: 1px solid #e3e6f0; margin: 2rem 0;")
-        
-        // Basic Information Section
         .view-detail-section
           h6.view-section-title
             i.fas.fa-info-circle.me-2
@@ -43,8 +38,6 @@ block content
                 i.fas.fa-calendar-alt
                 | Created Date
               .view-detail-value= category.created_at ? new Date(category.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + new Date(category.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A'
-        
-        // Metadata Section
         .view-detail-section
           h6.view-section-title
             i.fas.fa-history.me-2
@@ -55,8 +48,6 @@ block content
                 i.fas.fa-clock
                 | Last Updated
               .view-detail-value= category.updated_at ? new Date(category.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + new Date(category.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A'
-        
-        // Description Section
         if category.description && category.description.trim()
           .view-detail-section
             .view-notes-section
@@ -64,7 +55,6 @@ block content
                 i.fas.fa-align-left
                 | Description
               .view-notes-content= category.description
-      
       .view-dialog-footer
         a.view-action-btn.view-action-btn-primary(href='/asset-categories/#{category.id}/form')
           i.fas.fa-edit
@@ -72,4 +62,3 @@ block content
         a.view-action-btn.view-action-btn-secondary(href='/asset-categories')
           i.fas.fa-list
           | Back to List
-

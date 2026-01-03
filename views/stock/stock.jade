@@ -3,7 +3,6 @@ extends ../navbar
 block content
   .container-fluid
     h1.mb-4 Stock View
-    // Dashboard Cards
     .dashboard-horizontal
       .card
         .card-icon
@@ -33,7 +32,6 @@ block content
           h3 Branches
           .number #{Object.keys(assetsByBranch).length}
           .description Active branches
-    // Branch-wise Stock Section
     each branchData, branch in assetsByBranch
       .card.mb-4
         .card-header

@@ -6,7 +6,6 @@ block content
       .form-dialog-header
       
       .form-dialog-content
-        // Header with Title
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           if isEdit
             i.fas.fa-edit.me-2(style="color: #4e73df;")
@@ -14,9 +13,7 @@ block content
           else
             i.fas.fa-folder-plus.me-2(style="color: #4e73df;")
             | Add New Category
-        
         form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', novalidate, enctype='application/x-www-form-urlencoded')
-          // Basic Information Section
           .form-section
             h6.form-section-title
               i.fas.fa-info-circle.me-2
@@ -44,8 +41,6 @@ block content
                         value=category.id
                         readonly
                         style='background-color: #e9ecef; cursor: not-allowed;')
-          
-          // Description Section
           .form-section
             h6.form-section-title
               i.fas.fa-align-left.me-2
@@ -55,7 +50,6 @@ block content
                 label(for='description') Description
                 textarea(class='form-control' id='description' name='description' rows='4'
                         placeholder='Enter category description')= (isEdit && category ? (category.description || '') : (formData && formData.description ? formData.description : ''))
-      
       .form-dialog-footer
         a.form-action-btn.form-action-btn-secondary(href='/asset-categories')
           i.fas.fa-times
@@ -67,6 +61,3 @@ block content
         button.form-action-btn.form-action-btn-primary(type='submit')
           i.fas.fa-save
           = isEdit ? 'Update Category' : 'Create Category'
-
-                
-                

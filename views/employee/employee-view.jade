@@ -4,18 +4,13 @@ block content
   .view-dialog-container
     .view-dialog
       .view-dialog-header
-      
       .view-dialog-content
-        // Header with Title
         .row.mb-4
           .col-12
             h1.text-center.mb-0(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
               i.fas.fa-user-circle.me-2(style="color: #4e73df;")
               | Employee Details
-        
         hr(style="border: none; border-top: 1px solid #e3e6f0; margin: 2rem 0;")
-        
-        // Personal Information Section
         .view-detail-section
           h6.view-section-title
             i.fas.fa-user.me-2
@@ -42,8 +37,6 @@ block content
                 i.fas.fa-id-card
                 | Employee ID
               .view-detail-value= employee.employee_id || 'N/A'
-        
-        // Job Information Section
         .view-detail-section
           h6.view-section-title
             i.fas.fa-briefcase.me-2
@@ -72,8 +65,6 @@ block content
               .view-detail-value
                 span.badge(class=employee.status === 'active' ? 'bg-success' : 'bg-secondary' style="font-size: 0.85rem; padding: 0.4rem 0.75rem;")
                   | #{employee.status ? employee.status.charAt(0).toUpperCase() + employee.status.slice(1) : 'N/A'}
-        
-        // Notes Section
         if employee.notes && employee.notes.trim()
           .view-detail-section
             .view-notes-section
@@ -81,7 +72,6 @@ block content
                 i.fas.fa-sticky-note
                 | Additional Notes
               .view-notes-content= employee.notes
-      
       .view-dialog-footer
         a.view-action-btn.view-action-btn-primary(href='/employee/#{employee.id}/form')
           i.fas.fa-edit
@@ -95,5 +85,3 @@ block content
         a.view-action-btn.view-action-btn-secondary(href='/employee')
           i.fas.fa-list
           | Back to List
-
-
