@@ -16,14 +16,7 @@ block content
       .col-lg-9.col-md-9
         .card.shadow
           .card-header
-          
           .card-body
-            .row.mb-3
-              .col-12
-                .d-flex.justify-content-start
-                  a(href='/assets' class='btn btn-outline-primary btn-sm')
-                    i.fas.fa-arrow-left.me-2
-                    | Back to Assets
             form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate, class='form-container')
               .row.mb-3
                 .col-md-6

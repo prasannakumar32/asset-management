@@ -16,11 +16,6 @@ block content
       .col-lg-9.col-md-9
         .card.shadow
           .card-header
-            .row.mb-2
-              .col-12
-                a(href='/asset-categories' class='btn btn-outline-primary btn-sm')
-                  i.fas.fa-arrow-left.me-2
-                  | Back to Categories
           .card-body
             form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', novalidate, class='form-container', enctype='application/x-www-form-urlencoded')
               .row.mb-3

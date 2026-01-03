@@ -12,11 +12,6 @@ block content
       .col-lg-9.col-md-9
         .card.shadow
           .card-header
-            .row
-              .col-12
-                a(href='/assets' class='btn btn-outline-primary btn-sm')
-                  i.fas.fa-arrow-left.me-2
-                  | Back to Assets
           .card-body
             form(action='/api/asset-assignment', method='POST', id='issueForm', novalidate, class='form-container')
               .row.mb-3
