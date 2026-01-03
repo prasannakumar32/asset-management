@@ -9,22 +9,23 @@ block content
     if asset && timeline
       .row
         .col-md-4.mb-4
-          .card
-            .card-header.bg-light
-              h6.mb-0 Asset Details
-            .card-body
-              p.mb-1
-                strong Name: 
-                | #{asset.name}
-              p.mb-1
-                strong Tag: 
-                | #{asset.asset_tag || 'N/A'}
-              p.mb-1
-                strong Category: 
-                | #{asset.category ? asset.category.name : 'N/A'}
-              p.mb-0
-                strong Status: 
-                | #{asset.status || 'N/A'}
+          .asset-history-details
+            .card
+              .card-header.bg-light
+                h6.mb-0 Asset Details
+              .card-body
+                p.mb-1
+                  strong Name: 
+                  | #{asset.name}
+                p.mb-1
+                  strong Tag: 
+                  | #{asset.asset_tag || 'N/A'}
+                p.mb-1
+                  strong Category: 
+                  | #{asset.category ? asset.category.name : 'N/A'}
+                p.mb-0
+                  strong Status: 
+                  | #{asset.status || 'N/A'}
 
         .col-md-8
           .card
@@ -35,7 +36,6 @@ block content
             .card-body
               if timeline && timeline.length > 0
                 .asset-history-timeline
-                  .list-group.list-group-flush
                     each event in timeline
                       .list-group-item
                         .d-flex.w-100.justify-content-between
@@ -49,8 +49,6 @@ block content
               else
                 .text-center.py-4
                   i.fas.fa-history.text-muted.mb-3(style="font-size: 2.5rem;")
-                  h5.text-muted No Timeline Events
-                  p.text-muted No timeline events found for this asset.
     else if assets && assets.length > 0
       .card
         .card-body

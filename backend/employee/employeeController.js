@@ -49,7 +49,7 @@ exports.list = async (req, res) => {
                     .sort((a, b) => a.localeCompare(b));
             })
         ]);
-// Filter employees based on query parameters
+// Filter employees 
         const whereConditions = {};
         if (department) {
             whereConditions.department = department;
@@ -90,7 +90,6 @@ exports.list = async (req, res) => {
         });
     }
 }
-
 //list employee 
 exports.listAPI = async (req, res) => {
     try {
@@ -115,8 +114,7 @@ exports.listAPI = async (req, res) => {
             data: {
                 employees: filteredEmployees
             }
-        });
-        
+        }); 
     } catch (error) {
         console.error('Error in employee list API:', error);
         return res.status(500).json({
@@ -140,7 +138,6 @@ exports.showForm = async (req, res) => {
                 return res.redirect('/employee?error=Employee not found');
             }
         }
-
 // Get unique values for dropdowns
         const [departments, branches] = await Promise.all([
             Employee.findAll({
@@ -161,8 +158,7 @@ exports.showForm = async (req, res) => {
                     .map(d => d.department)
                     .filter(Boolean)
                     .sort((a, b) => a.localeCompare(b));
-            }),
-            
+            }), 
             Employee.findAll({
                 attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('branch')), 'branch']],
                 where: { 
@@ -181,7 +177,6 @@ exports.showForm = async (req, res) => {
                     .sort((a, b) => a.localeCompare(b));
             })
         ]);
-
         res.render('employee/employee-form', {
             employee,
             departments,
@@ -190,7 +185,6 @@ exports.showForm = async (req, res) => {
             isEdit,
             error
         });
-
     } catch (error) {
         console.error('Error loading employee form:', error);
         res.redirect('/employee');
@@ -225,7 +219,6 @@ exports.create = async (req, res) => {
             first_name, last_name, email, phone, 
             department, position, branch, status, notes, employee_id 
         } = req.body;
-
         let employeeData = {
             first_name,
             last_name,
@@ -238,7 +231,6 @@ exports.create = async (req, res) => {
             notes: notes || null,
             hire_date: new Date()
         };
-
 // Generate employee ID if not exist 
         if (!employee_id || employee_id.trim() === '') {
             const lastEmployee = await Employee.findOne({
@@ -264,13 +256,9 @@ exports.create = async (req, res) => {
             }
             employeeData.employee_id = employee_id.trim();
         }
-
         const employee = await Employee.create(employeeData, { transaction });
-
         await transaction.commit();
-        
         return res.redirect('/employee?success=Employee created successfully');
-        
     } catch (error) {
         await transaction.rollback();
         console.error('Error creating employee:', error);
