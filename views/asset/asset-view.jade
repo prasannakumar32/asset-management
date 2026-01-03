@@ -1,139 +1,141 @@
 extends ../navbar
 
 block content
-  .container-fluid.px-4.py-4
-    .row.mb-4
-      .col-12.position-relative.view-header-container
-        a.btn.btn-outline-primary.view-back-button(href='/assets')
-          i.fas.fa-arrow-left.me-2
-          | Back to Assets
-        h1.mb-0.asset-title-centered
-          i.fas.fa-cube.me-2.text-primary
-          | Asset Details
-    .row.justify-content-center
-      .col-lg-8.col-md-10
-        .asset-view-card
-          .asset-view-header
-          .asset-details-container
-            .row
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-tag
-                    | Asset Name
-                  .asset-detail-value= asset.name || 'N/A'
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-barcode
-                    | Asset Tag
-                  .asset-detail-value= asset.asset_tag || 'N/A'
-            .row
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-barcode
-                    | Serial Number
-                  .asset-detail-value= asset.serial_number || 'N/A'
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-tags
-                    | Category
-                  .asset-detail-value= asset.category ? asset.category.name : 'N/A'
-            .row
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-cube
-                    | Model
-                  .asset-detail-value= asset.model || 'N/A'
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-industry
-                    | Manufacturer
-                  .asset-detail-value= asset.manufacturer || 'N/A'
-            .row
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-calendar-alt
-                    | Purchase Date
-                  .asset-detail-value= asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString() : 'N/A'
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-money-bill-wave
-                    | Purchase Cost
-                  .asset-detail-value= asset.purchase_cost ? `$${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A'
-            .row
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-shield-alt
-                    | Warranty
-                  .asset-detail-value= asset.warranty_months ? `${asset.warranty_months} months` : 'N/A'
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-chart-line
-                    | Current Value
-                  .asset-detail-value= asset.current_value ? `$${parseFloat(asset.current_value).toFixed(2)}` : 'N/A'
-            .row
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-building
-                    | Branch
-                  .asset-detail-value= asset.branch || 'N/A'
-              
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-map-marker-alt
-                    | Location
-                  .asset-detail-value= asset.location || 'N/A'
-            .row
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-user-tie
-                    | Assigned To
-                  .asset-detail-value
-                    if asset.assignments && asset.assignments.length > 0 && asset.assignments[0].employee
-                      div= `${asset.assignments[0].employee.first_name} ${asset.assignments[0].employee.last_name}`
-                      .small.text-muted (ID: #{asset.assignments[0].employee.employee_id})
-                    else
-                      span.text-muted Unassigned
-              .col-md-6
-                .asset-detail-item
-                  .asset-detail-label
-                    i.fas.fa-info-circle
-                    | Status
-                  .asset-detail-value
-                    if asset.status
-                      span= asset.status.charAt(0).toUpperCase() + asset.status.slice(1)
-                    else
-                      | N/A
-            // Notes Section
-            .row
-              .col-12
-                .asset-notes-card
-                  .asset-notes-header
-                    h6.asset-notes-title
-                      i.fas.fa-sticky-note
-                      | Notes
-                  .asset-notes-content
-                    if asset.notes && asset.notes.trim()
-                      p= asset.notes
-                    else
-                      .text-muted No notes available
-          
-          .asset-actions-section
-            a.asset-action-btn.asset-btn-primary(href='/assets/#{asset.id}/form')
-              i.fas.fa-edit
-              | Edit Asset
-            a.asset-action-btn.asset-btn-secondary(href='/assets')
-              i.fas.fa-list
-              | Back to List
+  .view-dialog-container
+    .view-dialog
+      .view-dialog-header
+      
+      .view-dialog-content
+        // Header with Title
+        .row.mb-4
+          .col-12
+            h1.text-center.mb-0(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
+              i.fas.fa-cube.me-2(style="color: #4e73df;")
+              | Asset Details
+        
+        hr(style="border: none; border-top: 1px solid #e3e6f0; margin: 2rem 0;")
+        
+        // Basic Information Section
+        .view-detail-section
+          h6.view-section-title
+            i.fas.fa-info-circle.me-2
+            | Basic Information
+          .view-detail-row
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-tag
+                | Asset Name
+              .view-detail-value= asset.name || 'N/A'
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-barcode
+                | Asset Tag
+              .view-detail-value= asset.asset_tag || 'N/A'
+          .view-detail-row
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-barcode
+                | Serial Number
+              .view-detail-value= asset.serial_number || 'N/A'
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-tags
+                | Category
+              .view-detail-value= asset.category ? asset.category.name : 'N/A'
+          .view-detail-row
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-cube
+                | Model
+              .view-detail-value= asset.model || 'N/A'
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-industry
+                | Manufacturer
+              .view-detail-value= asset.manufacturer || 'N/A'
+        
+        // Financial Information Section
+        .view-detail-section
+          h6.view-section-title
+            i.fas.fa-dollar-sign.me-2
+            | Financial Information
+          .view-detail-row
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-calendar-alt
+                | Purchase Date
+              .view-detail-value= asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString() : 'N/A'
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-money-bill-wave
+                | Purchase Cost
+              .view-detail-value= asset.purchase_cost ? `$${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A'
+          .view-detail-row
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-shield-alt
+                | Warranty
+              .view-detail-value= asset.warranty_months ? `${asset.warranty_months} months` : 'N/A'
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-chart-line
+                | Current Value
+              .view-detail-value= asset.current_value ? `$${parseFloat(asset.current_value).toFixed(2)}` : 'N/A'
+        
+        // Location & Assignment Section
+        .view-detail-section
+          h6.view-section-title
+            i.fas.fa-map-marker-alt.me-2
+            | Location & Assignment
+          .view-detail-row
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-building
+                | Branch
+              .view-detail-value= asset.branch || 'N/A'
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-map-marker-alt
+                | Location
+              .view-detail-value= asset.location || 'N/A'
+          .view-detail-row
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-user-tie
+                | Assigned To
+              .view-detail-value
+                if asset.assignments && asset.assignments.length > 0 && asset.assignments[0].employee
+                  div
+                    | #{asset.assignments[0].employee.first_name} #{asset.assignments[0].employee.last_name}
+                  .small(style="color: #858796; margin-top: 0.25rem;")
+                    | (ID: #{asset.assignments[0].employee.employee_id})
+                else
+                  .view-detail-value.text-muted Unassigned
+            .view-detail-item
+              .view-detail-label
+                i.fas.fa-info-circle
+                | Status
+              .view-detail-value
+                if asset.status
+                  span.badge(class=asset.status === 'active' ? 'bg-success' : asset.status === 'inactive' ? 'bg-secondary' : asset.status === 'archived' ? 'bg-dark' : 'bg-info' style="font-size: 0.85rem; padding: 0.4rem 0.75rem;")
+                    | #{asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
+                else
+                  .view-detail-value.text-muted N/A
+        
+        // Notes Section
+        if asset.notes && asset.notes.trim()
+          .view-detail-section
+            .view-notes-section
+              h6.view-notes-title
+                i.fas.fa-sticky-note
+                | Additional Notes
+              .view-notes-content= asset.notes
+      
+      .view-dialog-footer
+        a.view-action-btn.view-action-btn-primary(href='/assets/#{asset.id}/form')
+          i.fas.fa-edit
+          | Edit Asset
+        a.view-action-btn.view-action-btn-secondary(href='/assets')
+          i.fas.fa-list
+          | Back to List
+

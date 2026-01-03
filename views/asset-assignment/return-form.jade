@@ -1,60 +1,63 @@
 extends ../navbar
 
 block content
-  .container-fluid.px-4.py-4
-    .row.mb-4
-      .col-12
-        h1.text-center.mb-4
-          i.fas.fa-undo.me-2
+  .form-dialog-container
+    .form-dialog
+      .form-dialog-header
+      
+      .form-dialog-content
+        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
+          i.fas.fa-undo.me-2(style="color: #4e73df;")
           | Return Asset from Employee
-    
-    .row.justify-content-center
-      .col-lg-9.col-md-9
-        .card.shadow
-          .card-header
-          .card-body
-            form(action='/api/asset-assignment/return', method='POST', id='returnForm', novalidate, class='form-container')
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='employeeId' class='form-label required-field') Employee
-                    select#employeeId.form-select(name='employee_id', required)
-                      option(value='') Select Employee
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='assetId' class='form-label required-field') Asset
-                    select#assetId.form-select(name='asset_id', required)
-                      option(value='') Select Asset
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='returnDate' class='form-label required-field') Return Date
-                    input#returnDate.form-control(name='return_date', type='date', value=new Date().toISOString().split('T')[0], required)
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='returnCondition' class='form-label required-field') Return Condition
-                    select#returnCondition.form-select(name='return_condition')
-                      option(value='') Select Condition
-                      option(value='excellent') Excellent
-                      option(value='good') Good
-                      option(value='fair') Fair
-                      option(value='poor') Poor
-                      option(value='damaged') Damaged
-              .row.mb-3
-                .col-12
-                  .form-group.mb-3
-                    label(for='notes' class='form-label')
-                      | Notes
-                    textarea#notes.form-control(name='notes', rows='3')
-              .row.mt-4
-                .col-6
-                  a(href='/assets' class='btn btn-secondary')
-                    i.fas.fa-times.me-2
-                    | Cancel
-                .col-6.text-end
-                  button(type='submit' class='btn btn-primary')
-                    i.fas.fa-undo.me-2
-                    | Return Asset
+        
+        form(action='/api/asset-assignment/return', method='POST', id='returnForm', novalidate)
+          .form-section
+            h6.form-section-title
+              i.fas.fa-exchange-alt.me-2
+              | Asset Details
+            .form-row
+              .form-group-wrapper
+                label(for='employeeId')
+                  span.required-field Employee
+                select#employeeId.form-control(name='employee_id', required)
+                  option(value='') Select Employee
+              .form-group-wrapper
+                label(for='assetId')
+                  span.required-field Asset
+                select#assetId.form-control(name='asset_id', required)
+                  option(value='') Select Asset
+            .form-row
+              .form-group-wrapper
+                label(for='returnDate')
+                  span.required-field Return Date
+                input#returnDate.form-control(name='return_date', type='date', value=new Date().toISOString().split('T')[0], required)
+              .form-group-wrapper
+                label(for='returnCondition')
+                  span.required-field Return Condition
+                select#returnCondition.form-control(name='return_condition')
+                  option(value='') Select Condition
+                  option(value='excellent') Excellent
+                  option(value='good') Good
+                  option(value='fair') Fair
+                  option(value='poor') Poor
+                  option(value='damaged') Damaged
+          
+          .form-section
+            h6.form-section-title
+              i.fas.fa-sticky-note.me-2
+              | Additional Information
+            .form-row(style="grid-template-columns: 1fr;")
+              .form-group-wrapper
+                label(for='notes') Notes
+                textarea#notes.form-control(name='notes', placeholder='Enter any additional notes...')
+      
+      .form-dialog-footer
+        a.form-action-btn.form-action-btn-secondary(href='/assets')
+          i.fas.fa-times
+          | Cancel
+        button.form-action-btn.form-action-btn-primary(type='submit')
+          i.fas.fa-undo
+          | Return Asset
 
 block scripts
   script.

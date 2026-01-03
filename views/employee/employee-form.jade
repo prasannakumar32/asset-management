@@ -1,134 +1,121 @@
 extends ../navbar
 
 block content
-  .container-fluid.px-4.py-4
-    .row.mb-4
-      .col-12
-        h1.text-center.mb-4
+  .form-dialog-container
+    .form-dialog
+      .form-dialog-header
+      
+      .form-dialog-content
+        // Header with Title
+        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           if isEdit
-            i.fas.fa-edit.me-2
+            i.fas.fa-edit.me-2(style="color: #4e73df;")
             | Edit Employee
           else
-            i.fas.fa-user-plus.me-2
+            i.fas.fa-user-plus.me-2(style="color: #4e73df;")
             | Add New Employee
-    .row.justify-content-center
-      .col-lg-9.col-md-9
-        .card.shadow
-          .card-header
-          .card-body
-            form(action=(isEdit ? `/employee/${employee.id}?_method=PUT` : '/employee'), method='POST', id='employeeForm', novalidate, class='form-container')
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='first_name' class='form-label required-field')
-                      | First Name
-                    input(type='text' class='form-control' id='first_name' name='first_name' 
-                          value=(isEdit ? (employee && employee.first_name) || (formData && formData.first_name) || '' : (formData && formData.first_name) || '')
-                          required
-                          placeholder='Enter first name')
-                
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='last_name' class='form-label required-field')
-                      | Last Name
-                    input(type='text' class='form-control' id='last_name' name='last_name' 
-                          value=(isEdit ? (employee && employee.last_name) || (formData && formData.last_name) || '' : (formData && formData.last_name) || '')
-                          required
-                          placeholder='Enter last name')
-              
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='email' class='form-label required-field')
-                      | Email
-                    .input-group
-                      input(type='email' class='form-control' id='email' name='email' 
-                            value=(isEdit ? (employee && employee.email) || (formData && formData.email) || '' : (formData && formData.email) || '')
-                            required
-                            placeholder='Enter email address')
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='phone' class='form-label')
-                      | Phone
-                    .input-group
-                      input(type='tel' class='form-control' id='phone' name='phone' 
-                            value=(isEdit ? (employee && employee.phone) || (formData && formData.phone) || '' : (formData && formData.phone) || '')
-                            placeholder='Enter phone number')
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='employee_id' class='form-label')
-                      | Employee ID
-                      if isEdit
-                        small.text-muted (Cannot be modified)
-                    input(type='text' class='form-control' id='employee_id' name='employee_id' 
-                          value=(isEdit ? (employee && employee.employee_id) || (formData && formData.employee_id) || '' : (formData && formData.employee_id) || '')
-                          readonly=isEdit
-                          placeholder='Will be auto-generated')
-                    if isEdit
-                
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='department' class='form-label required-field')
-                      | Department
-                    select(class='form-select' id='department' name='department' required)
-                      option(value='') Select Department
-                      if departments && departments.length > 0
-                        each dept in departments
-                          - const isSelected = (isEdit && employee && employee.department === dept) || (formData && formData.department === dept);
-                          option(value=dept selected=isSelected)= dept
-              
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='position' class='form-label required-field')
-                      | Position
-                    input(type='text' class='form-control' id='position' name='position' 
-                          value=(isEdit ? (employee && employee.position) || (formData && formData.position) || '' : (formData && formData.position) || '')
-                          required
-                          placeholder='Enter job position')
-                
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='branch' class='form-label')
-                      | Branch
-                    select(class='form-select' id='branch' name='branch')
-                      option(value='') Select Branch
-                      if branches && branches.length > 0
-                        each branch in branches
-                          - const isSelected = (isEdit && employee && employee.branch === branch) || (formData && formData.branch === branch);
-                          option(value=branch selected=isSelected)= branch
-              
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='status' class='form-label required-field')
-                      | Status
-                    select(class='form-select' id='status' name='status' required)
-                      option(value='') Select Status
-                      - const statusValue = isEdit ? ((employee && employee.status) || (formData && formData.status)) : (formData && formData.status);
-                      option(value='active' selected=(statusValue === 'active')) Active
-                      option(value='inactive' selected=(statusValue === 'inactive')) Inactive
-                
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='hire_date' class='form-label')
-                      | Hire Date
-                    - let hireDateValue = '';
-                    - if (isEdit && employee && employee.hire_date) {
-                    -   hireDateValue = new Date(employee.hire_date).toISOString().split('T')[0];
-                    - } else if (formData && formData.hire_date) {
-                    -   hireDateValue = formData.hire_date;
-                    - }
-                    input(type='date' class='form-control' id='hire_date' name='hire_date' value=hireDateValue)
-              
-              //- Form Actions
-              .row.mt-4
-                .col-6
-                  a(href='/employee' class='btn btn-secondary')
-                    i.fas.fa-times.me-2
-                    | Cancel
-                .col-6.text-end
-                  button(type='submit' class='btn btn-primary')
-                    i.fas.fa-save.me-2
-                    = isEdit ? 'Update Employee' : 'Add Employee'
+        
+        form(action=(isEdit ? `/employee/${employee.id}?_method=PUT` : '/employee'), method='POST', id='employeeForm', novalidate)
+          // Personal Information Section
+          .form-section
+            h6.form-section-title
+              i.fas.fa-user.me-2
+              | Personal Information
+            .form-row
+              .form-group-wrapper
+                label(for='first_name')
+                  span.required-field First Name
+                input(type='text' class='form-control' id='first_name' name='first_name' 
+                      value=(isEdit ? (employee && employee.first_name) || (formData && formData.first_name) || '' : (formData && formData.first_name) || '')
+                      required
+                      placeholder='Enter first name')
+              .form-group-wrapper
+                label(for='last_name')
+                  span.required-field Last Name
+                input(type='text' class='form-control' id='last_name' name='last_name' 
+                      value=(isEdit ? (employee && employee.last_name) || (formData && formData.last_name) || '' : (formData && formData.last_name) || '')
+                      required
+                      placeholder='Enter last name')
+            .form-row
+              .form-group-wrapper
+                label(for='email')
+                  span.required-field Email
+                input(type='email' class='form-control' id='email' name='email' 
+                      value=(isEdit ? (employee && employee.email) || (formData && formData.email) || '' : (formData && formData.email) || '')
+                      required
+                      placeholder='Enter email address')
+              .form-group-wrapper
+                label(for='phone') Phone
+                input(type='tel' class='form-control' id='phone' name='phone' 
+                      value=(isEdit ? (employee && employee.phone) || (formData && formData.phone) || '' : (formData && formData.phone) || '')
+                      placeholder='Enter phone number')
+            .form-row
+              .form-group-wrapper
+                label(for='employee_id') Employee ID
+                input(type='text' class='form-control' id='employee_id' name='employee_id' 
+                      value=(isEdit ? (employee && employee.employee_id) || (formData && formData.employee_id) || '' : (formData && formData.employee_id) || '')
+                      readonly=isEdit
+                      placeholder='Will be auto-generated')
+          
+          // Job Information Section
+          .form-section
+            h6.form-section-title
+              i.fas.fa-briefcase.me-2
+              | Job Information
+            .form-row
+              .form-group-wrapper
+                label(for='position')
+                  span.required-field Position
+                input(type='text' class='form-control' id='position' name='position' 
+                      value=(isEdit ? (employee && employee.position) || (formData && formData.position) || '' : (formData && formData.position) || '')
+                      required
+                      placeholder='Enter job position')
+              .form-group-wrapper
+                label(for='department')
+                  span.required-field Department
+                select(class='form-control' id='department' name='department' required)
+                  option(value='') Select Department
+                  if departments && departments.length > 0
+                    each dept in departments
+                      - const isSelected = (isEdit && employee && employee.department === dept) || (formData && formData.department === dept);
+                      option(value=dept selected=isSelected)= dept
+            .form-row
+              .form-group-wrapper
+                label(for='branch') Branch
+                select(class='form-control' id='branch' name='branch')
+                  option(value='') Select Branch
+                  if branches && branches.length > 0
+                    each branch in branches
+                      - const isSelected = (isEdit && employee && employee.branch === branch) || (formData && formData.branch === branch);
+                      option(value=branch selected=isSelected)= branch
+              .form-group-wrapper
+                label(for='hire_date') Hire Date
+                - let hireDateValue = '';
+                - if (isEdit && employee && employee.hire_date) {
+                -   hireDateValue = new Date(employee.hire_date).toISOString().split('T')[0];
+                - } else if (formData && formData.hire_date) {
+                -   hireDateValue = formData.hire_date;
+                - }
+                input(type='date' class='form-control' id='hire_date' name='hire_date' value=hireDateValue)
+            .form-row
+              .form-group-wrapper
+                label(for='status')
+                  span.required-field Status
+                select(class='form-control' id='status' name='status' required)
+                  option(value='') Select Status
+                  - const statusValue = isEdit ? ((employee && employee.status) || (formData && formData.status)) : (formData && formData.status);
+                  option(value='active' selected=(statusValue === 'active')) Active
+                  option(value='inactive' selected=(statusValue === 'inactive')) Inactive
+      
+      .form-dialog-footer
+        a.form-action-btn.form-action-btn-secondary(href='/employee')
+          i.fas.fa-times
+          | Cancel
+        if isEdit
+          a.form-action-btn.form-action-btn-secondary(href='/employee/#{employee.id}')
+            i.fas.fa-eye
+            | View
+        button.form-action-btn.form-action-btn-primary(type='submit')
+          i.fas.fa-save
+          = isEdit ? 'Update Employee' : 'Add Employee'
+

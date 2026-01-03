@@ -1,52 +1,48 @@
 extends ../navbar
 
 block content
-  .container-fluid.px-4.py-4
-    .row.mb-4
-      .col-12
-        h1.text-center.mb-4
-          i.fas.fa-hand-holding-box.me-2
+  .form-dialog-container
+    .form-dialog
+      .form-dialog-header
+      
+      .form-dialog-content
+        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
+          i.fas.fa-hand-holding-box.me-2(style="color: #4e73df;")
           | Issue Asset to Employee
-    
-    .row.justify-content-center
-      .col-lg-9.col-md-9
-        .card.shadow
-          .card-header
-          .card-body
-            form(action='/api/asset-assignment', method='POST', id='issueForm', novalidate, class='form-container')
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='assetId' class='form-label required-field') Asset
-                    select#assetId.form-select(name='asset_id', required)
-                      option(value='') Select Asset
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='employeeId' class='form-label required-field') Employee
-                    select#employeeId.form-select(name='employee_id', required)
-                      option(value='') Select Employee
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='assignedBy' class='form-label required-field') Assigned By
-                    select#assignedBy.form-select(name='assigned_by', required)
-                      option(value='') Select Manager/Staff
-                  
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='assignedDate' class='form-label')
-                      | Assigned Date
-                    input#assignedDate.form-control(name='assigned_date', type='date', value=new Date().toISOString().split('T')[0])
-              
-              .row.mt-4
-                .col-6
-                  a(href='/assets' class='btn btn-secondary')
-                    i.fas.fa-times.me-2
-                    | Cancel
-                .col-6.text-end
-                  button(type='submit' class='btn btn-primary')
-                    i.fas.fa-paper-plane.me-2
-                    | Issue Asset
+        
+        form(action='/api/asset-assignment', method='POST', id='issueForm', novalidate)
+          .form-section
+            h6.form-section-title
+              i.fas.fa-exchange-alt.me-2
+              | Assignment Details
+            .form-row
+              .form-group-wrapper
+                label(for='assetId')
+                  span.required-field Asset
+                select#assetId.form-control(name='asset_id', required)
+                  option(value='') Select Asset
+              .form-group-wrapper
+                label(for='employeeId')
+                  span.required-field Employee
+                select#employeeId.form-control(name='employee_id', required)
+                  option(value='') Select Employee
+            .form-row
+              .form-group-wrapper
+                label(for='assignedBy')
+                  span.required-field Assigned By
+                select#assignedBy.form-control(name='assigned_by', required)
+                  option(value='') Select Manager/Staff
+              .form-group-wrapper
+                label(for='assignedDate') Assigned Date
+                input#assignedDate.form-control(name='assigned_date', type='date', value=new Date().toISOString().split('T')[0])
+      
+      .form-dialog-footer
+        a.form-action-btn.form-action-btn-secondary(href='/assets')
+          i.fas.fa-times
+          | Cancel
+        button.form-action-btn.form-action-btn-primary(type='submit')
+          i.fas.fa-paper-plane
+          | Issue Asset
 
 block scripts
   script.
@@ -68,9 +64,7 @@ block scripts
           if (availableAssets.length === 0) {
             return;
           }
-// Clear existing options
           assetSelect.innerHTML = '<option value="">Select Asset</option>';
-// Populate dropdown
           availableAssets.forEach(asset => {
             const option = document.createElement('option');
             option.value = asset.id;
@@ -94,7 +88,6 @@ block scripts
         const result = await response.json();
         const select = document.getElementById('employeeId');        
         if (result.success && result.data && result.data.employees) {
-// Clear existing options
           select.innerHTML = '<option value="">Select Employee</option>';
           
           result.data.employees.forEach(employee => {
@@ -117,7 +110,7 @@ block scripts
     }
 
     document.getElementById('issueForm').onsubmit = async function(e) {
-      e.preventDefault();//handle form submission
+      e.preventDefault();
       
       const form = e.target;
       const submitBtn = form.querySelector('button[type="submit"]');

@@ -1,73 +1,72 @@
 extends ../navbar
 
 block content
-  .container-fluid.px-4.py-4
-    .row.mb-4
-      .col-12
-        h1.text-center.mb-4
+  .form-dialog-container
+    .form-dialog
+      .form-dialog-header
+      
+      .form-dialog-content
+        // Header with Title
+        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           if isEdit
-            i.fas.fa-edit.me-2
+            i.fas.fa-edit.me-2(style="color: #4e73df;")
             | Edit Category
           else
-            i.fas.fa-folder-plus.me-2
+            i.fas.fa-folder-plus.me-2(style="color: #4e73df;")
             | Add New Category
-    
-    .row.justify-content-center
-      .col-lg-9.col-md-9
-        .card.shadow
-          .card-header
-          .card-body
-            form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', novalidate, class='form-container', enctype='application/x-www-form-urlencoded')
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='name' class='form-label required-field') Category Name
-                    input(type='text' class='form-control' id='name' name='name' 
-                          value=(isEdit && category ? category.name : (formData && formData.name ? formData.name : '')) 
-                          required
-                          placeholder='Enter category name')
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='category_id' class='form-label') Category ID
-                    if isEdit && category
-                      input(type='text' class='form-control' 
-                            id='category_id' 
-                            name='id'
-                            value=category.id
-                            readonly
-                            style='background-color: #e9ecef; cursor: not-allowed;')
-                    else
-                      input(type='text' class='form-control' 
-                            id='category_id' 
-                            name='id'
-                            placeholder='Enter category ID'
-                            required
-                            value=formData && formData.id ? formData.id : '')
-              
-              .row.mb-3
-                .col-md-6
-                  .form-group.mb-3
-                    label(for='is_active' class='form-label')
-                      | Status
-                    select(class='form-select' id='is_active' name='is_active')
-                      option(value='true' selected=(isEdit ? (category && category.is_active) : true)) Active
-                      option(value='false' selected=(isEdit ? (category && !category.is_active) : false)) Inactive 
-              .row.mb-3
-                .col-12
-                  .form-group.mb-3
-                    label(for='description' class='form-label')
-                      | Description
-                    textarea(class='form-control' id='description' name='description' rows='3'
-                            placeholder='Enter category description')= (isEdit && category ? (category.description || '') : (formData && formData.description ? formData.description : ''))
-              
-              .row.mt-4
-                .col-6
-                  a.btn.btn-secondary(href='/asset-categories')
-                    i.fas.fa-times.me-2
-                    | Cancel
-                .col-6.text-end
-                  button.btn.btn-primary(type='submit')
-                    i.fas.fa-save.me-2
-                    = isEdit ? 'Update Category' : 'Create Category'
+        
+        form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', novalidate, enctype='application/x-www-form-urlencoded')
+          // Basic Information Section
+          .form-section
+            h6.form-section-title
+              i.fas.fa-info-circle.me-2
+              | Basic Information
+            .form-row
+              .form-group-wrapper
+                label(for='name')
+                  span.required-field Category Name
+                input(type='text' class='form-control' id='name' name='name' 
+                      value=(isEdit && category ? category.name : (formData && formData.name ? formData.name : '')) 
+                      required
+                      placeholder='Enter category name')
+              .form-group-wrapper
+                label(for='is_active') Status
+                select(class='form-control' id='is_active' name='is_active')
+                  option(value='true' selected=(isEdit ? (category && category.is_active) : true)) Active
+                  option(value='false' selected=(isEdit ? (category && !category.is_active) : false)) Inactive
+            .form-row(style="grid-template-columns: 1fr;")
+              .form-group-wrapper
+                if isEdit && category
+                  label(for='category_id') Category ID
+                  input(type='text' class='form-control' 
+                        id='category_id' 
+                        name='id'
+                        value=category.id
+                        readonly
+                        style='background-color: #e9ecef; cursor: not-allowed;')
+          
+          // Description Section
+          .form-section
+            h6.form-section-title
+              i.fas.fa-align-left.me-2
+              | Description
+            .form-row(style="grid-template-columns: 1fr;")
+              .form-group-wrapper
+                label(for='description') Description
+                textarea(class='form-control' id='description' name='description' rows='4'
+                        placeholder='Enter category description')= (isEdit && category ? (category.description || '') : (formData && formData.description ? formData.description : ''))
+      
+      .form-dialog-footer
+        a.form-action-btn.form-action-btn-secondary(href='/asset-categories')
+          i.fas.fa-times
+          | Cancel
+        if isEdit
+          a.form-action-btn.form-action-btn-secondary(href='/asset-categories/#{category.id}/view')
+            i.fas.fa-eye
+            | View
+        button.form-action-btn.form-action-btn-primary(type='submit')
+          i.fas.fa-save
+          = isEdit ? 'Update Category' : 'Create Category'
+
                 
                 
