@@ -1,10 +1,9 @@
 const db = require('../models');
 const { Op } = require('sequelize');
-
-// display Stock in birds eye 
+ 
 exports.stockView = async (req, res) => {
   try {
-    //fetch all assets (not just available ones)
+    //fetch all assets
     const allAssets = await db.Asset.findAll({
       where: {
         is_active: true
@@ -12,7 +11,7 @@ exports.stockView = async (req, res) => {
       order: [['branch', 'ASC'], ['name', 'ASC']]
     });
 
-    //set asset fetch by branch 
+//set asset fetch by branch 
     const assetsByBranch = {};
     let totalValue = 0;
     const availableCount = { available: 0, assigned: 0, maintenance: 0, retired: 0, scrapped: 0 };
@@ -32,7 +31,7 @@ exports.stockView = async (req, res) => {
           scrapped: 0
         };
       }
-      
+
       assetsByBranch[branch].assets.push(asset);
       assetsByBranch[branch].count++;
       assetsByBranch[branch][asset.status]++;
@@ -42,7 +41,6 @@ exports.stockView = async (req, res) => {
       assetsByBranch[branch].totalValue += assetValue;
       totalValue += assetValue;
     });
-
     res.render('stock/stock', {
       assetsByBranch,
       totalValue,
@@ -51,10 +49,6 @@ exports.stockView = async (req, res) => {
     });
   } catch (error) {
     console.error('Error loading stock view:', error);
-    req.session.message = {
-      type: 'error',
-      text: 'Error loading stock view'
-    };
-    res.redirect('/');
+    res.redirect('/dashboard');
   }
 };

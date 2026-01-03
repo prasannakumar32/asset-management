@@ -97,7 +97,7 @@ block content
                           .d-flex.gap-1.justify-content-end
                             a.btn.btn-outline-primary.btn-sm.action-btn(href='/asset-categories/#{category.id}/form' title='Edit Category')
                               i.fas.fa-edit
-                            a.btn.btn-outline-info.btn-sm.action-btn(href='/asset-categories/#{category.id}' title='View Category Details')
+                            a.btn.btn-outline-info.btn-sm.action-btn(href='/asset-categories/#{category.id}/view' title='View Category Details')
                               i.fas.fa-eye
                             button.asset-category-action-btn.asset-btn-danger(type='button', onclick='confirmDelete(#{category.id}, "#{category.name}")' title='Delete Category')
                               i.fas.fa-trash.btn-icon

@@ -2,97 +2,6 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const { Asset, Employee, AssetAssignment } = db;
 
-// Get all asset assignments
-exports.listAssignments = async (req, res) => {
-  try {
-    const { 
-      status = '', 
-      sortBy = 'assigned_date',
-      sortOrder = 'DESC' } = req.query;
-
-    const whereClause = {};
-    if (status) {
-      whereClause.status = status;
-    }
-
-    const assignments = await AssetAssignment.findAll({
-      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-      include: [
-        {
-          model: Asset,
-          as: 'asset',
-          attributes: ['id', 'name', 'asset_tag', 'status']
-        },
-        {
-          model: Employee,
-          as: 'employee',
-          attributes: ['id', 'first_name', 'last_name', 'email']
-        },
-        {
-          model: Employee,
-          as: 'assignedBy',
-          attributes: ['id', 'first_name', 'last_name', 'email']
-        }
-      ]
-    });
-
-    res.json({
-      success: true,
-      data: {
-        assignments
-      }
-    });
-
-  } catch (error) {
-    console.error('Error fetching assignments:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to load assignments. Please try again.'
-    });
-  }
-};
-// Get single assignment
-exports.getAssignment = async (req, res) => {
-  try {
-    const assignment = await AssetAssignment.findByPk(req.params.id, {
-      include: [
-        {
-          model: Asset,
-          as: 'asset',
-          attributes: ['id', 'name', 'asset_tag', 'status']
-        },
-        {
-          model: Employee,
-          as: 'employee',
-          attributes: ['id', 'first_name', 'last_name', 'email']
-        },
-        {
-          model: Employee,
-          as: 'assignedBy',
-          attributes: ['id', 'first_name', 'last_name', 'email']
-        }
-      ]
-    });
-
-    if (!assignment) {
-      return res.status(404).json({
-        success: false,
-        error: 'Assignment not found'
-      });
-    }
-    res.json({
-      success: true,
-      data: assignment
-    });
-  } catch (error) {
-    console.error('Error fetching assignment:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to load assignment details',
-      message: error.message
-    });
-  }
-};
 // Create assignment
 exports.createAssignment = async (req, res) => {
   try {
@@ -312,25 +221,6 @@ exports.showReturnForm = async (req, res) => {
   }
 };
 
-// Show issue form
-exports.showIssueForm = async (req, res) => {
-  try {
-    res.render('asset-assignment/issue-form');
-  } catch (error) {
-    console.error('Error loading issue form:', error);
-    res.status(500).send('Error loading the issue form');
-  }
-};
-
-// Show scrap form
-exports.showScrapForm = async (req, res) => {
-  try {
-    res.render('asset-assignment/scrap-form');
-  } catch (error) {
-    console.error('Error loading scrap form:', error);
-    res.status(500).send('Error loading the scrap form');
-  }
-};
 
 // Scrap asset
 exports.scrapAsset = async (req, res) => {

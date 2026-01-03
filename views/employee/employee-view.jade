@@ -107,14 +107,13 @@ block content
     }
   .container-fluid.px-4.py-4
     .row.mb-4
-      .col-12.position-relative
-        .d-flex.align-items-center.justify-content-center(style="min-height: 50px;")
-          a.btn.btn-outline-primary.position-absolute.start-0(href='/employee')
-            i.fas.fa-arrow-left.me-2
-            | Back to Employees
-          h1.mb-0.employee-title-centered
-            i.fas.fa-user-circle.me-2.text-primary
-            | Employee Details
+      .col-12.position-relative.view-header-container
+        a.btn.btn-outline-primary.view-back-button(href='/employee')
+          i.fas.fa-arrow-left.me-2
+          | Back to Employees
+        h1.mb-0.employee-title-centered
+          i.fas.fa-user-circle.me-2.text-primary
+          | Employee Details
     
     .row.justify-content-center
       .col-lg-8.col-md-10

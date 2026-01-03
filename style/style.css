@@ -108,7 +108,16 @@ body {
   min-width: none;
   line-height: 1.2;
 }
-/* Login Header */
+/* Login page */
+.login-container {
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
 .login-header {
   text-align: center;
   margin-bottom: 2.5rem;
@@ -124,7 +133,6 @@ body {
   font-size: 0.9rem;
   margin: 0;
 }
-/* Login Button */
 .login-btn {
   width: 100%;
   padding: 14px 20px;
@@ -416,6 +424,8 @@ h1.mb-4 {
   display: flex;
   align-items: center;
   font-size: large;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .table {
   margin: 0;
@@ -781,4 +791,34 @@ h1.mb-4 {
   font-size: 0.8rem;
   font-weight: 500;
   color: #6c757d;
+}
+
+/* Header Styles for alll View Pages */
+.asset-title-centered,
+.employee-title-centered {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #5a5c69;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+/* View page header container */
+.view-header-container {
+  position: relative;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Back button positioning */
+.view-back-button {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }

@@ -5,7 +5,7 @@ const assetController = require('./assetController');
 // API endpoint to get assets as JSON
 router.get('/', assetController.listAPI);
 
-// Get a single asset by ID
+// Get a single asset by id 
 router.get('/:id', assetController.viewAsset);
 
 // Create a new asset

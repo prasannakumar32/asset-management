@@ -7,8 +7,7 @@ const getDashboard = async (req, res) => {
       db.Asset.count({ 
         where: { 
           [Op.or]: [
-            { is_active: true },
-            { is_active: null }
+            { is_active: true }
           ]
         } 
       }),
@@ -23,7 +22,7 @@ const getDashboard = async (req, res) => {
       })
     ]);
 
-    // Calculate available assets
+// Calculate available assets
     const availableCount = Math.max(0, assetCount - assignedCount);
     res.render('dashboard', {
       title: 'Dashboard',
@@ -36,7 +35,6 @@ const getDashboard = async (req, res) => {
     
   } catch (error) {
     console.error('Dashboard error:', error);
-    // Return zero values on error
     res.render('dashboard', {
       title: 'Dashboard',
       username: req.user?.username || 'Guest',

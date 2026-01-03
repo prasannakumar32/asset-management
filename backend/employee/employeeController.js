@@ -6,7 +6,6 @@ const Employee = db.Employee;
 exports.list = async (req, res) => {
     try {
         const { department = '', status = '', branch = '' } = req.query;
-        
 // Get unique departments and branches using distinct queries
         const [departments, branches] = await Promise.all([
 // Get distinct departments
@@ -197,7 +196,6 @@ exports.view = async (req, res) => {
         const { id } = req.params;
         const employee = await Employee.findByPk(id);
         if (!employee) {
-            req.session.message = { type: 'error', text: 'Employee not found' };
             return res.redirect('/employee');
         }
         res.render('employee/employee-view', {
@@ -205,7 +203,6 @@ exports.view = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching employee:', error);
-        req.session.message = { type: 'error', text: 'Error loading employee details' };
         res.redirect('/employee');
     }
 };
@@ -276,7 +273,6 @@ exports.create = async (req, res) => {
 // Update employee
 exports.update = async (req, res) => {
     const transaction = await db.sequelize.transaction();
-    
     try {
         const { id } = req.params;
         const { 
@@ -288,7 +284,6 @@ exports.update = async (req, res) => {
             await transaction.rollback();
             return res.redirect('/employee?error=Employee not found');
         }
-
 // Update employee
         await employee.update({
             first_name,
@@ -296,13 +291,13 @@ exports.update = async (req, res) => {
             email,
             phone: phone || null,
             department,
-            position: position || null,
-            branch: branch || null,
+            position,
+            branch,
             status,
-            notes: notes || null
+            notes
         }, { transaction });
         await transaction.commit();
-        return res.redirect(`/employee/${id}?success=Employee updated successfully`);
+        return res.redirect('/employee');
     } catch (error) {
         await transaction.rollback();
         console.error('Error updating employee:', error);

@@ -67,11 +67,15 @@ router.get('/asset-assignment/issue', (req, res) => {
 });
 
 router.get('/asset-assignment/return', assetAssignmentController.showReturnForm);
-router.get('/asset-assignment/scrap', assetAssignmentController.showScrapForm);
+
+router.get('/asset-assignment/scrap', (req, res) => {
+  res.render('asset-assignment/scrap-form');
+});
 
 // Asset Categories Routes
 const assetCategoriesRoutes = require('../assetCategories/assetCategoryRoute');
 router.get('/asset-categories', assetCategoryController.showCategoryPage);
+router.get('/asset-categories/:id/view', assetCategoryController.viewCategory);
 router.use('/asset-categories', assetCategoriesRoutes);
 
 // Dashboard Routes

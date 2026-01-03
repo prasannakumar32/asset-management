@@ -68,9 +68,9 @@ block scripts
           if (availableAssets.length === 0) {
             return;
           }
-          // Clear existing options
+// Clear existing options
           assetSelect.innerHTML = '<option value="">Select Asset</option>';
-          // Populate dropdown
+// Populate dropdown
           availableAssets.forEach(asset => {
             const option = document.createElement('option');
             option.value = asset.id;
@@ -94,7 +94,7 @@ block scripts
         const result = await response.json();
         const select = document.getElementById('employeeId');        
         if (result.success && result.data && result.data.employees) {
-          // Clear existing options
+// Clear existing options
           select.innerHTML = '<option value="">Select Employee</option>';
           
           result.data.employees.forEach(employee => {
@@ -116,17 +116,12 @@ block scripts
       }
     }
 
-    // Simple form submission
     document.getElementById('issueForm').onsubmit = async function(e) {
-      e.preventDefault();
+      e.preventDefault();//handle form submission
       
       const form = e.target;
       const submitBtn = form.querySelector('button[type="submit"]');
       const originalBtnText = submitBtn.innerHTML;
-      
-      // Show loading state
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
       
       try {
         const formData = new FormData(form);
@@ -168,7 +163,7 @@ block scripts
               option.textContent = `${employee.first_name} ${employee.last_name} (${employee.position || 'Employee'})`;
               select.appendChild(option);
             }
-          });
+          }); 
           
           if (select.children.length === 1) {
             console.warn('No active employees found for assigners');

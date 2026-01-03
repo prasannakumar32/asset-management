@@ -11,8 +11,8 @@ exports.getAssetHistory = async(req, res) => {
         as: 'category'
       }]
     });
+
     if(!asset){
-      req.session.message = { type: 'error', text: 'Asset not found' };
       return res.redirect('/assets');
     }
 // Get all asset assignments
@@ -28,7 +28,6 @@ exports.getAssetHistory = async(req, res) => {
       ],
       order:[['assigned_date','DESC']]
     });
-
 // Get asset history records
     const histories = await db.AssetHistory.findAll({
       where: { asset_id: id },
@@ -44,9 +43,9 @@ exports.getAssetHistory = async(req, res) => {
       ],
       order: [['action_date', 'DESC']]
     });
+
 //create timeline for chronological order 
 const timeline =[];
-
 // Add history records to timeline
 histories.forEach(history => {
   timeline.push({
@@ -59,7 +58,6 @@ histories.forEach(history => {
     color: 'secondary'
   });
 });
-
 // Add assignment history to timeline
 assignments.forEach(assignment => {
   timeline.push({
@@ -84,7 +82,6 @@ assignments.forEach(assignment => {
     });
   }
 });
-
     res.render('assetHistory/asset-history', {
       asset,
       assignments,
@@ -122,7 +119,6 @@ exports.listAllAssetHistories = async(req, res) => {
 
   } catch (error) {
     console.error('Error fetching assets:', error.message);
-    req.session.message = { type: 'error', text: 'Error loading asset history' };
     res.redirect('/');
   }
 };
