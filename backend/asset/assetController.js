@@ -332,7 +332,7 @@ exports.create = async (req, res) => {
         try {
 // Create the asset
             const asset = await Asset.create(assetData, { transaction });
-// If asset is being assigned immediately, create assignment
+//asset is created with assigned status 
             if (assetData.status === 'assigned' && assetData.employee_id) {
                 const AssetAssignment = db.AssetAssignment;
                 await AssetAssignment.create({
