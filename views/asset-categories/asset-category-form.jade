@@ -50,14 +50,14 @@ block content
                 label(for='description') Description
                 textarea(class='form-control' id='description' name='description' rows='4'
                         placeholder='Enter category description')= (isEdit && category ? (category.description || '') : (formData && formData.description ? formData.description : ''))
-      .form-dialog-footer
-        a.form-action-btn.form-action-btn-secondary(href='/asset-categories')
-          i.fas.fa-times
-          | Cancel
-        if isEdit
-          a.form-action-btn.form-action-btn-secondary(href='/asset-categories/#{category.id}/view')
-            i.fas.fa-eye
-            | View
-        button.form-action-btn.form-action-btn-primary(type='submit')
-          i.fas.fa-save
-          = isEdit ? 'Update Category' : 'Create Category'
+          .form-dialog-footer
+            a.form-action-btn.form-action-btn-secondary(href='/asset-categories')
+              i.fas.fa-times
+              | Cancel
+            if isEdit
+              a.form-action-btn.form-action-btn-secondary(href='/asset-categories/#{category.id}/view')
+                i.fas.fa-eye
+                | View
+            button.form-action-btn.form-action-btn-primary(type='submit')
+              i.fas.fa-save
+              = isEdit ? 'Update Category' : 'Create Category'

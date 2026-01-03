@@ -51,7 +51,7 @@ exports.showAssetForm = async (req, res) => {
             asset,
             categories,
             employees,
-            formData: {},
+            formData: req.query.error ? req.query : {},
             error: req.query.error,
             success: req.query.success
         });
@@ -367,7 +367,23 @@ exports.create = async (req, res) => {
         }
     } catch (error) {
         console.error('Error creating asset:', error);
-        return res.redirect('/assets/form?error=Error creating asset: ' + error.message);
+        let errorMessage = 'Error creating asset';
+        
+        if (error.name === 'SequelizeValidationError') {
+            errorMessage = error.errors.map(e => e.message).join(', ');
+        } else if (error.name === 'SequelizeUniqueConstraintError') {
+            errorMessage = 'Asset tag already exists';
+        } else {
+            errorMessage = error.message;
+        }
+        
+        // Preserve form data
+        const formData = req.body;
+        const queryString = Object.keys(formData)
+            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(formData[key])}`)
+            .join('&');
+        
+        return res.redirect(`/assets/form?error=${encodeURIComponent(errorMessage)}&${queryString}`);
     }
 };
 //update asset

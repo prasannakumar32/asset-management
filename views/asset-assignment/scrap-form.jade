@@ -47,13 +47,13 @@ block content
                 label(for='reason')
                   span.required-field Reason
                 textarea#reason.form-control(name='reason', rows='4', required, placeholder='Enter the reason for scrapping this asset...', style="resize: vertical; min-height: 120px;")
-      .form-dialog-footer
-        a.form-action-btn.form-action-btn-secondary(href='/assets')
-          i.fas.fa-times
-          | Cancel
-        button.form-action-btn.form-action-btn-danger(type='submit')
-          i.fas.fa-trash-alt
-          | Confirm Scrap
+          .form-dialog-footer
+            a.form-action-btn.form-action-btn-secondary(href='/assets')
+              i.fas.fa-times
+              | Cancel
+            button.form-action-btn.form-action-btn-danger(type='submit')
+              i.fas.fa-trash-alt
+              | Confirm Scrap
 
 block scripts
   script.

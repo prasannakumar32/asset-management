@@ -142,5 +142,5 @@ block content
                               i.fas.fa-edit
                             a.btn.btn-outline-info.action-btn(href='/assets/#{asset.id}' title='View Asset Details')
                               i.fas.fa-eye
-                            button.asset-action-btn.asset-btn-danger(type='button', onclick='confirmDelete(#{asset.id}, "#{asset.name}")' title='Delete Asset')
-                              i.fas.fa-trash.btn-icon
+                            button.delete-btn(type='button', onclick='confirmDelete(#{asset.id}, "#{asset.name}")' title='Delete Asset')
+                              i.fas.fa-trash

@@ -140,14 +140,14 @@ block content
                   name='notes' 
                   placeholder='Enter any additional notes about this asset...'
                 )= (isEdit ? (asset.notes || formData.notes) : (formData.notes || ''))
-      .form-dialog-footer
-        a.form-action-btn.form-action-btn-secondary(href='/assets')
-          i.fas.fa-times
-          | Cancel
-        if isEdit
-          a.form-action-btn.form-action-btn-secondary(href='/assets/#{asset.id}')
-            i.fas.fa-eye
-            | View
-        button.form-action-btn.form-action-btn-primary(type='submit')
-          i.fas.fa-save
-          = isEdit ? 'Update Asset' : 'Create Asset'
+          .form-dialog-footer
+            a.form-action-btn.form-action-btn-secondary(href='/assets')
+              i.fas.fa-times
+              | Cancel
+            if isEdit
+              a.form-action-btn.form-action-btn-secondary(href='/assets/#{asset.id}')
+                i.fas.fa-eye
+                | View
+            button.form-action-btn.form-action-btn-primary(type='submit')
+              i.fas.fa-save
+              = isEdit ? 'Update Asset' : 'Create Asset'

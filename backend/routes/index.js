@@ -43,14 +43,12 @@ router.post('/api/login', (req, res, next) => {
 });
 
 // Asset Routes
+const assetRoutes = require('../asset/assetRoute');
 router.get('/assets', assetController.list);
 router.get('/assets/form', assetController.showAssetForm);
 router.get('/assets/:id/form', assetController.showAssetForm);
 router.get('/assets/:id', assetController.viewAsset);
-router.post('/assets', assetController.create);
-router.put('/assets/:id', assetController.update);
-router.delete('/assets/:id', assetController.delete);
-router.post('/assets/:id/delete', (req, res) => assetController.delete(req, res));
+router.use('/assets', assetRoutes);
 
 // Employee Routes
 const employeeRoutes = require('../employee/employeeRoute');
@@ -65,6 +63,8 @@ router.get('/asset-assignment', (req, res) => {
 router.get('/asset-assignment/issue', (req, res) => {
   res.render('asset-assignment/issue-form');
 });
+
+router.post('/asset-assignment', assetAssignmentController.createAssignment);
 
 router.get('/asset-assignment/return', assetAssignmentController.showReturnForm);
 

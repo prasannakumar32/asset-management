@@ -843,3 +843,23 @@ h1.mb-4 {
   background: #e3e6f0;
   color: #5a5c69;
 }
+
+/* Delete Button Styles */
+.delete-btn {
+  background-color: #e74a3b;
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.delete-btn:hover {
+  background-color: #c23321;
+}
+
+.delete-btn i {
+  color: white;
+}

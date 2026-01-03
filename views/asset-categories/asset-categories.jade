@@ -95,8 +95,8 @@ block content
                               i.fas.fa-edit
                             a.btn.btn-outline-info.btn-sm.action-btn(href='/asset-categories/#{category.id}/view' title='View Category Details')
                               i.fas.fa-eye
-                            button.asset-category-action-btn.asset-btn-danger(type='button', onclick='confirmDelete(#{category.id}, "#{category.name}")' title='Delete Category')
-                              i.fas.fa-trash.btn-icon
+                            button.delete-btn(type='button', onclick='confirmDelete(#{category.id}, "#{category.name}")' title='Delete Category')
+                              i.fas.fa-trash
                   else
                     tr
                       td(colspan='5').text-center.text-muted

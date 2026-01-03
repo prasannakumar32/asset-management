@@ -42,7 +42,8 @@ exports.showCategoryForm = async (req, res) => {
             title: id ? 'Edit Category' : 'Add New Category',
             isEdit: !!id,
             error: req.query.error,
-            success: req.query.success
+            success: req.query.success,
+            formData: req.query.error ? req.query : {}
         });
     } catch (error) {
         console.error('Error showing category form:', error);
@@ -85,16 +86,17 @@ exports.create = async (req, res) => {
             is_active
         });
 
-        return res.redirect('/asset-categories');
+        return res.redirect('/asset-categories?success=Category created successfully');
     } catch (error) {
         console.error('Error creating category:', error);
         
         if (error.name === 'SequelizeUniqueConstraintError') {
-            req.session.formData = req.body;
-            return res.redirect(req.get('Referrer') || '/asset-categories/form');
+            return res.redirect('/asset-categories/form?error=Category name already exists');
+        } else if (error.name === 'SequelizeValidationError') {
+            const errorMessage = error.errors.map(e => e.message).join(', ');
+            return res.redirect(`/asset-categories/form?error=${encodeURIComponent(errorMessage)}`);
         } else {
-            req.session.formData = req.body;
-            return res.redirect(req.get('Referrer') || '/asset-categories/form');
+            return res.redirect('/asset-categories/form?error=' + encodeURIComponent(error.message));
         }
     }
 };

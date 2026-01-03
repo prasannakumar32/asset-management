@@ -47,13 +47,13 @@ block content
               .form-group-wrapper
                 label(for='notes') Notes
                 textarea#notes.form-control(name='notes', placeholder='Enter any additional notes...')
-      .form-dialog-footer
-        a.form-action-btn.form-action-btn-secondary(href='/assets')
-          i.fas.fa-times
-          | Cancel
-        button.form-action-btn.form-action-btn-primary(type='submit')
-          i.fas.fa-undo
-          | Return Asset
+          .form-dialog-footer
+            a.form-action-btn.form-action-btn-secondary(href='/assets')
+              i.fas.fa-times
+              | Cancel
+            button.form-action-btn.form-action-btn-primary(type='submit')
+              i.fas.fa-undo
+              | Return Asset
 
 block scripts
   script.

@@ -182,7 +182,8 @@ exports.showForm = async (req, res) => {
             branches,
             statuses: ['active', 'inactive'],
             isEdit,
-            error
+            error,
+            formData: req.query.error ? req.query : {}
         });
     } catch (error) {
         console.error('Error loading employee form:', error);
@@ -214,7 +215,7 @@ exports.create = async (req, res) => {
     try {
         const { 
             first_name, last_name, email, phone, 
-            department, position, branch, status, notes, employee_id 
+            department, position, branch, status, hire_date, employee_id 
         } = req.body;
         let employeeData = {
             first_name,
@@ -233,7 +234,8 @@ exports.create = async (req, res) => {
             const lastEmployee = await Employee.findOne({
                 attributes: ['employee_id'],
                 order: [['employee_id', 'DESC']],
-                limit: 1
+                limit: 1,
+                transaction
             });
             let lastId = 0;
             if (lastEmployee && lastEmployee.employee_id) {
@@ -246,9 +248,11 @@ exports.create = async (req, res) => {
         } else {
  // Check if the provided employee_id already exists
             const existingEmployee = await Employee.findOne({
-                where: { employee_id: employee_id.trim() }
+                where: { employee_id: employee_id.trim() },
+                transaction
             });
             if (existingEmployee) {
+                await transaction.rollback();
                 return res.redirect('/employee/form?error=Employee ID already exists. Please use a different ID or leave empty to auto-generate.');
             }
             employeeData.employee_id = employee_id.trim();
@@ -277,7 +281,7 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         const { 
             first_name, last_name, email, phone, 
-            department, position, branch, status, notes 
+            department, position, branch, status, hire_date 
         } = req.body;
         const employee = await Employee.findByPk(id, { transaction });
         if (!employee) {
