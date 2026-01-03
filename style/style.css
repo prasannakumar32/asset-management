@@ -551,8 +551,7 @@ h1.mb-4 {
   font-weight: 500;
   color: #6c757d;
 }
-
-/* Header Styles for alll View Pages */
+/* Header Styles for all View Pages */
 .asset-title-centered,
 .employee-title-centered {
   font-size: 1.75rem;
@@ -562,8 +561,6 @@ h1.mb-4 {
   margin: 0;
   padding: 0;
 }
-
-/* View page header container */
 .view-header-container {
   position: relative;
   min-height: 50px;
@@ -572,8 +569,6 @@ h1.mb-4 {
   justify-content: center;
   width: 100%;
 }
-
-/* Back button positioning */
 .view-back-button {
   position: absolute;
   left: 0;
@@ -581,8 +576,6 @@ h1.mb-4 {
   transform: translateY(-50%);
   z-index: 10;
 }
-
-/*view page */
 .view-dialog-container {
   min-height: calc(100vh - 80px);
   display: flex;
@@ -591,7 +584,6 @@ h1.mb-4 {
   padding: 2rem;
   background: #f5f7fa;
 }
-
 .view-dialog {
   background: #fff;
   border-radius: 8px;
@@ -599,20 +591,16 @@ h1.mb-4 {
   width: 100%;
   max-width: 1000px;
 }
-
 .view-dialog-header {
   height: 8px;
   background: #4e73df;
 }
-
 .view-dialog-content {
   padding: 1.8rem;
 }
-
 .view-detail-section {
   margin-bottom: 1.5rem;
 }
-
 .view-section-title {
   font-size: 0.85rem;
   font-weight: 600;
@@ -623,21 +611,16 @@ h1.mb-4 {
   padding-bottom: 0.4rem;
   border-bottom: 1px solid #e3e6f0;
 }
-
 .view-detail-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.2rem;
   margin-bottom: 0.8rem;
 }
-
-
-
 .view-detail-item {
   display: flex;
   flex-direction: column;
 }
-
 .view-detail-label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -649,19 +632,15 @@ h1.mb-4 {
   align-items: center;
   gap: 0.4rem;
 }
-
 .view-detail-label i {
   color: #4e73df;
   font-size: 0.85rem;
 }
-
 .view-detail-value {
   font-size: 1rem;
   font-weight: 500;
   color: #2e3338;
 }
-
-/* Notes Section */
 .view-notes-section {
   background: #f8f9fa;
   border-radius: 6px;
@@ -669,7 +648,6 @@ h1.mb-4 {
   border-left: 3px solid #4e73df;
   margin-top: 1rem;
 }
-
 .view-notes-title {
   font-size: 0.75rem;
   font-weight: 600;
@@ -681,14 +659,11 @@ h1.mb-4 {
   align-items: center;
   gap: 0.4rem;
 }
-
 .view-notes-content {
   font-size: 0.95rem;
   color: #2e3338;
   line-height: 1.5;
 }
-
-/* Footer */
 .view-dialog-footer {
   display: flex;
   justify-content: space-between;
@@ -699,17 +674,14 @@ h1.mb-4 {
   flex-wrap: wrap;
   align-items: center;
 }
-
 .view-dialog-footer .view-action-btn-secondary {
   order: 1;
 }
-
 .view-dialog-footer .view-action-btn-primary,
 .view-dialog-footer .view-action-btn-danger {
   order: 2;
   margin-left: auto;
 }
-
 .view-action-btn {
   padding: 0.5rem 1.25rem;
   border-radius: 5px;
@@ -722,29 +694,22 @@ h1.mb-4 {
   cursor: pointer;
   text-decoration: none;
 }
-
 .view-action-btn i {
   font-size: 0.8rem;
 }
-
 .view-action-btn-primary {
   background: #4e73df;
   color: white;
 }
-
 .view-action-btn-secondary {
   background: #e3e6f0;
   color: #5a5c69;
 }
-
 .view-action-btn-danger {
   background: #e74a3b;
   color: white;
 }
-
-
-
-/* ===== Simplified Form Page Dialog ===== */
+/* Simplified Form Page Dialog */
 .form-dialog-container {
   min-height: calc(100vh - 80px);
   display: flex;
@@ -753,7 +718,6 @@ h1.mb-4 {
   padding: 2rem;
   background: #f5f7fa;
 }
-
 .form-dialog {
   background: #fff;
   border-radius: 8px;
@@ -761,20 +725,16 @@ h1.mb-4 {
   width: 100%;
   max-width: 1050px;
 }
-
 .form-dialog-header {
   height: 8px;
   background: #4e73df;
 }
-
 .form-dialog-content {
   padding: 1.8rem;
 }
-
 .form-section {
   margin-bottom: 1.5rem;
 }
-
 .form-section-title {
   font-size: 0.85rem;
   font-weight: 600;
@@ -785,21 +745,16 @@ h1.mb-4 {
   padding-bottom: 0.4rem;
   border-bottom: 1px solid #e3e6f0;
 }
-
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.2rem;
   margin-bottom: 0.8rem;
 }
-
-
-
 .form-group-wrapper {
   display: flex;
   flex-direction: column;
 }
-
 .form-group-wrapper label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -808,12 +763,10 @@ h1.mb-4 {
   letter-spacing: 0.2px;
   margin-bottom: 0.4rem;
 }
-
 .form-group-wrapper label .required-field::after {
   content: ' *';
   color: #e74a3b;
 }
-
 .form-group-wrapper input[type="text"],
 .form-group-wrapper input[type="email"],
 .form-group-wrapper input[type="number"],
@@ -828,7 +781,6 @@ h1.mb-4 {
   background-color: #fff;
   color: #2e3338;
 }
-
 .form-group-wrapper input[type="text"]:focus,
 .form-group-wrapper input[type="email"]:focus,
 .form-group-wrapper input[type="number"]:focus,
@@ -840,20 +792,16 @@ h1.mb-4 {
   background-color: #f8f9fa;
   outline: none;
 }
-
 .form-group-wrapper input[readonly],
 .form-group-wrapper input:disabled {
   background-color: #e9ecef;
   color: #6c757d;
   cursor: not-allowed;
 }
-
 .form-group-wrapper textarea {
   resize: vertical;
   min-height: 100px;
 }
-
-/* Footer */
 .form-dialog-footer {
   display: flex;
   justify-content: space-between;
@@ -864,17 +812,14 @@ h1.mb-4 {
   flex-wrap: wrap;
   align-items: center;
 }
-
 .form-dialog-footer .form-action-btn-secondary {
   order: 1;
 }
-
 .form-dialog-footer .form-action-btn-primary,
 .form-dialog-footer .form-action-btn-danger {
   order: 2;
   margin-left: auto;
 }
-
 .form-action-btn {
   padding: 0.5rem 1.25rem;
   border-radius: 5px;
@@ -887,19 +832,14 @@ h1.mb-4 {
   cursor: pointer;
   text-decoration: none;
 }
-
 .form-action-btn i {
   font-size: 0.8rem;
 }
-
 .form-action-btn-primary {
   background: #4e73df;
   color: white;
 }
-
 .form-action-btn-secondary {
   background: #e3e6f0;
   color: #5a5c69;
 }
-
-

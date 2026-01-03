@@ -97,9 +97,7 @@ block content
               .view-detail-value
                 if asset.assignments && asset.assignments.length > 0 && asset.assignments[0].employee
                   div
-                    | #{asset.assignments[0].employee.first_name} #{asset.assignments[0].employee.last_name}
-                  .small(style="color: #858796; margin-top: 0.25rem;")
-                    | (ID: #{asset.assignments[0].employee.employee_id})
+                    | #{asset.assignments[0].employee.first_name} #{asset.assignments[0].employee.last_name} (ID: #{asset.assignments[0].employee.employee_id})
                 else
                   .view-detail-value.text-muted Unassigned
             .view-detail-item
