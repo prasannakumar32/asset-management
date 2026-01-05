@@ -89,15 +89,7 @@ exports.create = async (req, res) => {
         return res.redirect('/asset-categories?success=Category created successfully');
     } catch (error) {
         console.error('Error creating category:', error);
-        
-        if (error.name === 'SequelizeUniqueConstraintError') {
-            return res.redirect('/asset-categories/form?error=Category name already exists');
-        } else if (error.name === 'SequelizeValidationError') {
-            const errorMessage = error.errors.map(e => e.message).join(', ');
-            return res.redirect(`/asset-categories/form?error=${encodeURIComponent(errorMessage)}`);
-        } else {
-            return res.redirect('/asset-categories/form?error=' + encodeURIComponent(error.message));
-        }
+
     }
 };
 
