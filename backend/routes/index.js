@@ -48,6 +48,7 @@ router.get('/assets', assetController.list);
 router.get('/assets/form', assetController.showAssetForm);
 router.get('/assets/:id/form', assetController.showAssetForm);
 router.get('/assets/:id', assetController.viewAsset);
+router.post('/assets/:id/delete', assetController.delete);
 router.use('/assets', assetRoutes);
 
 // Employee Routes

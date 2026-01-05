@@ -438,6 +438,13 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
     try {
         const { id } = req.params;
+        
+        // Check if asset exists
+        const asset = await Asset.findByPk(id);
+        if (!asset) {
+            return res.redirect('/assets?error=Asset not found');
+        }
+        
         const transaction = await db.sequelize.transaction();
         try {
             await AssetHistory.destroy({ 
@@ -454,13 +461,14 @@ exports.delete = async (req, res) => {
             });   
 // Commit the transaction
             await transaction.commit();
-// Redirect to assets list
-            return res.redirect('/assets');
+// Redirect to assets list with success message
+            return res.redirect('/assets?success=Asset deleted successfully');
         } catch (transactionError) {
             await transaction.rollback();
             throw transactionError;
         }
     } catch (error) {
         console.error('Error deleting asset:', error);
+        return res.redirect('/assets?error=Error deleting asset: ' + error.message);
     }
 };

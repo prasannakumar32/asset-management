@@ -499,7 +499,6 @@ h1.mb-4 {
   position: relative;
   padding-left: 1.5rem;
 }
-/* line */
 .asset-history-timeline::before {
   content: '';
   position: absolute;
