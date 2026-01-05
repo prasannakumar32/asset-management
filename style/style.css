@@ -751,6 +751,9 @@ h1.mb-4 {
   gap: 1.2rem;
   margin-bottom: 0.8rem;
 }
+.form-group-wrapper.full-width {
+  grid-column: 1 / -1;
+}
 .form-group-wrapper {
   display: flex;
   flex-direction: column;

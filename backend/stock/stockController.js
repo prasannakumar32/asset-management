@@ -8,6 +8,10 @@ exports.stockView = async (req, res) => {
       where: {
         is_active: true
       },
+      include: [{
+        model: db.AssetCategory,
+        as: 'category'
+      }],
       order: [['branch', 'ASC'], ['name', 'ASC']]
     });
 

@@ -215,7 +215,7 @@ exports.create = async (req, res) => {
     try {
         const { 
             first_name, last_name, email, phone, 
-            department, position, branch, status, hire_date, employee_id 
+            department, position, branch, status, hire_date, employee_id, notes 
         } = req.body;
         let employeeData = {
             first_name,
@@ -281,7 +281,7 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         const { 
             first_name, last_name, email, phone, 
-            department, position, branch, status, hire_date 
+            department, position, branch, status, hire_date, notes 
         } = req.body;
         const employee = await Employee.findByPk(id, { transaction });
         if (!employee) {

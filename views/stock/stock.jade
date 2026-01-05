@@ -66,7 +66,7 @@ block content
                         td= asset.asset_tag || 'N/A'
                         td
                           a(href='/assets/' + asset.id)= asset.name
-                        td= asset.Category ? asset.Category.name : 'Uncategorized'
+                        td= asset.category ? asset.category.name : 'Uncategorized'
                         td
                           - var statusClass = asset.status === 'available' ? 'bg-success' : (asset.status === 'assigned' ? 'bg-info' : (asset.status === 'maintenance' ? 'bg-warning' : 'bg-danger'))
                           span.badge(class=statusClass)= asset.status.charAt(0).toUpperCase() + asset.status.slice(1)

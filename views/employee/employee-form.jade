@@ -101,6 +101,16 @@ block content
                   - const statusValue = isEdit ? ((employee && employee.status) || (formData && formData.status)) : (formData && formData.status);
                   option(value='active' selected=(statusValue === 'active')) Active
                   option(value='inactive' selected=(statusValue === 'inactive')) Inactive
+          .form-section
+            h6.form-section-title
+              i.fas.fa-sticky-note.me-2
+              | Additional Information
+            .form-row
+              .form-group-wrapper.full-width
+                label(for='notes') Notes
+                textarea(class='form-control' id='notes' name='notes' rows='4' 
+                      placeholder='Enter any additional notes or comments')
+                  = isEdit ? (employee && employee.notes) || (formData && formData.notes) || '' : (formData && formData.notes) || ''
           .form-dialog-footer
             a.form-action-btn.form-action-btn-secondary(href='/employee')
               i.fas.fa-times
