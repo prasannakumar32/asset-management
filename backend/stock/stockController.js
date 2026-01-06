@@ -3,7 +3,6 @@ const { Op } = require('sequelize');
  
 exports.stockView = async (req, res) => {
   try {
-    //fetch all assets
     const allAssets = await db.Asset.findAll({
       where: {
         is_active: true

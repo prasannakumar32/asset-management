@@ -37,7 +37,7 @@ block content
               .view-detail-label
                 i.fas.fa-calendar-alt
                 | Created Date
-              .view-detail-value= category.created_at ? new Date(category.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + new Date(category.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A'
+              .view-detail-value= category.created_at ? new Date(category.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + new Date(category.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'N/A'
         .view-detail-section
           h6.view-section-title
             i.fas.fa-history.me-2
@@ -47,7 +47,7 @@ block content
               .view-detail-label
                 i.fas.fa-clock
                 | Last Updated
-              .view-detail-value= category.updated_at ? new Date(category.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + new Date(category.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A'
+              .view-detail-value= category.updated_at ? new Date(category.updated_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + new Date(category.updated_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'N/A'
         if category.description && category.description.trim()
           .view-detail-section
             .view-notes-section

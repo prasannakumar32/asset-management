@@ -37,11 +37,10 @@ block content
       // Delete confirmation 
       function confirmDelete(categoryId, categoryName) {
         if (confirm('Are you sure you want to delete "' + categoryName + '"? This action cannot be undone.')) {
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = '/asset-categories/' + categoryId + '/delete';
-          document.body.appendChild(form);
-          form.submit();
+          fetch('/asset-categories/' + categoryId, {
+            method: 'DELETE',
+          })
+          .then(() => window.location.href = '/asset-categories');
         }
       }
       // Clear all filters function
@@ -88,7 +87,7 @@ block content
                         td.status-td
                           span.badge(class=category.is_active ? 'bg-success' : 'bg-danger')= category.is_active ? 'Active' : 'Inactive'
                         td.created-td
-                          span= category.created_at ? new Date(category.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'
+                          span= category.created_at ? new Date(category.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'N/A'
                         td.actions-td
                           .d-flex.gap-1.justify-content-end
                             a.btn.btn-outline-primary.btn-sm.action-btn(href='/asset-categories/#{category.id}/form' title='Edit Category')

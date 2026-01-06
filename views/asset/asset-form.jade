@@ -13,6 +13,17 @@ block content
             i.fas.fa-plus.me-2(style="color: #4e73df;")
             | Add New Asset
         
+        // Flash messages
+        if flash.error && flash.error.length > 0
+          each errorMsg in flash.error
+            .alert.alert-danger.mb-3
+              = errorMsg
+        
+        if flash.success && flash.success.length > 0
+          each successMsg in flash.success
+            .alert.alert-success.mb-3
+              = successMsg
+        
         form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate)
           .form-section
             h6.form-section-title
@@ -23,16 +34,20 @@ block content
                 label(for='name')
                   span.required-field Asset Name
                 input(type='text' class='form-control' id='name' name='name' 
-                      value=(isEdit ? (asset.name || formData.name) : (formData.name || '')) 
+                      value=(isEdit ? (asset && asset.name) || (formData && formData.name) : (formData && formData.name) || '') 
                       required
                       placeholder='Enter asset name')
               .form-group-wrapper
                 label(for='asset_tag') Asset Tag
                 input(type='text' class='form-control' id='asset_tag' name='asset_tag' 
-                      value=(isEdit ? (asset.asset_tag || formData.asset_tag) : (formData.asset_tag || '')) 
+                      value=(isEdit ? (asset && asset.asset_tag) || (formData && formData.asset_tag) : (formData && formData.asset_tag) || '') 
                       readonly=isEdit
-                      placeholder='Auto-generated on creation')
-            .form-row
+                      placeholder='Auto-generated on creation'
+                      class=isEdit ? 'form-control' : ('form-control ' + (error && error.includes('Asset tag') ? 'is-invalid' : '')))
+                if error && error.includes('Asset tag')
+                  .invalid-feedback
+                    i.fas.fa-exclamation-circle.me-1
+                    = error
               .form-group-wrapper
                 label(for='category_id')
                   span.required-field Category
@@ -41,58 +56,77 @@ block content
                   if categories && categories.length > 0
                     each category in categories
                       option(value=category.id 
-                             selected=(isEdit ? (asset.category_id === category.id || formData.category_id == category.id) : (formData.category_id == category.id)))
+                             selected=(isEdit ? (asset && asset.category_id === category.id) || (formData && formData.category_id == category.id) : (formData && formData.category_id == category.id)))
                         = category.name
               .form-group-wrapper
                 label(for='serial_number') Serial Number
                 input(type='text' class='form-control' id='serial_number' name='serial_number' 
-                      value=(isEdit ? (asset.serial_number || formData.serial_number) : (formData.serial_number || '')))
-            .form-row
+                      value=((isEdit ? (asset && asset.serial_number) : (formData && formData.serial_number)) || '')
+                      placeholder='Enter serial number')
               .form-group-wrapper
                 label(for='model') Model
                 input(type='text' class='form-control' id='model' name='model' 
-                      value=(isEdit ? (asset.model || formData.model) : (formData.model || '')))
+                      value=(isEdit ? (asset && asset.model) || (formData && formData.model) : (formData && formData.model) || '')
+                      placeholder='Enter model')
               .form-group-wrapper
                 label(for='manufacturer') Manufacturer
                 input(type='text' class='form-control' id='manufacturer' name='manufacturer' 
-                      value=(isEdit ? (asset.manufacturer || formData.manufacturer) : (formData.manufacturer || '')))
+                      value=(isEdit ? (asset && asset.manufacturer) || (formData && formData.manufacturer) : (formData && formData.manufacturer) || '')
+                      placeholder='Enter manufacturer')
           .form-section
             h6.form-section-title
               i.fas.fa-dollar-sign.me-2
               | Financial Information
             .form-row
               .form-group-wrapper
-                label(for='purchase_date') Purchase Date
+                label(for='purchase_date')
+                  i.fas.fa-calendar.me-1
+                  | Purchase Date
                 input(type='date' class='form-control' id='purchase_date' name='purchase_date' 
-                      value=(isEdit ? (asset.purchase_date ? asset.purchase_date.toISOString().split('T')[0] : formData.purchase_date) : (formData.purchase_date || '')))
+                      value=(isEdit ? (asset && asset.purchase_date ? asset.purchase_date.toISOString().split('T')[0] : (formData && formData.purchase_date)) : (formData && formData.purchase_date) || ''))
               .form-group-wrapper
-                label(for='purchase_cost') Purchase Cost
-                input(type='number' class='form-control' id='purchase_cost' name='purchase_cost' 
-                      value=(isEdit ? (asset.purchase_cost || formData.purchase_cost) : (formData.purchase_cost || '')) step='0.01' min='0'
-                      placeholder='0.00')
+                label(for='purchase_cost')
+                  i.fas.fa-dollar-sign.me-1
+                  | Purchase Cost (₹)
+                input(type='text' class='form-control' id='purchase_cost' name='purchase_cost' 
+                      pattern='\d*\.?\d*' 
+                      value=(isEdit ? (asset && asset.purchase_cost) || (formData && formData.purchase_cost) : (formData && formData.purchase_cost) || '')
+                      placeholder='0.00'
+                      oninput='this.value = this.value.replace(/[^0-9.]/g, ""); if(this.value < 0) this.value = 0;')
             .form-row
               .form-group-wrapper
-                label(for='current_value') Current Value
-                input(type='number' class='form-control' id='current_value' name='current_value' 
-                      value=(isEdit ? (asset.current_value || formData.current_value) : (formData.current_value || '')) step='0.01' min='0')
+                label(for='current_value')
+                  i.fas.fa-dollar-sign.me-1
+                  | Current Value (₹)
+                input(type='text' class='form-control' id='current_value' name='current_value' 
+                      pattern='\d*\.?\d*' 
+                      value=(isEdit ? (asset && asset.current_value) || (formData && formData.current_value) : (formData && formData.current_value) || '')
+                      placeholder='0.00'
+                      oninput='this.value = this.value.replace(/[^0-9.]/g, ""); if(this.value < 0) this.value = 0;')
               .form-group-wrapper
-                label(for='warranty_months') Warranty (months)
-                input(type='number' class='form-control' id='warranty_months' name='warranty_months' 
-                      value=(isEdit ? (asset.warranty_months || formData.warranty_months) : (formData.warranty_months || '')) min='0')
+                label(for='warranty_months') Warranty Period
+                input(type='text' class='form-control' id='warranty_months' name='warranty_months' 
+                      value=(isEdit ? (asset && asset.warranty_months) || (formData && formData.warranty_months) : (formData && formData.warranty_months) || '') 
+                      pattern='\d*' placeholder='Enter months'
+                      oninput='this.value = this.value.replace(/[^0-9]/g, ""); if(this.value < 0) this.value = 0; updateWarrantyDisplay(this.value)')
           .form-section
             h6.form-section-title
               i.fas.fa-map-marker-alt.me-2
-              | Location & Assignment
+              | Location
             .form-row
               .form-group-wrapper
                 label(for='branch') Branch
-                input(type='text' class='form-control' id='branch' name='branch' 
-                      value=(isEdit ? (asset.branch || formData.branch) : (formData.branch || ''))
-                      placeholder='Enter branch')
+                input(type='text' 
+                      class='form-control' 
+                      id='branch' 
+                      name='branch' 
+                      value=(isEdit ? (asset && asset.branch) || (formData && formData.branch) : (formData && formData.branch) || '')
+                      required
+                      placeholder='Enter branch name')
               .form-group-wrapper
                 label(for='location') Location
                 input(type='text' class='form-control' id='location' name='location' 
-                      value=(isEdit ? (asset.location || formData.location) : (formData.location || ''))
+                      value=(isEdit ? asset.location : formData.location) 
                       placeholder='Enter location')
             .form-row
               .form-group-wrapper
@@ -100,27 +134,10 @@ block content
                   span.required-field Status
                 select.form-control(id='status' name='status' required)
                   option(value='') Select Status
-                  option(value='available' selected=(isEdit ? (asset.status === 'available' || formData.status === 'available') : (formData.status === 'available'))) Available
-                  option(value='assigned' selected=(isEdit ? (asset.status === 'assigned' || formData.status === 'assigned') : (formData.status === 'assigned'))) Assigned
-                  option(value='maintenance' selected=(isEdit ? (asset.status === 'maintenance' || formData.status === 'maintenance') : (formData.status === 'maintenance'))) Maintenance
-                  option(value='retired' selected=(isEdit ? (asset.status === 'retired' || formData.status === 'retired') : (formData.status === 'retired'))) Retired
-                  option(value='scrapped' selected=(isEdit ? (asset.status === 'scrapped' || formData.status === 'scrapped') : (formData.status === 'scrapped'))) Scrapped
-              .form-group-wrapper
-                if isEdit
-                  label Current Assignment
-                  if asset.assignments && asset.assignments.length > 0 && asset.assignments[0].employee
-                    input(type='text' class='form-control' 
-                          value=asset.assignments[0].employee.first_name + ' ' + asset.assignments[0].employee.last_name + ' (' + asset.assignments[0].employee.employee_id + ')' readonly)
-                  else
-                    input(type='text' class='form-control' value='Unassigned' readonly)
-                else
-                  label(for='employee_id') Assign to Employee
-                  select.form-control(id='employee_id' name='employee_id')
-                    option(value='') Select Employee
-                    if employees && employees.length > 0
-                      each employee in employees
-                        option(value=employee.id selected=formData.employee_id == employee.id)
-                          = employee.first_name + ' ' + employee.last_name + ' (' + employee.employee_id + ')'
+                  option(value='available' selected=(isEdit ? (asset && asset.status === 'available') || (formData && formData.status === 'available') : (formData && formData.status === 'available'))) Available
+                  option(value='maintenance' selected=(isEdit ? (asset && asset.status === 'maintenance') || (formData && formData.status === 'maintenance') : (formData && formData.status === 'maintenance'))) Maintenance
+                  option(value='retired' selected=(isEdit ? (asset && asset.status === 'retired') || (formData && formData.status === 'retired') : (formData && formData.status === 'retired'))) Retired
+                  option(value='scrapped' selected=(isEdit ? (asset && asset.status === 'scrapped') || (formData && formData.status === 'scrapped') : (formData && formData.status === 'scrapped'))) Scrapped
           .form-section
             h6.form-section-title
               i.fas.fa-sticky-note.me-2
@@ -129,17 +146,16 @@ block content
               .form-group-wrapper
                 label(for='is_active') Active Status
                 select.form-control(id='is_active' name='is_active')
-                  option(value='true' selected=(isEdit ? (asset.is_active === true || formData.is_active === 'true') : (formData.is_active === 'true'))) Active
-                  option(value='false' selected=(isEdit ? (asset.is_active === false || formData.is_active === 'false') : (formData.is_active === 'false'))) Inactive
+                  option(value='true' selected=(isEdit ? (asset && asset.is_active === true) || (formData && formData.is_active === 'true') : (formData && formData.is_active === 'true'))) Active
+                  option(value='false' selected=(isEdit ? (asset && asset.is_active === false) || (formData && formData.is_active === 'false') : (formData && formData.is_active === 'false'))) Inactive
             .form-row(style="grid-template-columns: 1fr;")
               .form-group-wrapper
                 label(for='notes') Notes
-                textarea(
-                  class='form-control' 
+                textarea.form-control(
                   id='notes' 
                   name='notes' 
                   placeholder='Enter any additional notes about this asset...'
-                )= (isEdit ? (asset.notes || formData.notes) : (formData.notes || ''))
+                )= isEdit ? (asset && asset.notes) || (formData && formData.notes) : (formData && formData.notes) || ''
           .form-dialog-footer
             a.form-action-btn.form-action-btn-secondary(href='/assets')
               i.fas.fa-times
@@ -151,3 +167,33 @@ block content
             button.form-action-btn.form-action-btn-primary(type='submit')
               i.fas.fa-save
               = isEdit ? 'Update Asset' : 'Create Asset'
+    
+    script.
+      // Function to update warranty display
+      function updateWarrantyDisplay(months) {
+        const displayElement = document.querySelector('#warranty_months + .input-group-text');
+        if (!displayElement) return;
+        
+        const monthsNum = parseInt(months) || 0;
+        const years = Math.floor(monthsNum / 12);
+        const remainingMonths = monthsNum % 12;
+        
+        let displayText = '';
+        if (years > 0) {
+          displayText += `${years} ${years === 1 ? 'year' : 'years'}`;
+        }
+        if (remainingMonths > 0) {
+          if (years > 0) displayText += ' ';
+          displayText += `${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'}`;
+        }
+        
+        displayElement.textContent = displayText || '';
+      }
+      
+      // Initialize display on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        const warrantyInput = document.getElementById('warranty_months');
+        if (warrantyInput && warrantyInput.value) {
+          updateWarrantyDisplay(warrantyInput.value);
+        }
+      });

@@ -665,8 +665,8 @@ h1.mb-4 {
 }
 .view-dialog-footer {
   display: flex;
-  justify-content: space-between;
-  gap: 0.6rem;
+  justify-content: flex-end;
+  gap: 0.75rem;
   padding: 1.2rem 1.8rem;
   border-top: 1px solid #e3e6f0;
   background: #f8f9fa;
@@ -674,12 +674,10 @@ h1.mb-4 {
   align-items: center;
 }
 .view-dialog-footer .view-action-btn-secondary {
-  order: 1;
+  margin-right: 0.75rem;
 }
-.view-dialog-footer .view-action-btn-primary,
-.view-dialog-footer .view-action-btn-danger {
-  order: 2;
-  margin-left: auto;
+.view-dialog-footer .view-action-btn-primary {
+  margin-left: 0;
 }
 .view-action-btn {
   padding: 0.5rem 1.25rem;
@@ -806,8 +804,8 @@ h1.mb-4 {
 }
 .form-dialog-footer {
   display: flex;
-  justify-content: space-between;
-  gap: 0.6rem;
+  justify-content: flex-end;
+  gap: 0.75rem;
   padding: 1.2rem 1.8rem;
   border-top: 1px solid #e3e6f0;
   background: #f8f9fa;
@@ -815,12 +813,10 @@ h1.mb-4 {
   align-items: center;
 }
 .form-dialog-footer .form-action-btn-secondary {
-  order: 1;
+  margin-right: 0.75rem;
 }
-.form-dialog-footer .form-action-btn-primary,
-.form-dialog-footer .form-action-btn-danger {
-  order: 2;
-  margin-left: auto;
+.form-dialog-footer .form-action-btn-primary {
+  margin-left: 0;
 }
 .form-action-btn {
   padding: 0.5rem 1.25rem;
@@ -864,4 +860,12 @@ h1.mb-4 {
 
 .delete-btn i {
   color: white;
+}
+
+/* Form Error Messages */
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
 }

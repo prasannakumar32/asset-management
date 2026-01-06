@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
+const flash = require('connect-flash');
 const app = express();
 const db = require('./backend/models');
 const bcrypt = require('bcryptjs');
@@ -38,10 +39,14 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Flash messages middleware
+app.use(flash());
+
 // Make user and messages available to views
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
   res.locals.message = req.session.message;
+  res.locals.flash = req.flash();
   // Clear message after it's been made available to views
   if (req.session.message) {
     delete req.session.message;
@@ -85,27 +90,24 @@ app.use((req, res, next) => {
 
 
 // Passport middleware
-app.use(passport.initialize());
-app.use(passport.session());
-
 // Configure Passport
 require('./backend/config/passport')(passport);
 
 // API routes
 const assetRoutes = require('./backend/asset/assetRoute');
 app.use('/api/assets', assetRoutes);
-// Employee routes
-const employeeRoutes = require('./backend/employee/employeeRoute');
-app.use('/api/employee', employeeRoutes);
 // AssetAssignment routes
 const assetAssignmentRoutes = require('./backend/assetAssignment/assetAssignmentRoute');
-app.use('/api/asset-assignment', assetAssignmentRoutes);
+app.use('/asset-assignment', assetAssignmentRoutes);
 // AssetCategories routes
 const assetCategoriesRoutes = require('./backend/assetCategories/assetCategoryRoute');
 app.use('/api/asset-categories', assetCategoriesRoutes);
 // AssetHistory routes
 const assetHistoryRoutes = require('./backend/assetHistory/assetHistoryRoute');
 app.use('/asset-history', assetHistoryRoutes);
+// Employee routes
+const employeeRoutes = require('./backend/employee/employeeRoute');
+app.use('/api/employee', employeeRoutes);
 
 // Main routes (should be after API routes)
 const mainRoutes = require('./backend/routes');

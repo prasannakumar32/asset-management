@@ -9,7 +9,8 @@ exports.list = async (req, res) => {
 // Get unique departments and branches using distinct queries
         const [departments, branches] = await Promise.all([
 // Get distinct departments
-            Employee.findAll({
+
+Employee.findAll({
                 attributes: [
                     [db.sequelize.fn('DISTINCT', db.sequelize.col('department')), 'department']
                 ],
@@ -182,7 +183,7 @@ exports.showForm = async (req, res) => {
             branches,
             statuses: ['active', 'inactive'],
             isEdit,
-            error,
+            error: req.query.error || error,
             formData: req.query.error ? req.query : {}
         });
     } catch (error) {
@@ -253,7 +254,7 @@ exports.create = async (req, res) => {
             });
             if (existingEmployee) {
                 await transaction.rollback();
-                return res.redirect('/employee/form?error=Employee ID already exists. Please use a different ID or leave empty to auto-generate.');
+                return res.redirect('/employee/form');
             }
             employeeData.employee_id = employee_id.trim();
         }

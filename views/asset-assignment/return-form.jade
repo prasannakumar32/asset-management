@@ -107,7 +107,7 @@ block scripts
       }
 
       try {
-        const response = await fetch(`/api/asset-assignment/employee/${employeeId}`);
+        const response = await fetch(`/asset-assignment/employee/${employeeId}`);
         const result = await response.json();
         
         // Clear existing options
@@ -146,11 +146,11 @@ block scripts
       
       // Show loading state
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+      submitBtn.innerHTML = '<i class="fas.fa-spinner fa-spin me-2"></i>Processing...';
       
       try {
         const formData = new FormData(form);
-        const response = await fetch('/api/asset-assignment/return', {
+        const response = await fetch('/asset-assignment/return', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(Object.fromEntries(formData.entries()))
