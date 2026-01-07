@@ -48,6 +48,7 @@ exports.stockView = async (req, res) => {
       assetsByBranch,
       totalValue,
       totalAssets: allAssets.length,
+      currentPage: 'stock',
       availableCount
     });
   } catch (error) {

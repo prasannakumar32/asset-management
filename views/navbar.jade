@@ -11,17 +11,17 @@ html(lang='en')
       .navbar-brand Asset tracker
       ul.navbar-nav
         li
-          a.nav-link(href='/dashboard') Dashboard
+          a.nav-link(href='/dashboard', class=currentPage === 'dashboard' ? 'active' : '') Dashboard
         li
-          a.nav-link(href='/assets') Assets
+          a.nav-link(href='/assets', class=currentPage === 'assets' ? 'active' : '') Assets
         li
-          a.nav-link(href='/employee') Employees
+          a.nav-link(href='/employee', class=currentPage === 'employee' ? 'active' : '') Employees
         li
-          a.nav-link(href='/asset-categories') Asset Categories
+          a.nav-link(href='/asset-categories', class=currentPage === 'asset-categories' ? 'active' : '') Asset Categories
         li 
-          a.nav-link(href='/stock') Stock
+          a.nav-link(href='/stock', class=currentPage === 'stock' ? 'active' : '') Stock
         li
-          a.nav-link(href='/asset-history') Asset History
+          a.nav-link(href='/asset-history', class=currentPage === 'asset-history' ? 'active' : '') Asset History
       .logout-container
         a.nav-link(href='/logout') Logout
     block content

@@ -114,7 +114,7 @@ block content
                       th.category-col Category
                       th.serial-col Serial Number
                       th.status-col Status
-                      th.assigned-col Assigned To
+                      th.assigned-col Location
                       th.actions-col Actions
                   tbody
                     each asset in assets
@@ -128,14 +128,8 @@ block content
                           span= asset.serial_number
                         td.status-td
                           = asset.status
-                        td.assigned-td
-                          .d-flex.align-items-center
-                            if asset.status === 'assigned' && asset.assignments && asset.assignments.length > 0 && asset.assignments[0] && asset.assignments[0].employee
-                              span= asset.assignments[0].employee.first_name + ' ' + asset.assignments[0].employee.last_name
-                            else if asset.status === 'assigned'
-                              | Assigned
-                            else
-                              | Unassigned
+                        td.location-td
+                          span= asset.location
                         td.actions-td
                           .btn-group.btn-group-sm(role='group')
                             a.btn.btn-outline-primary.action-btn(href='/assets/#{asset.id}/form' title='Edit Asset')

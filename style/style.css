@@ -119,6 +119,11 @@ body {
   background:grey;
   height: 100% auto;
 }
+.nav-link.active {
+  background:black;
+  color:gold;
+  font-weight: 600;
+}
 .logout-container {
   display: flex;
   height: 100%;

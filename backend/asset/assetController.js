@@ -32,6 +32,7 @@ exports.showAssetForm = async (req, res) => {
             isEdit,
             asset,
             categories,
+            currentPage: 'assets',
             formData: req.flash('formData')[0] || {},
             error: req.flash('error')[0] || req.query.error,
             success: req.flash('success')[0] || req.query.success
@@ -42,6 +43,7 @@ exports.showAssetForm = async (req, res) => {
             isEdit: !!req.params.id,
             asset: null,
             categories,
+            currentPage: 'assets',
             formData: {},
             error: req.query.error || 'Error loading form'
         });
@@ -113,6 +115,7 @@ exports.list = async (req, res) => {
             status,
             is_active,
             branch,
+            currentPage: 'assets',
             success: req.query.success,
             error: req.query.error
         });
@@ -125,6 +128,7 @@ exports.list = async (req, res) => {
             status: req.query.status || '',
             is_active: req.query.is_active || 'true',
             branch: req.query.branch || '',
+            currentPage: 'assets',
             error: 'Failed to load assets'
         });
     }
@@ -210,6 +214,7 @@ exports.viewAsset = async (req, res) => {
         }
         return res.render('asset/asset-view', {
             asset,
+            currentPage: 'assets',
             error: req.query.error,
             success: req.query.success
         });
@@ -291,6 +296,7 @@ exports.create = async (req, res) => {
                         where: { is_active: true },
                         order: [['name', 'ASC']]
                     }),
+                    currentPage: 'assets',
                     formData: formData,
                     error: 'Asset tag already exists. Please use a different tag or leave empty to auto-generate.'
                 });

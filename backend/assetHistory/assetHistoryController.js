@@ -87,6 +87,7 @@ assignments.forEach(assignment => {
       assignments,
       histories,
       timeline,
+      currentPage: 'asset-history',
       metrics: {
         totalAssignments: assignments.length,
         currentAssignment: assignments.find(a => a.status === 'assigned')
@@ -114,7 +115,8 @@ exports.listAllAssetHistories = async(req, res) => {
     res.render('assetHistory/asset-history', { 
       assets,
       asset: null,
-      timeline: null
+      timeline: null,
+      currentPage: 'asset-history'
     });
 
   } catch (error) {

@@ -7,8 +7,11 @@ exports.showCategoryPage = async (req, res) => {
     try {
         const { status = 'active' } = req.query;
         const whereClause = {};
-        whereClause.is_active = status === 'active' ? true : status === 'inactive' ? false : undefined;
-        
+        if (status === 'active') {
+            whereClause.is_active = true;
+        } else if (status === 'inactive') {
+            whereClause.is_active = false;
+        }
         const categories = await AssetCategory.findAll({
             where: whereClause,
             order: [['name', 'ASC']]
@@ -17,6 +20,7 @@ exports.showCategoryPage = async (req, res) => {
             categories,
             status,
             title: 'Asset Categories',
+            currentPage: 'asset-categories',
             error: req.query.error,
             success: req.query.success
         });
@@ -40,6 +44,7 @@ exports.showCategoryForm = async (req, res) => {
         res.render('asset-categories/asset-category-form', {
             category,
             title: id ? 'Edit Category' : 'Add New Category',
+            currentPage: 'asset-categories',
             isEdit: !!id,
             error: req.query.error,
             success: req.query.success,
@@ -64,7 +69,8 @@ exports.viewCategory = async (req, res) => {
         }
         res.render('asset-categories/asset-category-view', {
             category,
-            title: 'Category Details'
+            title: 'Category Details',
+            currentPage: 'asset-categories'
         });
     } catch (error) {
         console.error('Error viewing category:', error);

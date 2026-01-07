@@ -27,6 +27,7 @@ const getDashboard = async (req, res) => {
     res.render('dashboard', {
       title: 'Dashboard',
       username: req.user?.username || 'Guest',
+      currentPage: 'dashboard',
       assetCount: assetCount || 0,
       employeeCount: employeeCount || 0,
       assignedCount: assignedCount || 0,
@@ -38,6 +39,7 @@ const getDashboard = async (req, res) => {
     res.render('dashboard', {
       title: 'Dashboard',
       username: req.user?.username || 'Guest',
+      currentPage: 'dashboard',
       assetCount: 0,
       employeeCount: 0,
       assignedCount: 0,

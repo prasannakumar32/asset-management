@@ -73,7 +73,8 @@ Employee.findAll({
             statuses: ['active', 'inactive'],
             department: department,
             status: status,
-            branch: branch
+            branch: branch,
+            currentPage: 'employee'
         });
         
     } catch (error) {
@@ -86,6 +87,7 @@ Employee.findAll({
             department: '',
             status: '',
             branch: '',
+            currentPage: 'employee',
             error: 'Error loading employee data. Please try again.'
         });
     }
@@ -182,6 +184,7 @@ exports.showForm = async (req, res) => {
             departments,
             branches,
             statuses: ['active', 'inactive'],
+            currentPage: 'employee',
             isEdit,
             error: req.query.error || error,
             formData: req.query.error ? req.query : {}
@@ -201,7 +204,8 @@ exports.view = async (req, res) => {
             return res.redirect('/employee');
         }
         res.render('employee/employee-view', {
-            employee: employee.get({ plain: true })
+            employee: employee.get({ plain: true }),
+            currentPage: 'employee'
         });
     } catch (error) {
         console.error('Error fetching employee:', error);
