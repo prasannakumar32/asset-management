@@ -40,7 +40,6 @@ block content
                       value=(formData && formData.first_name) || (isEdit && employee && employee.first_name) || ''
                       required
                       minlength='2'
-                      maxlength='50'
                       pattern='[a-zA-Z\s]+'
                       title='First name should only contain letters and spaces, minimum 2 characters'
                       placeholder='Enter first name')
@@ -49,11 +48,7 @@ block content
                   span.required-field Last Name
                 input(type='text' class='form-control' id='last_name' name='last_name' 
                       value=(formData && formData.last_name) || (isEdit && employee && employee.last_name) || ''
-                      required
-                      minlength='2'
-                      maxlength='50'
                       pattern='[a-zA-Z\s]+'
-                      title='Last name should only contain letters and spaces, minimum 2 characters'
                       placeholder='Enter last name')
             .form-row
               .form-group-wrapper
@@ -71,7 +66,7 @@ block content
                 input.form-control(type='tel', name='phone', 
                       value=(formData && formData.phone) || (isEdit && employee && employee.phone) || '',
                       placeholder='Enter phone number with country code (e.g., +919003381176) or 10 digits',
-                      pattern='(\+\d{1,3})?\d{10}',
+                      (\+\d{1,3}\s?)?\d{10}
                       maxlength='14',
                       title='Enter 10 digits or country code + 10 digits (e.g., 9003381176 or +919003381176)')
             .form-row
@@ -81,7 +76,7 @@ block content
                       value=(formData && formData.employee_id) || (isEdit && employee && employee.employee_id) || ''
                       readonly=isEdit
                       maxlength='20'
-                      pattern="[a-zA-Z0-9\\s]+"
+                      (\+\d{1,3}\s?)?(\d\s?){10}
                       title="Employee ID should only contain letters, numbers, and spaces"
                       placeholder='Will be auto-generated')
           .form-section

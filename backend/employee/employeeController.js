@@ -209,7 +209,6 @@ exports.view = async (req, res) => {
     }
 };
 
-// Create new employee
 exports.create = async (req, res) => {
     //initialize transaction
     const transaction = await db.sequelize.transaction();
@@ -218,6 +217,7 @@ exports.create = async (req, res) => {
             first_name, last_name, email, phone, 
             department, position, branch, status, hire_date, employee_id, notes 
         } = req.body;
+        
         let employeeData = {
             first_name,
             last_name,
@@ -228,7 +228,7 @@ exports.create = async (req, res) => {
             branch: branch || null,
             status,
             notes: notes || null,
-            hire_date: new Date()
+            hire_date: hire_date || new Date()
         };
 // Generate employee ID if not exist 
         if (!employee_id || employee_id.trim() === '') {
@@ -347,7 +347,8 @@ exports.update = async (req, res) => {
             await transaction.rollback();
             return res.redirect('/employee?error=Employee not found');
         }
-// Update employee
+        
+        // Update employee
         await employee.update({
             first_name,
             last_name,
@@ -357,6 +358,7 @@ exports.update = async (req, res) => {
             position,
             branch,
             status,
+            hire_date: hire_date || employee.hire_date,
             notes
         }, { transaction });
         await transaction.commit();
