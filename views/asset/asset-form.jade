@@ -77,12 +77,14 @@ block content
               | Financial Information
             .form-row
               .form-group-wrapper
-                label(for='purchase_date')
-                  i.fas.fa-calendar.me-1
-                  | Purchase Date
+                label(for='purchase_date') Purchase Date
                 input(type='text' class='form-control' id='purchase_date' name='purchase_date' 
-                      placeholder='DD-MM-YYYY'
-                      value=(isEdit ? (asset && asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString('en-GB') : (formData && formData.purchase_date)) : (formData && formData.purchase_date) || ''))
+                      value=(formData && formData.purchase_date ? formData.purchase_date : (isEdit && asset && asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString('en-GB') : ''))
+                      placeholder='DD/MM/YYYY (e.g., 15/01/2024)'
+                      title='Enter date in DD/MM/YYYY format'
+                      oninput="this.setCustomValidity('')"
+                      oninvalid="this.setCustomValidity('Please enter a valid date in DD/MM/YYYY format')")
+                small.text-muted Expected format: DD/MM/YYYY
               .form-group-wrapper
                 label(for='purchase_cost')
                   i.fas.fa-dollar-sign.me-1
@@ -125,7 +127,7 @@ block content
               .form-group-wrapper
                 label(for='location') Location
                 input(type='text' class='form-control' id='location' name='location' 
-                      value=(isEdit ? asset.location : formData.location) 
+                      value=(isEdit ? (asset && asset.location) || (formData && formData.location) : (formData && formData.location) || '')
                       placeholder='Enter location')
             .form-row
               .form-group-wrapper
@@ -203,6 +205,57 @@ block content
           });
         }
       }
+
+      function initializePurchaseDate() {
+        const purchaseDateInput = document.getElementById('purchase_date');
+        if (purchaseDateInput) {
+          const today = new Date();
+          purchaseDateInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^\d/]/g, '');
+            // Auto-format as DD/MM/YYYY
+            if (value.length === 2 && !value.includes('/')) {
+              value += '/';
+            } else if (value.length === 5 && value.split('/').length === 2) {
+              value += '/';
+            }
+            
+            e.target.value = value;
+          });
+
+          // Validate date on blur
+          purchaseDateInput.addEventListener('blur', function() {
+            const value = this.value.trim();
+            
+            if (!value) {
+              this.setCustomValidity('');
+              return;
+            }
+            
+            // Simple DD/MM/YYYY format check
+            const simpleRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+            const match = value.match(simpleRegex);
+            
+            if (!match) {
+              this.setCustomValidity('Please enter date as DD/MM/YYYY (e.g., 15/01/2024)');
+              return;
+            }
+            
+            const [day, month, year] = match.slice(1);
+            const date = new Date(year, month - 1, day);
+            
+            // Simple validation
+            if (date.getDate() !== parseInt(day) || 
+                date.getMonth() !== parseInt(month) - 1 || 
+                date.getFullYear() !== parseInt(year)) {
+              this.setCustomValidity('Invalid date. Please check day, month, and year.');
+            } else if (date > today) {
+              this.setCustomValidity('Purchase date cannot be in the future.');
+            } else {
+              this.setCustomValidity('');
+            }
+          });
+        }
+      }
       
       // Initialize on page load (works for both create and edit)
       document.addEventListener('DOMContentLoaded', function() {
@@ -212,4 +265,5 @@ block content
         }
         
         formatBranchDisplay();
+        initializePurchaseDate();
       });

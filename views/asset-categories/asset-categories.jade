@@ -87,7 +87,7 @@ block content
                         td.status-td
                           span.badge(class=category.is_active ? 'bg-success' : 'bg-danger')= category.is_active ? 'Active' : 'Inactive'
                         td.created-td
-                          span= category.created_at ? new Date(category.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'N/A'
+                          span= category.created_at ? new Date(category.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'N/A'
                         td.actions-td
                           .d-flex.gap-1.justify-content-end
                             a.btn.btn-outline-primary.btn-sm.action-btn(href='/asset-categories/#{category.id}/form' title='Edit Category')

@@ -227,9 +227,9 @@ exports.create = async (req, res) => {
     try {
         let assetData = req.body;    
         
-        // Convert DD-MM-YYYY to YYYY-MM-DD for purchase_date
+        // Convert DD/MM/YYYY to YYYY-MM-DD for purchase_date
         if (assetData.purchase_date && assetData.purchase_date.trim() !== '') {
-            const dateParts = assetData.purchase_date.split('-');
+            const dateParts = assetData.purchase_date.split('/');
             if (dateParts.length === 3) {
                 const [day, month, year] = dateParts;
                 assetData.purchase_date = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -339,9 +339,9 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         let assetData = req.body;
         
-        // Convert DD-MM-YYYY to YYYY-MM-DD for purchase_date
+        // Convert DD/MM/YYYY to YYYY-MM-DD for purchase_date
         if (assetData.purchase_date && assetData.purchase_date.trim() !== '') {
-            const dateParts = assetData.purchase_date.split('-');
+            const dateParts = assetData.purchase_date.split('/');
             if (dateParts.length === 3) {
                 const [day, month, year] = dateParts;
                 assetData.purchase_date = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;

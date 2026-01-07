@@ -55,6 +55,11 @@ block content
           .view-detail-row
             .view-detail-item
               .view-detail-label
+                i.fas.fa-calendar-alt
+                | Hire Date
+              .view-detail-value= employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'N/A'
+            .view-detail-item
+              .view-detail-label
                 i.fas.fa-map-marker-alt
                 | Branch
               .view-detail-value= employee.branch || 'N/A'
