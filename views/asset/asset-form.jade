@@ -82,8 +82,9 @@ block content
                 label(for='purchase_date')
                   i.fas.fa-calendar.me-1
                   | Purchase Date
-                input(type='date' class='form-control' id='purchase_date' name='purchase_date' 
-                      value=(isEdit ? (asset && asset.purchase_date ? asset.purchase_date.toISOString().split('T')[0] : (formData && formData.purchase_date)) : (formData && formData.purchase_date) || ''))
+                input(type='text' class='form-control' id='purchase_date' name='purchase_date' 
+                      placeholder='DD-MM-YYYY'
+                      value=(isEdit ? (asset && asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString('en-GB') : (formData && formData.purchase_date)) : (formData && formData.purchase_date) || ''))
               .form-group-wrapper
                 label(for='purchase_cost')
                   i.fas.fa-dollar-sign.me-1
@@ -190,10 +191,27 @@ block content
         displayElement.textContent = displayText || '';
       }
       
-      // Initialize display on page load
+      // Function to handle branch field
+      function formatBranchDisplay() {
+        const branchInput = document.getElementById('branch');
+        if (branchInput) {
+          branchInput.addEventListener('blur', function() {
+            let value = this.value.trim();
+            if (value && value.includes(',')) {
+              // Take only first branch, trim spaces
+              const firstBranch = value.split(',')[0].trim();
+              this.value = firstBranch;
+            }
+          });
+        }
+      }
+      
+      // Initialize on page load (works for both create and edit)
       document.addEventListener('DOMContentLoaded', function() {
         const warrantyInput = document.getElementById('warranty_months');
         if (warrantyInput && warrantyInput.value) {
           updateWarrantyDisplay(warrantyInput.value);
         }
+        
+        formatBranchDisplay();
       });

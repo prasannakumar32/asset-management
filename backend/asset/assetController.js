@@ -223,7 +223,19 @@ exports.viewAsset = async (req, res) => {
 exports.create = async (req, res) => {
     try {
         let assetData = req.body;    
-// Convert string to numeric fields 
+        
+        // Convert DD-MM-YYYY to YYYY-MM-DD for purchase_date
+        if (assetData.purchase_date && assetData.purchase_date.trim() !== '') {
+            const dateParts = assetData.purchase_date.split('-');
+            if (dateParts.length === 3) {
+                const [day, month, year] = dateParts;
+                assetData.purchase_date = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+        } else {
+            assetData.purchase_date = null;
+        }
+        
+        // Convert string to numeric fields 
         if (assetData.warranty_months && assetData.warranty_months.trim() !== '') {
             assetData.warranty_months = parseInt(assetData.warranty_months);
         } else {
@@ -267,9 +279,21 @@ exports.create = async (req, res) => {
                 where: { asset_tag: assetData.asset_tag.trim() }
             });
             if (existingAsset) {
-                req.flash('error', 'Asset tag already exists. Please use a different tag or leave empty to auto-generate.');
-                req.flash('formData', req.body);
-                return res.redirect('/assets/form');
+                // Preserve all form data and show appropriate error
+                const formData = { ...req.body };
+                // Convert boolean values back to strings for form re-population
+                formData.is_active = formData.is_active ? 'true' : 'false';
+                
+                return res.render('asset/asset-form', {
+                    isEdit: false,
+                    asset: null,
+                    categories: await AssetCategory.findAll({ 
+                        where: { is_active: true },
+                        order: [['name', 'ASC']]
+                    }),
+                    formData: formData,
+                    error: 'Asset tag already exists. Please use a different tag or leave empty to auto-generate.'
+                });
             }
         }
 // Start transaction
@@ -317,7 +341,19 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         let assetData = req.body;
-// Convert string to numeric fields
+        
+        // Convert DD-MM-YYYY to YYYY-MM-DD for purchase_date
+        if (assetData.purchase_date && assetData.purchase_date.trim() !== '') {
+            const dateParts = assetData.purchase_date.split('-');
+            if (dateParts.length === 3) {
+                const [day, month, year] = dateParts;
+                assetData.purchase_date = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+        } else {
+            assetData.purchase_date = null;
+        }
+        
+        // Convert string to numeric fields
         if (assetData.warranty_months && assetData.warranty_months.trim() !== '') {
             assetData.warranty_months = parseInt(assetData.warranty_months);
         } else {
@@ -367,7 +403,8 @@ exports.update = async (req, res) => {
             const asset = await Asset.findByPk(id, { transaction });
             if (!asset) {
                 await transaction.rollback();
-                return res.redirect('/assets?error=Asset not found');
+                req.flash('error', 'Asset not found');
+                return res.redirect('/assets');
             }
             
             try {
@@ -390,7 +427,8 @@ exports.update = async (req, res) => {
                 });
                 
                 await transaction.commit();
-                return res.redirect('/assets?success=Asset and all related records deleted successfully');
+                req.flash('success', 'Asset and all related records deleted successfully');
+                return res.redirect('/assets');
                 
             } catch (error) {
                 await transaction.rollback();
@@ -402,6 +440,7 @@ exports.update = async (req, res) => {
             const errorMessage = error.message.includes('foreign key constraint') 
                 ? 'Cannot delete asset: It has related records that could not be removed' 
                 : 'Error deleting asset: ' + error.message;
-            return res.redirect('/assets?error=' + encodeURIComponent(errorMessage));
+            req.flash('error', errorMessage);
+            return res.redirect('/assets');
         }
     };

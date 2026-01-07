@@ -254,7 +254,14 @@ exports.create = async (req, res) => {
             });
             if (existingEmployee) {
                 await transaction.rollback();
-                return res.redirect('/employee/form');
+                return res.status(500).render('employee/employee-form', {
+                    error: `Employee ID '${employee_id.trim()}' is already registered. Please use a different Employee ID.`,
+                    formData: req.body,
+                    departments: [],
+                    branches: [],
+                    statuses: ['active', 'inactive'],
+                    isEdit: false
+                });
             }
             employeeData.employee_id = employee_id.trim();
         }
@@ -264,11 +271,62 @@ exports.create = async (req, res) => {
     } catch (error) {
         await transaction.rollback();
         console.error('Error creating employee:', error);
+        
+        // Handle duplicate email error specifically
+        let errorMessage = 'Error creating employee: ' + (error.errors ? error.errors[0].message : error.message);
+        if (error.original && error.original.code === '23505' && error.original.constraint === 'employees_email_key') {
+            errorMessage = `Email address '${req.body.email}' is already registered. Please use a different email address.`;
+        }
+        // Handle duplicate employee ID error specifically
+        if (error.original && error.original.code === '23505' && error.original.constraint === 'employees_employee_id_key') {
+            errorMessage = `Employee ID '${req.body.employee_id}' is already registered. Please use a different Employee ID.`;
+        }
+        
+        // Get departments and branches for the form
+        const [departments, branches] = await Promise.all([
+            Employee.findAll({
+                attributes: [
+                    [db.sequelize.fn('DISTINCT', db.sequelize.col('department')), 'department']
+                ],
+                where: { 
+                    department: { 
+                        [Op.and]: [
+                            { [Op.ne]: null },
+                            { [Op.ne]: '' }
+                        ]
+                    } 
+                },
+                raw: true
+            }).then(results => {
+                return results
+                    .map(d => d.department)
+                    .filter(Boolean)
+                    .sort((a, b) => a.localeCompare(b));
+            }), 
+            Employee.findAll({
+                attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('branch')), 'branch']],
+                where: { 
+                    branch: { 
+                        [Op.and]: [
+                            { [Op.ne]: null },
+                            { [Op.ne]: '' }
+                        ]
+                    } 
+                },
+                raw: true
+            }).then(results => {
+                return results
+                    .map(b => b.branch)
+                    .filter(Boolean)
+                    .sort((a, b) => a.localeCompare(b));
+            })
+        ]);
+        
         return res.status(500).render('employee/employee-form', {
-            error: 'Error creating employee: ' + (error.errors ? error.errors[0].message : error.message),
+            error: errorMessage,
             formData: req.body,
-            departments: [],
-            branches: [],
+            departments: departments,
+            branches: branches,
             statuses: ['active', 'inactive'],
             isEdit: false
         });
