@@ -13,16 +13,14 @@ block content
             i.fas.fa-plus.me-2(style="color: #4e73df;")
             | Add New Asset
         
-        // Flash messages
-        if flash.error && flash.error.length > 0
-          each errorMsg in flash.error
-            .alert.alert-danger.mb-3
-              = errorMsg
+        // Messages
+        if error && error.length > 0
+          .alert.alert-danger.mb-3
+            = error
         
-        if flash.success && flash.success.length > 0
-          each successMsg in flash.success
-            .alert.alert-success.mb-3
-              = successMsg
+        if success && success.length > 0
+          .alert.alert-success.mb-3
+            = success
         
         form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate)
           .form-section

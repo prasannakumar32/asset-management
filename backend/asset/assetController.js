@@ -33,9 +33,8 @@ exports.showAssetForm = async (req, res) => {
             asset,
             categories,
             currentPage: 'assets',
-            formData: req.flash('formData')[0] || {},
-            error: req.flash('error')[0] || req.query.error,
-            success: req.flash('success')[0] || req.query.success
+            error: req.query.error,
+            success: req.query.success
         });
     } catch (error) {
         console.error('Error loading asset form:', error);
@@ -44,7 +43,6 @@ exports.showAssetForm = async (req, res) => {
             asset: null,
             categories,
             currentPage: 'assets',
-            formData: {},
             error: req.query.error || 'Error loading form'
         });
     }
@@ -332,14 +330,7 @@ exports.create = async (req, res) => {
             errorMessage = error.message;
         }
         
-        const formId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        req.session.formError = {
-            id: formId,
-            error: errorMessage,
-            formData: req.body
-        };
-        
-        return res.redirect('/assets/form?formId=' + formId);
+        return res.redirect('/assets/form?error=' + encodeURIComponent(errorMessage));
     }
 };
 //update asset
@@ -397,56 +388,55 @@ exports.update = async (req, res) => {
         return res.redirect('/assets');
 
     } catch (error) {
+        console.error('Error updating asset:', error);
+        return res.redirect('/assets?error=' + encodeURIComponent(error.message));
+    }
+};
+//delete asset
+exports.delete = async (req, res) => {
+    const transaction = await db.sequelize.transaction();
+    try {
+        const { id } = req.params;
+        
+        // Check if asset exists
+        const asset = await Asset.findByPk(id, { transaction });
+        if (!asset) {
+            await transaction.rollback();
+            return res.redirect('/assets?error=Asset not found');
         }
-    };
-    //delete asset
-    exports.delete = async (req, res) => {
-        const transaction = await db.sequelize.transaction();
+        
         try {
-            const { id } = req.params;
+            // First, delete related asset assignments
+            await db.AssetAssignment.destroy({ 
+                where: { asset_id: id },
+                transaction 
+            });
             
-            // Check if asset exists
-            const asset = await Asset.findByPk(id, { transaction });
-            if (!asset) {
-                await transaction.rollback();
-                req.flash('error', 'Asset not found');
-                return res.redirect('/assets');
-            }
+            // Then, delete related asset histories
+            await db.AssetHistory.destroy({ 
+                where: { asset_id: id },
+                transaction 
+            });
             
-            try {
-                // First, delete related asset assignments
-                await db.AssetAssignment.destroy({ 
-                    where: { asset_id: id },
-                    transaction 
-                });
-                
-                // Then, delete related asset histories
-                await db.AssetHistory.destroy({ 
-                    where: { asset_id: id },
-                    transaction 
-                });
-                
-                // Finally, delete the asset
-                await Asset.destroy({ 
-                    where: { id },
-                    transaction 
-                });
-                
-                await transaction.commit();
-                req.flash('success', 'Asset and all related records deleted successfully');
-                return res.redirect('/assets');
-                
-            } catch (error) {
-                await transaction.rollback();
-                console.error('Error in transaction while deleting asset:', error);
-                throw error;
-            }
+            // Finally, delete the asset
+            await Asset.destroy({ 
+                where: { id },
+                transaction 
+            });
+            
+            await transaction.commit();
+            return res.redirect('/assets?success=Asset and all related records deleted successfully');
+            
         } catch (error) {
-            console.error('Error deleting asset:', error);
-            const errorMessage = error.message.includes('foreign key constraint') 
-                ? 'Cannot delete asset: It has related records that could not be removed' 
-                : 'Error deleting asset: ' + error.message;
-            req.flash('error', errorMessage);
-            return res.redirect('/assets');
+            await transaction.rollback();
+            console.error('Error in transaction while deleting asset:', error);
+            throw error;
         }
-    };
+    } catch (error) {
+        console.error('Error deleting asset:', error);
+        const errorMessage = error.message.includes('foreign key constraint') 
+            ? 'Cannot delete asset: It has related records that could not be removed' 
+            : 'Error deleting asset: ' + error.message;
+        return res.redirect('/assets?error=' + encodeURIComponent(errorMessage));
+    }
+};
