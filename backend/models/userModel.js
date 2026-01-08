@@ -39,15 +39,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
-    comparePassword: {
-      type: DataTypes.VIRTUAL,
-      get() {
-        return (password) => {
-          return bcrypt.compareSync(password, this.password);
-        };
-      }
-    },
-    is_active: {
+        is_active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
     }
@@ -56,13 +48,5 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     paranoid: false
   });
-
-  User.prototype.validPassword = function(password) {
-    if (!password || !this.password) {
-      return false;
-    }
-    return bcrypt.compareSync(password, this.password);
-  };
-
   return User;
 };

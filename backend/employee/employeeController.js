@@ -179,6 +179,13 @@ exports.showForm = async (req, res) => {
                     .sort((a, b) => a.localeCompare(b));
             })
         ]);
+        // Format hire date for input field if it exists
+        let hireDateValue = '';
+        if (employee && employee.hire_date) {
+            const hireDate = new Date(employee.hire_date);
+            hireDateValue = hireDate.toISOString().split('T')[0];
+        }
+        
         res.render('employee/employee-form', {
             employee,
             departments,
@@ -187,7 +194,8 @@ exports.showForm = async (req, res) => {
             currentPage: 'employee',
             isEdit,
             error: req.query.error || error,
-            formData: req.query.error ? req.query : {}
+            formData: req.query.error ? req.query : {},
+            hireDateValue
         });
     } catch (error) {
         console.error('Error loading employee form:', error);
@@ -264,7 +272,8 @@ exports.create = async (req, res) => {
                     departments: [],
                     branches: [],
                     statuses: ['active', 'inactive'],
-                    isEdit: false
+                    isEdit: false,
+                    hireDateValue: req.body.hire_date || ''
                 });
             }
             employeeData.employee_id = employee_id.trim();
@@ -332,7 +341,8 @@ exports.create = async (req, res) => {
             departments: departments,
             branches: branches,
             statuses: ['active', 'inactive'],
-            isEdit: false
+            isEdit: false,
+            hireDateValue: req.body.hire_date || ''
         });
     }
 };
@@ -376,7 +386,8 @@ exports.update = async (req, res) => {
             departments: [],
             branches: [],
             statuses: ['active', 'inactive'],
-            isEdit: true
+            isEdit: true,
+            hireDateValue: req.body.hire_date || ''
         });
     }
 };

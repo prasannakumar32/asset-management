@@ -106,23 +106,9 @@ block content
               .form-group-wrapper
                 label(for='hire_date') 
                   span.required-field Hire Date
-                - let hireDateValue = '';
-                - if (formData && formData.hire_date) {
-                  - hireDateValue = formData.hire_date;
-                - } else if (isEdit && employee && employee.hire_date) {
-                  - const date = new Date(employee.hire_date);
-                  - const day = String(date.getDate()).padStart(2, '0');
-                  - const month = String(date.getMonth() + 1).padStart(2, '0');
-                  - const year = date.getFullYear();
-                  - hireDateValue = `${day}/${month}/${year}`;
-                - }
-                input(type='text' class='form-control' id='hire_date' name='hire_date' value=hireDateValue
+                input(type='date' class='form-control' id='hire_date' name='hire_date' value=hireDateValue
                       required
-                      placeholder='DD/MM/YYYY (e.g., 15/01/2024)'
-                      title='Enter date in DD/MM/YYYY format'
-                      oninput="this.setCustomValidity('')"
-                      oninvalid="this.setCustomValidity('Please enter a valid date in DD/MM/YYYY format')")
-                small.text-muted Expected format: DD/MM/YYYY
+                      placeholder='please select hire date')
             .form-row
               .form-group-wrapper
                 label(for='status')
@@ -167,59 +153,7 @@ block content
           });
         }
       }
-
-      function initializeHireDate() {
-        const hireDateInput = document.getElementById('hire_date');
-        if (hireDateInput) {
-          const today = new Date();
-          hireDateInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/[^\d/]/g, '');
-            // Auto-format as DD/MM/YYYY
-            if (value.length === 2 && !value.includes('/')) {
-              value += '/';
-            } else if (value.length === 5 && value.split('/').length === 2) {
-              value += '/';
-            }
-            
-            e.target.value = value;
-          });
-
-          // Validate date on blur
-          hireDateInput.addEventListener('blur', function() {
-            const value = this.value.trim();
-            
-            if (!value) {
-              this.setCustomValidity('');
-              return;
-            }
-            
-            // Simple DD/MM/YYYY format check
-            const simpleRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-            const match = value.match(simpleRegex);
-            
-            if (!match) {
-              this.setCustomValidity('Please enter date as DD/MM/YYYY (e.g., 15/01/2024)');
-              return;
-            }
-            
-            const [day, month, year] = match.slice(1);
-            const date = new Date(year, month - 1, day);
-            
-            // Simple validation
-            if (date.getDate() !== parseInt(day) || 
-                date.getMonth() !== parseInt(month) - 1 || 
-                date.getFullYear() !== parseInt(year)) {
-              this.setCustomValidity('Invalid date. Please check day, month, and year.');
-            } else if (date > today) {
-              this.setCustomValidity('Hire date cannot be in the future.');
-            } else {
-              this.setCustomValidity('');
-            }
-          });
-      }
-
       // Initialize on page load (works for both create and edit)
       document.addEventListener('DOMContentLoaded', function() {
         formatBranchDisplay();
-        initializeHireDate();
       });
