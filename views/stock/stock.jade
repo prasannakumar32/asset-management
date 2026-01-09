@@ -45,7 +45,7 @@ block content
             if branchData.assigned > 0
               span.badge.bg-info.me-1= branchData.assigned + ' assigned'
             if branchData.maintenance > 0
-              span.badge.bg-warning.me-1= branchData.maintenance + ' maintenance'
+              span.badge.me-1= branchData.maintenance + ' maintenance'
             if branchData.scrapped > 0
               span.badge.bg-danger.me-1= branchData.scrapped + ' scrapped'
         .card-body
@@ -68,11 +68,9 @@ block content
                           a(href='/assets/' + asset.id)= asset.name
                         td= asset.category ? asset.category.name : 'Uncategorized'
                         td
-                          - var statusClass = asset.status === 'available' ? 'bg-success' : (asset.status === 'assigned' ? 'bg-info' : (asset.status === 'maintenance' ? 'bg-warning' : 'bg-danger'))
-                          span.badge(class=statusClass)= asset.status.charAt(0).toUpperCase() + asset.status.slice(1)
+                          span.badge(class=asset.status === 'available' ? 'bg-success' : (asset.status === 'assigned' ? 'bg-info' : (asset.status === 'maintenance' ? '' : 'bg-danger')))= asset.status.charAt(0).toUpperCase() + asset.status.slice(1)
                         td= asset.current_value ? `₹${parseFloat(asset.current_value).toFixed(2)}` : (asset.purchase_cost ? `₹${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A')
                     if branchData.assets.length > 0 && branchData.totalValue > 0
                       tr
                         td(colspan='4', style='text-align: right;') Total Value:
                         td ₹#{parseFloat(branchData.totalValue).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                        

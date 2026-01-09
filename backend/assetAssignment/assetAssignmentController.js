@@ -6,11 +6,9 @@ const { Asset, Employee, AssetAssignment } = db;
 const sendResponse = (res, status, success, message, data = null) => {
   res.status(status).json({ success, message, ...(data && { data }) });
 };
-
 const sendError = (res, status, error, message = null) => {
   res.status(status).json({ success: false, error, ...(message && { message }) });
 };
-
 const updateAssetStatus = async (assetId, status) => {
   await Asset.update({ status }, { where: { id: assetId } });
 };
