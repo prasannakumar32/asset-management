@@ -91,18 +91,23 @@ block content
                       placeholder='Enter job position')
               .form-group-wrapper
                 label(for='department') Department
-                input(type='text' class='form-control' id='department' name='department' 
-                      value=(formData && formData.department) || (isEdit && employee && employee.department) || ''
-                      pattern='[a-zA-Z\s]+'
-                      title='Department should only contain letters and spaces'
-                      placeholder='Enter department name')
+                select.form-control(id='department' name='department' required)
+                  option(value='') Select Department
+                  if departments && departments.length > 0
+                    each department in departments
+                      option(value=department 
+                             selected=(formData && formData.department === department) || (isEdit && employee && employee.department === department))
+                        = department
             .form-row
               .form-group-wrapper
                 label(for='branch') Branch
-                input(type='text' class='form-control' id='branch' name='branch' 
-                      value=(formData && formData.branch) || (isEdit && employee && employee.branch) || ''
-                      list=branches && branches.length > 0 ? 'branches' : undefined
-                      placeholder='Enter branch name')
+                select.form-control(id='branch' name='branch')
+                  option(value='') Select Branch
+                  if branches && branches.length > 0
+                    each branch in branches
+                      option(value=branch 
+                             selected=(formData && formData.branch === branch) || (isEdit && employee && employee.branch === branch))
+                        = branch
               .form-group-wrapper
                 label(for='hire_date') 
                   span.required-field Hire Date
@@ -141,19 +146,7 @@ block content
               = isEdit ? 'Update Employee' : 'Add Employee'
     
     script.
-      function formatBranchDisplay() {
-        const branchInput = document.getElementById('branch');
-        if (branchInput) {
-          branchInput.addEventListener('blur', function() {
-            let value = this.value.trim();
-            if (value && value.includes(',')) {
-              const firstBranch = value.split(',')[0].trim();
-              this.value = firstBranch;
-            }
-          });
-        }
-      }
       // Initialize on page load (works for both create and edit)
       document.addEventListener('DOMContentLoaded', function() {
-        formatBranchDisplay();
+        // No need for branch formatting with dropdown
       });
