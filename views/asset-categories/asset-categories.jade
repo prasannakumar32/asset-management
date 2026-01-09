@@ -34,6 +34,16 @@ block content
           if (statusSelect) addFilterListener(statusSelect, () => filterForm.submit());
         }
       });
+      
+      // Clear all filters function
+      function clearAllFilters() {
+        const status = document.getElementById('status');
+        
+        if (status) status.value = '';
+        const filterForm = document.getElementById('filterForm');
+        if (filterForm) filterForm.submit();
+      }
+
       // Delete confirmation 
       function confirmDelete(categoryId, categoryName) {
         if (confirm('Are you sure you want to delete "' + categoryName + '"? This action cannot be undone.')) {
@@ -42,13 +52,6 @@ block content
           })
           .then(() => window.location.href = '/asset-categories');
         }
-      }
-      // Clear all filters function
-      function clearAllFilters() {
-        const status = document.getElementById('status');
-        
-        if (status) status.value = '';
-        window.location.href = '/asset-categories';
       }
     .row.asset-category-list-row
       .col-12

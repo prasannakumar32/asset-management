@@ -48,6 +48,18 @@ block content
           if (branchSelect) addFilterListener(branchSelect, () => filterForm.submit());
         }
       });
+      // Clear all filters function
+      function clearAllFilters() {
+        const dept = document.getElementById('department');
+        const status = document.getElementById('status');
+        const branch = document.getElementById('branch');
+        if (dept) dept.value = '';
+        if (status) status.value = '';
+        if (branch) branch.value = '';
+        const filterForm = document.getElementById('filterForm');
+        if (filterForm) filterForm.submit();
+          else console.error('filterform not found');
+      }
       
       // Delete confirmation 
       function confirmDelete(employeeId, employeeName) {
@@ -58,19 +70,6 @@ block content
           document.body.appendChild(form);
           form.submit();
         }
-      }
-      
-      // Clear all filters function
-      function clearAllFilters() {
-        const dept = document.getElementById('department');
-        const status = document.getElementById('status');
-        const branch = document.getElementById('branch');
-        
-        if (dept) dept.value = '';
-        if (status) status.value = '';
-        if (branch) branch.value = '';
-        
-        window.location.href = '/employee';
       }
     .row.employee-list-row
       .col-12

@@ -37,10 +37,8 @@ const parseAssetData = (assetData) => {
             assetData[field] = null;
         }
     });
-    
-    // Convert boolean
+// Convert boolean
     assetData.is_active = assetData.is_active === 'true';
-    
     return assetData;
 };
 
@@ -116,14 +114,8 @@ exports.list = async (req, res) => {
 
  // Build where clause
         if (category) {
-            if (!isNaN(category)) {
+            if (!isNaN(category))
                 whereClause.category_id = parseInt(category);
-            } else {
-                const foundCategory = await db.AssetCategory.findOne({
-                    where: { name: category, is_active: true }
-                });
-                if (foundCategory) whereClause.category_id = foundCategory.id;
-            }
         }
 
         if (status && ['available', 'assigned', 'maintenance', 'retired', 'scrapped'].includes(status)) {
@@ -192,7 +184,7 @@ exports.create = async (req, res) => {
     try {
         let assetData = parseAssetData(req.body);
         
-        // Handle asset tag
+// Handle asset tag
         if (!assetData.asset_tag || assetData.asset_tag.trim() === '') {
             assetData.asset_tag = await generateAssetTag();
         } else {
@@ -205,7 +197,7 @@ exports.create = async (req, res) => {
             }
         }
         
-        // Check duplicate serial number
+// Check duplicate serial number
         if (assetData.serial_number && assetData.serial_number.trim() !== '') {
             const existingAsset = await Asset.findOne({
                 where: { serial_number: assetData.serial_number.trim() }
@@ -216,7 +208,7 @@ exports.create = async (req, res) => {
             }
         }
         
-        // Create asset with transaction
+// Create asset with transaction
         const transaction = await db.sequelize.transaction();
         try {
             const asset = await Asset.create(assetData, { transaction });
@@ -250,12 +242,12 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         let assetData = parseAssetData(req.body);
         
-        // Don't allow updating certain fields
+// Don't allow updating certain fields
         delete assetData.asset_tag;
         delete assetData.current_assignment;
         delete assetData.currently_assigned_to;
         
-        // Check duplicate serial number (excluding current asset)
+// Check duplicate serial number (excluding current asset)
         if (assetData.serial_number && assetData.serial_number.trim() !== '') {
             const existingAsset = await Asset.findOne({
                 where: { 
@@ -271,10 +263,10 @@ exports.update = async (req, res) => {
             }
         }
         
-        // Update asset
+// Update asset
         await Asset.update(assetData, { where: { id } });
         
-        // Create history record
+// Create history record
         await AssetHistory.create({
             asset_id: parseInt(id),
             action_type: 'updated',
@@ -306,7 +298,7 @@ exports.delete = async (req, res) => {
             return res.redirect('/assets?error=Asset not found');
         }
         
-        // Delete related records in order
+// Delete related records in order
         await db.AssetAssignment.destroy({ where: { asset_id: id }, transaction });
         await db.AssetHistory.destroy({ where: { asset_id: id }, transaction });
         await Asset.destroy({ where: { id }, transaction });
@@ -328,7 +320,7 @@ exports.listAPI = async (req, res) => {
         const { category = '', status = '', is_active = 'true', branch = '' } = req.query;
         const whereClause = {};
 
-        // Build where clause (same logic as list function)
+// Build where clause (same logic as list function)
         if (category) {
             if (!isNaN(category)) {
                 whereClause.category_id = parseInt(category);

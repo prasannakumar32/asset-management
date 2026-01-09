@@ -48,6 +48,18 @@ block content
         addFilterListener(isActiveSelect, () => filterForm && filterForm.submit());
         addFilterListener(branchSelect, () => filterForm && filterForm.submit());
       });
+      
+      // Clear all filters function
+      function clearAllFilters() {
+        document.getElementById('category').value = '';
+        document.getElementById('status').value = '';
+        document.getElementById('is_active').value = '';
+        document.getElementById('branch').value = '';
+        const filterForm = document.getElementById('filterForm');
+        if (filterForm) filterForm.submit();
+          else console.error('filterform not found')
+      }
+      
       // Delete confirmation 
       function confirmDelete(assetId, assetName) {
         if (confirm('Are you sure you want to delete "' + assetName + '"? This action cannot be undone.')) {
@@ -57,15 +69,6 @@ block content
           document.body.appendChild(form);
           form.submit();
         }
-      }
-      
-      // Clear all filters function
-      function clearAllFilters() {
-        document.getElementById('category').value = '';
-        document.getElementById('status').value = '';
-        document.getElementById('is_active').value = '';
-        document.getElementById('branch').value = '';
-        window.location.href = '/assets';
       }
     .row.asset-list-row
       .col-12

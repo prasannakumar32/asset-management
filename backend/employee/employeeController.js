@@ -133,7 +133,7 @@ exports.listAPI = async (req, res) => {
         const { department = '', status = '', branch = '' } = req.query;
         const whereClause = {};
 
-        // Build where clause (same logic as list function)
+// Build where clause (same logic as list function)
         if (department) whereClause.department = department;
         if (status) whereClause.status = status;
         if (branch) whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
@@ -215,7 +215,7 @@ exports.create = async (req, res) => {
     try {
         let employeeData = parseEmployeeData(req.body);
         
-        // Handle employee ID
+// Handle employee ID
         if (!employeeData.employee_id || employeeData.employee_id.trim() === '') {
             employeeData.employee_id = await generateEmployeeId();
         } else {
@@ -228,7 +228,7 @@ exports.create = async (req, res) => {
             }
         }
         
-        // Check duplicate email
+// Check duplicate email
         if (employeeData.email && employeeData.email.trim() !== '') {
             const existingEmployee = await Employee.findOne({
                 where: { email: employeeData.email.trim() }
@@ -239,7 +239,7 @@ exports.create = async (req, res) => {
             }
         }
         
-        // Create employee
+// Create employee
         await Employee.create(employeeData);
         res.redirect('/employee?success=Employee created successfully');
         
@@ -259,11 +259,10 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         let employeeData = parseEmployeeData(req.body);
-        
-        // Don't allow updating employee ID
+//Don't allow updating employee ID
         delete employeeData.employee_id;
         
-        // Check duplicate email (excluding current employee)
+// Check duplicate email (excluding current employee)
         if (employeeData.email && employeeData.email.trim() !== '') {
             const existingEmployee = await Employee.findOne({
                 where: { 
@@ -279,7 +278,7 @@ exports.update = async (req, res) => {
             }
         }
         
-        // Update employee
+// Update employee
         await Employee.update(employeeData, { where: { id } });
         
         res.redirect('/employee');

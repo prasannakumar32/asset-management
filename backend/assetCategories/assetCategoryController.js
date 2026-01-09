@@ -104,7 +104,7 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         const categoryData = req.body;
         
-        // Process the is_active field properly
+// Process the is_active field properly
         if (categoryData.is_active !== undefined) {
             categoryData.is_active = categoryData.is_active === 'true' || categoryData.is_active === true;
         }
@@ -115,7 +115,7 @@ exports.update = async (req, res) => {
             return res.redirect('/asset-categories');
         }
         
-        // Redirect to categories list
+// Redirect to categories list
         return res.redirect('/asset-categories');
     } catch (error) {
         console.error('Error updating category:', error);
