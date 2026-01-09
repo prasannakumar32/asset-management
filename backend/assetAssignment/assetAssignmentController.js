@@ -2,37 +2,47 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const { Asset, Employee, AssetAssignment } = db;
 
+// Helper functions
+const sendResponse = (res, status, success, message, data = null) => {
+  res.status(status).json({ success, message, ...(data && { data }) });
+};
+
+const sendError = (res, status, error, message = null) => {
+  res.status(status).json({ success: false, error, ...(message && { message }) });
+};
+
+const updateAssetStatus = async (assetId, status) => {
+  await Asset.update({ status }, { where: { id: assetId } });
+};
+
+const withTransaction = async (callback) => {
+  const transaction = await db.sequelize.transaction();
+  try {
+    const result = await callback(transaction);
+    await transaction.commit();
+    return result;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+
 // Create assignment
 exports.createAssignment = async (req, res) => {
   try {
-    const assignmentData = req.body;
-    
-// Set assigned date if not provided
-    assignmentData.assigned_date = assignmentData.assigned_date || new Date().toISOString().split('T')[0];
-
-// Set default status
-    assignmentData.status = 'assigned';
+    const assignmentData = {
+      ...req.body,
+      assigned_date: req.body.assigned_date || new Date().toISOString().split('T')[0],
+      status: 'assigned'
+    };
 
     const assignment = await AssetAssignment.create(assignmentData);
+    await updateAssetStatus(assignmentData.asset_id, 'assigned');
 
-// Update asset status
-    await Asset.update(
-      { status: 'assigned' },
-      { where: { id: assignmentData.asset_id } }
-    );
-
-    res.status(201).json({
-      success: true,
-      message: 'Asset assigned successfully',
-      data: assignment
-    });
+    sendResponse(res, 201, true, 'Asset assigned successfully', { data: assignment });
   } catch (error) {
     console.error('Error creating assignment:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error assigning asset',
-      message: error.message
-    });
+    sendError(res, 500, 'Error assigning asset', error.message);
   }
 };
 
@@ -40,37 +50,22 @@ exports.createAssignment = async (req, res) => {
 exports.updateAssignment = async (req, res) => {
   try {
     const { id } = req.params;
-    const assignmentData = req.body;
-
     const assignment = await AssetAssignment.findByPk(id);
+    
     if (!assignment) {
-      return res.status(404).json({
-        success: false,
-        error: 'Assignment not found'
-      });
+      return sendError(res, 404, 'Assignment not found');
     }
 
-    await assignment.update(assignmentData);
+    await assignment.update(req.body);
 
-// Update asset status if returned
-    if (assignmentData.status === 'returned') {
-      await Asset.update(
-        { status: 'available' },
-        { where: { id: assignment.asset_id } }
-      );
+    if (req.body.status === 'returned') {
+      await updateAssetStatus(assignment.asset_id, 'available');
     }
-    res.json({
-      success: true,
-      message: 'Assignment updated successfully',
-      data: assignment
-    });
+
+    sendResponse(res, 200, true, 'Assignment updated successfully', { data: assignment });
   } catch (error) {
     console.error('Error updating assignment:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error updating assignment',
-      message: error.message
-    });
+    sendError(res, 500, 'Error updating assignment', error.message);
   }
 };
 
@@ -78,29 +73,18 @@ exports.updateAssignment = async (req, res) => {
 exports.deleteAssignment = async (req, res) => {
   try {
     const assignment = await AssetAssignment.findByPk(req.params.id);
+    
     if (!assignment) {
-      return res.status(404).json({
-        success: false,
-        error: 'Assignment not found'
-      });
+      return sendError(res, 404, 'Assignment not found');
     }
-// Update asset status back to available
-    await Asset.update(
-      { status: 'available' },
-      { where: { id: assignment.asset_id } }
-    );
+
+    await updateAssetStatus(assignment.asset_id, 'available');
     await assignment.destroy();
-    res.json({
-      success: true,
-      message: 'Assignment deleted successfully'
-    });
+
+    sendResponse(res, 200, true, 'Assignment deleted successfully');
   } catch (error) {
     console.error('Error deleting assignment:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error deleting assignment',
-      message: error.message
-    });
+    sendError(res, 500, 'Error deleting assignment', error.message);
   }
 };
 
@@ -109,194 +93,125 @@ exports.getAssignmentsByEmployee = async (req, res) => {
   try {
     const { employeeId } = req.params;
     const assignments = await AssetAssignment.findAll({
-      where: { 
-        employee_id: employeeId,
-        status: 'assigned'
-      },
+      where: { employee_id: employeeId, status: 'assigned' },
       include: [
-        {
-          model: Asset,
-          as: 'asset',
-          attributes: ['id', 'name', 'asset_tag', 'status']
-        },
-        {
-          model: Employee,
-          as: 'employee',
-          attributes: ['id', 'first_name', 'last_name', 'email']
-        },
-        {
-          model: Employee,
-          as: 'assignedBy',
-          attributes: ['id', 'first_name', 'last_name', 'email']
-        }
+        { model: Asset, as: 'asset', attributes: ['id', 'name', 'asset_tag', 'status'] },
+        { model: Employee, as: 'employee', attributes: ['id', 'first_name', 'last_name', 'email'] },
+        { model: Employee, as: 'assignedBy', attributes: ['id', 'first_name', 'last_name', 'email'] }
       ],
       order: [['assigned_date', 'DESC']]
     });
-    res.json({
-      success: true,
-      data: {
-        assignments
-      }
-    });
+
+    sendResponse(res, 200, true, 'Assignments retrieved successfully', { assignments });
   } catch (error) {
     console.error('Error fetching employee assignments:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error fetching employee assignments',
-      message: error.message
-    });
+    sendError(res, 500, 'Error fetching employee assignments', error.message);
   }
 };
+
 // Return asset
 exports.returnAsset = async (req, res) => {
   try {
     const { employee_id, asset_id, return_date, return_condition, notes } = req.body;
+    
     const assignment = await AssetAssignment.findOne({
-      where: {
-        employee_id: employee_id,
-        asset_id: asset_id,
-        status: 'assigned'
-      }
+      where: { employee_id, asset_id, status: 'assigned' }
     });
     
     if (!assignment) {
-      return res.status(404).json({
-        success: false,
-        error: 'Active assignment not found'
-      });
+      return sendError(res, 404, 'Active assignment not found');
     }
-    // Start transaction
-    const transaction = await db.sequelize.transaction();
-    try {
+
+    await withTransaction(async (transaction) => {
       await assignment.update({
         status: 'returned',
         return_date: new Date(return_date),
         return_condition: return_condition || 'good',
         return_notes: notes || ''
       }, { transaction });
-      await Asset.update(
-        { status: 'available' },
-        { where: { id: asset_id } },
-        { transaction }
-      );
-      // Create history record
+
+      await updateAssetStatus(asset_id, 'available');
+
       await db.AssetHistory.create({
-        asset_id: asset_id,
-        employee_id: employee_id,
+        asset_id,
+        employee_id,
         action_type: 'returned',
         action_date: new Date(),
         notes: `Asset returned on ${return_date}. Condition: ${return_condition || 'good'}. ${notes || ''}`
       }, { transaction });
-      await transaction.commit();
-      res.json({
-        success: true,
-        message: 'Asset returned successfully'
-      });
-    } catch (transactionError) {
-      await transaction.rollback();
-      throw transactionError;
-    }
+    });
+
+    sendResponse(res, 200, true, 'Asset returned successfully');
   } catch (error) {
     console.error('Error returning asset:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error returning asset',
-      message: error.message
-    });
+    sendError(res, 500, 'Error returning asset', error.message);
   }
 };
 
 // Show return form
 exports.showReturnForm = async (req, res) => {
   try {
-    return res.render('asset-assignment/return-form', {
+    res.render('asset-assignment/return-form', {
       error: req.query.error,
       success: req.query.success
     });
   } catch (error) {
     console.error('Error loading return form:', error);
-    return res.render('asset-assignment/return-form', {
+    res.render('asset-assignment/return-form', {
       error: req.query.error || 'Error loading return form'
     });
   }
 };
 
-
 // Scrap asset
 exports.scrapAsset = async (req, res) => {
-  const transaction = await db.sequelize.transaction();
-  
   try {
     const { asset_id, scrap_date, reason, method, notes } = req.body;
     
-    // Simple validation for required fields
     if (!asset_id || !scrap_date || !reason || !method) {
-      await transaction.rollback();
-      return res.status(400).json({
-        success: false,
-        message: 'Please fill in all required fields: Asset, Scrap Date, Reason, and Method'
-      });
+      return sendError(res, 400, 'Please fill in all required fields: Asset, Scrap Date, Reason, and Method');
     }
 
-    // Find the asset
-    const asset = await Asset.findByPk(asset_id, { transaction });
-    
-    if (!asset) {
-      await transaction.rollback();
-      return res.status(404).json({
-        success: false,
-        message: 'Asset not found'
-      });
-    }
-
-    // If the asset is currently assigned, mark the assignment as returned
-    if (asset.status === 'assigned') {
-      const assignment = await AssetAssignment.findOne({
-        where: { 
-          asset_id,
-          status: 'assigned',
-          return_date: null
-        },
-        transaction
-      });
-
-      if (assignment) {
-        assignment.status = 'returned';
-        assignment.return_date = scrap_date;
-        assignment.return_condition = 'damaged';
-        assignment.notes = `Asset marked as scrapped. ${notes || ''}`.trim();
-        await assignment.save({ transaction });
+    await withTransaction(async (transaction) => {
+      const asset = await Asset.findByPk(asset_id, { transaction });
+      
+      if (!asset) {
+        throw new Error('Asset not found');
       }
-    }
 
-    // Update asset status to scrapped
-    asset.status = 'scrapped';
-    await asset.save({ transaction });
+      if (asset.status === 'assigned') {
+        const assignment = await AssetAssignment.findOne({
+          where: { asset_id, status: 'assigned', return_date: null },
+          transaction
+        });
 
-    // Create asset history record
-    await db.AssetHistory.create({
-      asset_id,
-      action_type: 'scrapped',
-      action_date: scrap_date,
-      performed_by: req.user?.id || null,
-      notes: `Asset marked as scrapped. Reason: ${reason}. Method: ${method}. ${notes || ''}`.trim()
-    }, { transaction });
+        if (assignment) {
+          await assignment.update({
+            status: 'returned',
+            return_date: scrap_date,
+            return_condition: 'damaged',
+            notes: `Asset marked as scrapped. ${notes || ''}`.trim()
+          }, { transaction });
+        }
+      }
 
-    await transaction.commit();
-    
-    res.json({
-      success: true,
-      message: 'Asset has been marked as scrapped successfully',
-      data: { asset_id }
+      await asset.update({ status: 'scrapped' }, { transaction });
+
+      await db.AssetHistory.create({
+        asset_id,
+        action_type: 'scrapped',
+        action_date: scrap_date,
+        performed_by: req.user?.id || null,
+        notes: `Asset marked as scrapped. Reason: ${reason}. Method: ${method}. ${notes || ''}`.trim()
+      }, { transaction });
     });
 
+    sendResponse(res, 200, true, 'Asset has been marked as scrapped successfully', { asset_id });
   } catch (error) {
-    await transaction.rollback();
     console.error('Error scrapping asset:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to scrap asset',
-      error: error.message
-    });
+    if (error.message === 'Asset not found') {
+      return sendError(res, 404, 'Asset not found');
+    }
+    sendError(res, 500, 'Failed to scrap asset', error.message);
   }
 };
