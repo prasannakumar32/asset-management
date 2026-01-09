@@ -2,20 +2,17 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const { Asset, AssetHistory, AssetCategory } = db;
 
-// Helper functions
+// Helper functions for form data and options
 const getFormData = (req) => {
     const formData = { ...req.body };
-    // Convert boolean values back to strings for form re-population
     formData.is_active = formData.is_active ? 'true' : 'false';
     return formData;
 };
-
 const getFormOptions = async () => {
     const categories = await AssetCategory.findAll({ 
         where: { is_active: true },
         order: [['name', 'ASC']]
     });
-    
     const branches = await Asset.findAll({
         attributes: [
             [db.Sequelize.fn('DISTINCT', db.Sequelize.col('branch')), 'branch']
@@ -32,7 +29,6 @@ const getFormOptions = async () => {
 };
 
 const parseAssetData = (assetData) => {
-    // Parse numeric fields
     const numericFields = ['warranty_months', 'purchase_cost', 'current_value', 'category_id'];
     numericFields.forEach(field => {
         if (assetData[field] && assetData[field].trim() !== '') {
@@ -77,7 +73,7 @@ const renderFormWithError = async (res, isEdit, error, formData = null, asset = 
     });
 };
 
-// Controller functions
+//show asset form for edit and create 
 exports.showAssetForm = async (req, res) => {
     try {
         const { id } = req.params;
@@ -118,7 +114,7 @@ exports.list = async (req, res) => {
         const { category = '', status = '', is_active = '', branch = '' } = req.query;
         const whereClause = {};
 
-        // Build where clause
+ // Build where clause
         if (category) {
             if (!isNaN(category)) {
                 whereClause.category_id = parseInt(category);

@@ -2,412 +2,314 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const Employee = db.Employee;
 
-// List all employees with optional filters
+// Helper functions for form data and options
+const getFormData = (req) => {
+    const formData = { ...req.body };
+    return formData;
+};
+
+const getFormOptions = async () => {
+    const departments = await Employee.findAll({
+        attributes: [
+            [db.Sequelize.fn('DISTINCT', db.Sequelize.col('department')), 'department']
+        ],
+        where: { department: { [Op.ne]: null } },
+        order: [['department', 'ASC']],
+        raw: true
+    });
+    
+    const branches = await Employee.findAll({
+        attributes: [
+            [db.Sequelize.fn('DISTINCT', db.Sequelize.col('branch')), 'branch']
+        ],
+        where: { branch: { [Op.ne]: null } },
+        order: [['branch', 'ASC']],
+        raw: true
+    });
+
+    return {
+        departments: departments.map(d => d.department).filter(d => d),
+        branches: branches.map(b => b.branch).filter(b => b),
+        statuses: ['active', 'inactive']
+    };
+};
+
+const parseEmployeeData = (employeeData) => {
+// Handle date fields
+    if (employeeData.hire_date && employeeData.hire_date.trim() !== '') {
+        employeeData.hire_date = new Date(employeeData.hire_date);
+    } else {
+        employeeData.hire_date = new Date();
+    }
+    
+// Handle optional fields
+    const optionalFields = ['phone', 'position', 'branch', 'notes'];
+    optionalFields.forEach(field => {
+        employeeData[field] = employeeData[field] && employeeData[field].trim() !== '' 
+            ? employeeData[field].trim() 
+            : null;
+    });
+    
+    return employeeData;
+};
+
+const generateEmployeeId = async () => {
+    const lastEmployee = await Employee.findOne({
+        attributes: ['employee_id'],
+        order: [['employee_id', 'DESC']],
+        limit: 1
+    });
+    
+    let lastId = 0;
+    if (lastEmployee && lastEmployee.employee_id) {
+        const match = lastEmployee.employee_id.match(/\d+/);
+        if (match) lastId = parseInt(match[0]);
+    }
+    
+    return `EMP${String(lastId + 1).padStart(4, '0')}`;
+};
+
+const renderFormWithError = async (res, isEdit, error, formData = null, employee = null) => {
+    const options = await getFormOptions();
+    
+    return res.render('employee/employee-form', {
+        isEdit,
+        employee,
+        ...options,
+        currentPage: 'employee',
+        formData: formData || getFormData(res.req),
+        hireDateValue: formData?.hire_date || '',
+        error
+    });
+};
+
 exports.list = async (req, res) => {
     try {
         const { department = '', status = '', branch = '' } = req.query;
-// Get unique departments and branches using distinct queries
-        const [departments, branches] = await Promise.all([
-Employee.findAll({
-                attributes: [
-                    [db.sequelize.fn('DISTINCT', db.sequelize.col('department')), 'department']
-                ],
-                where: { 
-                    department: { 
-                        [Op.and]: [
-                            { [Op.ne]: null },
-                            { [Op.ne]: '' }
-                        ]
-                    } 
-                },
-                raw: true
-            }).then(results => {
-                return results
-                    .map(d => d.department)
-                    .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b));
-            }),
-            
-// Get distinct branches
-            Employee.findAll({
-                attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('branch')), 'branch']],
-                where: { 
-                    branch: { 
-                        [Op.and]: [
-                            { [Op.ne]: null },
-                            { [Op.ne]: '' }
-                        ]
-                    } 
-                },
-                raw: true
-            }).then(results => {
-                return results
-                    .map(b => b.branch)
-                    .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b));
-            })
-        ]);
-// Filter employees 
-        const whereConditions = {};
-        if (department) {
-            whereConditions.department = department;
-        }
-        if (status) {
-            whereConditions.status = status;
-        }
-        if (branch) {
-            whereConditions.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
-        }
-        
-        const filteredEmployees = await Employee.findAll({
-            where: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
-            order: [['first_name', 'ASC']],
-            raw: true
+        const whereClause = {};
+
+        // Build where clause
+        if (department) whereClause.department = department;
+        if (status && ['active', 'inactive'].includes(status)) whereClause.status = status;
+        if (branch) whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
+
+        const employees = await Employee.findAll({
+            where: whereClause,
+            order: [['first_name', 'ASC']]
         });
-        return res.render('employee/employee', {
-            employee: filteredEmployees,
-            departments: departments,
-            branches: branches,
-            statuses: ['active', 'inactive'],
-            department: department,
-            status: status,
-            branch: branch,
-            currentPage: 'employee'
-        });
-        
-    } catch (error) {
-        console.error('Error in employee list:', error);
-        return res.status(500).render('employee/employee', {
-            employee: [],
-            departments: [],
-            branches: [],
-            statuses: ['active', 'inactive'],
-            department: '',
-            status: '',
-            branch: '',
+
+        const options = await getFormOptions();
+
+        res.render('employee/employee', {
+            employees,
+            ...options,
+            department,
+            status,
+            branch,
             currentPage: 'employee',
-            error: 'Error loading employee data. Please try again.'
+            success: req.query.success,
+            error: req.query.error
+        });
+    } catch (error) {
+        console.error('Error fetching employees:', error);
+        const options = await getFormOptions();
+        res.render('employee/employee', {
+            employees: [],
+            ...options,
+            department: req.query.department || '',
+            status: req.query.status || '',
+            branch: req.query.branch || '',
+            currentPage: 'employee',
+            error: 'Failed to load employees'
         });
     }
-}
-//list employee 
+};
+
 exports.listAPI = async (req, res) => {
     try {
         const { department = '', status = '', branch = '' } = req.query;
-        const whereConditions = {};
-        if (department) {
-            whereConditions.department = department;
-        }
-        if (status) {
-            whereConditions.status = status;
-        }
-        if (branch) {
-            whereConditions.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
-        }
-        const filteredEmployees = await Employee.findAll({
-            where: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
-            order: [['first_name', 'ASC']],
-            raw: true
+        const whereClause = {};
+
+        // Build where clause (same logic as list function)
+        if (department) whereClause.department = department;
+        if (status) whereClause.status = status;
+        if (branch) whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
+
+        const employees = await Employee.findAll({
+            where: whereClause,
+            order: [['first_name', 'ASC']]
         });
-            return res.json({
-            success: true,
-            data: {
-                employees: filteredEmployees
-            }
-        }); 
+
+        res.json({ success: true, data: { employees } });
     } catch (error) {
-        console.error('Error in employee list API:', error);
-        return res.status(500).json({
+        console.error('Error fetching employees API:', error);
+        res.status(500).json({
             success: false,
-            message: 'Error loading employee data. Please try again.',
-            error: error.message
+            error: 'Error fetching employees',
+            message: error.message
         });
     }
-}
-//show form for create or edit 
+};
+
+// Show employee form for edit and create
 exports.showForm = async (req, res) => {
     try {
         const { id } = req.params;
         const isEdit = !!id;
+        const options = await getFormOptions();
+        
         let employee = null;
-        let error = null;
-
         if (isEdit) {
             employee = await Employee.findByPk(id);
-            if (!employee) {
-                return res.redirect('/employee?error=Employee not found');
-            }
-        }
-// Get unique values for dropdowns
-        const [departments, branches] = await Promise.all([
-            Employee.findAll({
-                attributes: [
-                    [db.sequelize.fn('DISTINCT', db.sequelize.col('department')), 'department']
-                ],
-                where: { 
-                    department: { 
-                        [Op.and]: [
-                            { [Op.ne]: null },
-                            { [Op.ne]: '' }
-                        ]
-                    } 
-                },
-                raw: true
-            }).then(results => {
-                return results
-                    .map(d => d.department)
-                    .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b));
-            }), 
-            Employee.findAll({
-                attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('branch')), 'branch']],
-                where: { 
-                    branch: { 
-                        [Op.and]: [
-                            { [Op.ne]: null },
-                            { [Op.ne]: '' }
-                        ]
-                    } 
-                },
-                raw: true
-            }).then(results => {
-                return results
-                    .map(b => b.branch)
-                    .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b));
-            })
-        ]);
-        // Format hire date for input field if it exists
-        let hireDateValue = '';
-        if (employee && employee.hire_date) {
-            const hireDate = new Date(employee.hire_date);
-            hireDateValue = hireDate.toISOString().split('T')[0];
+            if (!employee) return res.redirect('/employee?error=Employee not found');
         }
         
         res.render('employee/employee-form', {
-            employee,
-            departments,
-            branches,
-            statuses: ['active', 'inactive'],
-            currentPage: 'employee',
             isEdit,
-            error: req.query.error || error,
-            formData: req.query.error ? req.query : {},
-            hireDateValue
+            employee,
+            ...options,
+            currentPage: 'employee',
+            error: req.query.error,
+            success: req.query.success,
+            hireDateValue: employee?.hire_date 
+                ? new Date(employee.hire_date).toISOString().split('T')[0] 
+                : ''
         });
     } catch (error) {
         console.error('Error loading employee form:', error);
-        res.redirect('/employee');
+        const options = await getFormOptions();
+        res.render('employee/employee-form', {
+            isEdit: !!req.params.id,
+            employee: null,
+            ...options,
+            currentPage: 'employee',
+            error: req.query.error || 'Error loading form',
+            hireDateValue: ''
+        });
     }
 };
 
-// View employee details for ui
 exports.view = async (req, res) => {
     try {
         const { id } = req.params;
         const employee = await Employee.findByPk(id);
-        if (!employee) {
-            return res.redirect('/employee');
-        }
+        
+        if (!employee) return res.redirect('/employee?error=Employee not found');
+        
         res.render('employee/employee-view', {
-            employee: employee.get({ plain: true }),
-            currentPage: 'employee'
+            employee,
+            currentPage: 'employee',
+            error: req.query.error,
+            success: req.query.success
         });
     } catch (error) {
-        console.error('Error fetching employee:', error);
-        res.redirect('/employee');
+        console.error('Error viewing employee:', error);
+        res.redirect('/employee?error=Error loading employee details');
     }
 };
 
 exports.create = async (req, res) => {
-    //initialize transaction
-    const transaction = await db.sequelize.transaction();
     try {
-        const { 
-            first_name, last_name, email, phone, 
-            department, position, branch, status, hire_date, employee_id, notes 
-        } = req.body;
+        let employeeData = parseEmployeeData(req.body);
         
-        let employeeData = {
-            first_name,
-            last_name,
-            email,
-            phone: phone || null,
-            department,
-            position: position || null,
-            branch: branch || null,
-            status,
-            notes: notes || null,
-            hire_date: hire_date || new Date()
-        };
-// Generate employee ID if not exist 
-        if (!employee_id || employee_id.trim() === '') {
-            const lastEmployee = await Employee.findOne({
-                attributes: ['employee_id'],
-                order: [['employee_id', 'DESC']],
-                limit: 1,
-                transaction
-            });
-            let lastId = 0;
-            if (lastEmployee && lastEmployee.employee_id) {
-                const match = lastEmployee.employee_id.match(/\d+/);
-                if (match) {
-                    lastId = parseInt(match[0]);
-                }
-            }
-            employeeData.employee_id = `EMP${String(lastId + 1).padStart(4, '0')}`;
+        // Handle employee ID
+        if (!employeeData.employee_id || employeeData.employee_id.trim() === '') {
+            employeeData.employee_id = await generateEmployeeId();
         } else {
- // Check if the provided employee_id already exists
             const existingEmployee = await Employee.findOne({
-                where: { employee_id: employee_id.trim() },
-                transaction
+                where: { employee_id: employeeData.employee_id.trim() }
             });
             if (existingEmployee) {
-                await transaction.rollback();
-                return res.status(500).render('employee/employee-form', {
-                    error: `Employee ID '${employee_id.trim()}' is already registered. Please use a different Employee ID.`,
-                    formData: req.body,
-                    departments: [],
-                    branches: [],
-                    statuses: ['active', 'inactive'],
-                    isEdit: false,
-                    hireDateValue: req.body.hire_date || ''
-                });
+                return renderFormWithError(res, false, 
+                    'Employee ID already exists. Please use a different ID or leave empty to auto-generate.');
             }
-            employeeData.employee_id = employee_id.trim();
         }
-        const employee = await Employee.create(employeeData, { transaction });
-        await transaction.commit();
-        return res.redirect('/employee?success=Employee created successfully');
+        
+        // Check duplicate email
+        if (employeeData.email && employeeData.email.trim() !== '') {
+            const existingEmployee = await Employee.findOne({
+                where: { email: employeeData.email.trim() }
+            });
+            if (existingEmployee) {
+                return renderFormWithError(res, false, 
+                    'Email address already exists. Please use a different email address.');
+            }
+        }
+        
+        // Create employee
+        await Employee.create(employeeData);
+        res.redirect('/employee?success=Employee created successfully');
+        
     } catch (error) {
-        await transaction.rollback();
         console.error('Error creating employee:', error);
-        
-        // Handle duplicate email error specifically
-        let errorMessage = 'Error creating employee: ' + (error.errors ? error.errors[0].message : error.message);
-        if (error.original && error.original.code === '23505' && error.original.constraint === 'employees_email_key') {
-            errorMessage = `Email address '${req.body.email}' is already registered. Please use a different email address.`;
-        }
-        // Handle duplicate employee ID error specifically
-        if (error.original && error.original.code === '23505' && error.original.constraint === 'employees_employee_id_key') {
-            errorMessage = `Employee ID '${req.body.employee_id}' is already registered. Please use a different Employee ID.`;
-        }
-        
-        // Get departments and branches for the form
-        const [departments, branches] = await Promise.all([
-            Employee.findAll({
-                attributes: [
-                    [db.sequelize.fn('DISTINCT', db.sequelize.col('department')), 'department']
-                ],
-                where: { 
-                    department: { 
-                        [Op.and]: [
-                            { [Op.ne]: null },
-                            { [Op.ne]: '' }
-                        ]
-                    } 
-                },
-                raw: true
-            }).then(results => {
-                return results
-                    .map(d => d.department)
-                    .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b));
-            }), 
-            Employee.findAll({
-                attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('branch')), 'branch']],
-                where: { 
-                    branch: { 
-                        [Op.and]: [
-                            { [Op.ne]: null },
-                            { [Op.ne]: '' }
-                        ]
-                    } 
-                },
-                raw: true
-            }).then(results => {
-                return results
-                    .map(b => b.branch)
-                    .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b));
-            })
-        ]);
-        
-        return res.status(500).render('employee/employee-form', {
-            error: errorMessage,
-            formData: req.body,
-            departments: departments,
-            branches: branches,
-            statuses: ['active', 'inactive'],
-            isEdit: false,
-            hireDateValue: req.body.hire_date || ''
-        });
+        const errorMessage = error.name === 'SequelizeValidationError' 
+            ? error.errors.map(e => e.message).join(', ')
+            : error.name === 'SequelizeUniqueConstraintError'
+            ? 'Employee ID or email already exists'
+            : error.message;
+            
+        renderFormWithError(res, false, errorMessage);
     }
 };
 
-// Update employee
 exports.update = async (req, res) => {
-    const transaction = await db.sequelize.transaction();
     try {
         const { id } = req.params;
-        const { 
-            first_name, last_name, email, phone, 
-            department, position, branch, status, hire_date, notes 
-        } = req.body;
-        const employee = await Employee.findByPk(id, { transaction });
-        if (!employee) {
-            await transaction.rollback();
-            return res.redirect('/employee?error=Employee not found');
+        let employeeData = parseEmployeeData(req.body);
+        
+        // Don't allow updating employee ID
+        delete employeeData.employee_id;
+        
+        // Check duplicate email (excluding current employee)
+        if (employeeData.email && employeeData.email.trim() !== '') {
+            const existingEmployee = await Employee.findOne({
+                where: { 
+                    email: employeeData.email.trim(),
+                    id: { [Op.ne]: parseInt(id) }
+                }
+            });
+            if (existingEmployee) {
+                const currentEmployee = await Employee.findByPk(id);
+                return renderFormWithError(res, true, 
+                    'Email address already exists. Please use a different email address.', 
+                    getFormData(req), currentEmployee);
+            }
         }
         
         // Update employee
-        await employee.update({
-            first_name,
-            last_name,
-            email,
-            phone: phone || null,
-            department,
-            position,
-            branch,
-            status,
-            hire_date: hire_date || employee.hire_date,
-            notes
-        }, { transaction });
-        await transaction.commit();
-        return res.redirect('/employee');
+        await Employee.update(employeeData, { where: { id } });
+        
+        res.redirect('/employee');
     } catch (error) {
-        await transaction.rollback();
         console.error('Error updating employee:', error);
-        return res.status(500).render('employee/employee-form', {
-            error: 'Error updating employee: ' + (error.errors ? error.errors[0].message : error.message),
-            employee: { id: req.params.id, ...req.body },
-            departments: [],
-            branches: [],
-            statuses: ['active', 'inactive'],
-            isEdit: true,
-            hireDateValue: req.body.hire_date || ''
-        });
+        const errorMessage = error.name === 'SequelizeValidationError' 
+            ? error.errors.map(e => e.message).join(', ')
+            : error.name === 'SequelizeUniqueConstraintError'
+            ? 'Email address already exists'
+            : error.message;
+            
+        const currentEmployee = await Employee.findByPk(req.params.id);
+        renderFormWithError(res, true, errorMessage, getFormData(req), currentEmployee);
     }
 };
 
-// Delete employee
 exports.delete = async (req, res) => {
     try {
         const { id } = req.params;
-        const transaction = await db.sequelize.transaction();
-        try {
-            await Employee.destroy({ 
-                where: { id },
-                transaction 
-            });   
-            await transaction.commit();
-            return res.redirect('/employee');
-        } catch (transactionError) {
-            await transaction.rollback();
-            throw transactionError;
+        
+        const employee = await Employee.findByPk(id);
+        if (!employee) {
+            return res.redirect('/employee?error=Employee not found');
         }
+        
+        await Employee.destroy({ where: { id } });
+        
+        res.redirect('/employee?success=Employee deleted successfully');
     } catch (error) {
         console.error('Error deleting employee:', error);
-        return res.redirect('/employee?error=Error deleting employee');
+        const errorMessage = error.message.includes('foreign key constraint') 
+            ? 'Cannot delete employee: It has related records that could not be removed' 
+            : 'Error deleting employee: ' + error.message;
+        res.redirect('/employee?error=' + encodeURIComponent(errorMessage));
     }
 };
