@@ -2,46 +2,111 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const { Asset, AssetHistory, AssetCategory } = db;
 
+// Helper functions
+const getFormData = (req) => {
+    const formData = { ...req.body };
+    // Convert boolean values back to strings for form re-population
+    formData.is_active = formData.is_active ? 'true' : 'false';
+    return formData;
+};
+
+const getFormOptions = async () => {
+    const categories = await AssetCategory.findAll({ 
+        where: { is_active: true },
+        order: [['name', 'ASC']]
+    });
+    
+    const branches = await Asset.findAll({
+        attributes: [
+            [db.Sequelize.fn('DISTINCT', db.Sequelize.col('branch')), 'branch']
+        ],
+        where: { branch: { [Op.ne]: null } },
+        order: [['branch', 'ASC']],
+        raw: true
+    });
+
+    return {
+        categories,
+        branches: branches.map(b => b.branch).filter(b => b)
+    };
+};
+
+const parseAssetData = (assetData) => {
+    // Parse numeric fields
+    const numericFields = ['warranty_months', 'purchase_cost', 'current_value', 'category_id'];
+    numericFields.forEach(field => {
+        if (assetData[field] && assetData[field].trim() !== '') {
+            assetData[field] = field === 'category_id' ? parseInt(assetData[field]) : parseFloat(assetData[field]);
+        } else {
+            assetData[field] = null;
+        }
+    });
+    
+    // Convert boolean
+    assetData.is_active = assetData.is_active === 'true';
+    
+    return assetData;
+};
+
+const generateAssetTag = async () => {
+    const lastAsset = await Asset.findOne({
+        attributes: ['asset_tag'],
+        order: [['asset_tag', 'DESC']],
+        limit: 1
+    });
+    
+    let lastId = 0;
+    if (lastAsset && lastAsset.asset_tag) {
+        const match = lastAsset.asset_tag.match(/\d+/);
+        if (match) lastId = parseInt(match[0]);
+    }
+    
+    return `AST${String(lastId + 1).padStart(4, '0')}`;
+};
+
+const renderFormWithError = async (res, isEdit, error, formData = null, asset = null) => {
+    const options = await getFormOptions();
+    
+    return res.render('asset/asset-form', {
+        isEdit,
+        asset,
+        ...options,
+        currentPage: 'assets',
+        formData: formData || getFormData(res.req),
+        error
+    });
+};
+
+// Controller functions
 exports.showAssetForm = async (req, res) => {
     try {
         const { id } = req.params;
         const isEdit = !!id;
-// get  categories for dropdowns
-        const categories = await AssetCategory.findAll({ 
-            where: { is_active: true },
-            order: [['name', 'ASC']],
-        });
+        const options = await getFormOptions();
+        
         let asset = null;
         if (isEdit) {
-// Fetch the asset with its asset data  for edit
             asset = await Asset.findByPk(id, {
-                include: [
-                    { 
-                        model: db.AssetCategory,
-                        as: 'category',
-                        attributes: ['id', 'name']
-                    }
-                ]
-            }); 
-            if (!asset) {
-                return res.redirect('/assets?error=Asset not found');
-            }
+                include: [{ model: db.AssetCategory, as: 'category', attributes: ['id', 'name'] }]
+            });
+            if (!asset) return res.redirect('/assets?error=Asset not found');
         }
         
-        return res.render('asset/asset-form', {
+        res.render('asset/asset-form', {
             isEdit,
             asset,
-            categories,
+            ...options,
             currentPage: 'assets',
             error: req.query.error,
             success: req.query.success
         });
     } catch (error) {
         console.error('Error loading asset form:', error);
-        return res.render('asset/asset-form', {
+        const options = await getFormOptions();
+        res.render('asset/asset-form', {
             isEdit: !!req.params.id,
             asset: null,
-            categories,
+            ...options,
             currentPage: 'assets',
             error: req.query.error || 'Error loading form'
         });
@@ -50,65 +115,38 @@ exports.showAssetForm = async (req, res) => {
 
 exports.list = async (req, res) => {
     try {
-        const { 
-            category = '', 
-            status = '', 
-            is_active = '',
-            branch = ''
-        } = req.query;
-        
+        const { category = '', status = '', is_active = '', branch = '' } = req.query;
         const whereClause = {};
 
+        // Build where clause
         if (category) {
             if (!isNaN(category)) {
                 whereClause.category_id = parseInt(category);
             } else {
                 const foundCategory = await db.AssetCategory.findOne({
-                    where: { 
-                        name: category,
-                        is_active: true 
-                    }
+                    where: { name: category, is_active: true }
                 });
-                foundCategory ? whereClause.category_id = foundCategory.id : null;
+                if (foundCategory) whereClause.category_id = foundCategory.id;
             }
         }
 
-//filter for asset
-        status && ['available', 'assigned', 'maintenance', 'retired', 'scrapped'].includes(status) ? whereClause.status = status : null;
+        if (status && ['available', 'assigned', 'maintenance', 'retired', 'scrapped'].includes(status)) {
+            whereClause.status = status;
+        }
+        
         whereClause.is_active = is_active === 'true' || is_active === 'false' ? is_active === 'true' : true;
-        branch ? whereClause.branch = branch : null;
+        if (branch) whereClause.branch = branch;
 
         const assets = await Asset.findAll({
             where: whereClause,
-            include: [
-                { 
-                    model: db.AssetCategory,
-                    as: 'category',
-                    attributes: ['id', 'name']
-                }
-            ],
+            include: [{ model: db.AssetCategory, as: 'category', attributes: ['id', 'name'] }]
         });
-// categories for the dropdown
-        const categories = await AssetCategory.findAll({ 
-            where: { is_active: true },
-            order: [['name', 'ASC']],
-            raw: true  
-        });
-// Get  branches for branch filter
-        const branches = await Asset.findAll({
-            attributes: [
-                [db.Sequelize.fn('DISTINCT', db.Sequelize.col('branch')), 'branch']
-            ],
-            where: {
-                branch: { [Op.ne]: null }
-            },
-            order: [['branch', 'ASC']],
-            raw: true
-        });
-        return res.render('asset/asset', {
+
+        const options = await getFormOptions();
+
+        res.render('asset/asset', {
             assets,
-            categories,
-            branches: branches.map(b => b.branch).filter(b => b), 
+            ...options,
             category,
             status,
             is_active,
@@ -119,9 +157,10 @@ exports.list = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching assets:', error);
-        return res.render('asset/asset', {
+        res.render('asset/asset', {
             assets: [],
-            categories,
+            categories: [],
+            branches: [],
             category: req.query.category || '',
             status: req.query.status || '',
             is_active: req.query.is_active || 'true',
@@ -132,289 +171,196 @@ exports.list = async (req, res) => {
     }
 };
 
-// API endpoint to list asset
-exports.listAPI = async (req, res) => {
-    try {
-        const { 
-            category = '', 
-            status = '',
-            is_active = 'true',
-            branch = ''
-        } = req.query;
-        const whereClause = {};
-
-        if (category) {
-            if (!isNaN(category)) {
-                whereClause.category_id = parseInt(category);
-            } else {
-                const foundCategory = await db.AssetCategory.findOne({
-                    where: { 
-                        name: category,
-                        is_active: true 
-                    },
-                    raw: true
-                });
-                if (!foundCategory) {
-                    return res.json({
-                        success: true,
-                        data: { assets: [] }
-                    });
-                }
-                whereClause.category_id = foundCategory.id;
-            }
-        }
-
-        status ? whereClause.status = status : null;
-        branch ? whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) } : null;
-        whereClause.is_active = is_active ? is_active === 'true' : true;
-        const assets = await Asset.findAll({
-            where: whereClause,
-            include: [
-                { 
-                    model: db.AssetCategory,
-                    as: 'category',
-                    attributes: ['id', 'name']
-                }
-            ],
-        });
-
-        return res.json({
-            success: true,
-            data: {
-                assets
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching assets API:', error);
-        return res.status(500).json({
-            success: false,
-            error: 'Error fetching assets',
-            message: error.message
-        });
-    }
-};
-
-// View single asset details
 exports.viewAsset = async (req, res) => {
     try {
         const { id } = req.params;
         const asset = await Asset.findByPk(id, {
-            include: [
-                { 
-                    model: db.AssetCategory,
-                    as: 'category',
-                    attributes: ['id', 'name']
-                }
-            ]
-        }); 
-        if (!asset) {
-            return res.redirect('/assets?error=Asset not found');
-        }
-        return res.render('asset/asset-view', {
+            include: [{ model: db.AssetCategory, as: 'category', attributes: ['id', 'name'] }]
+        });
+        
+        if (!asset) return res.redirect('/assets?error=Asset not found');
+        
+        res.render('asset/asset-view', {
             asset,
             currentPage: 'assets',
             error: req.query.error,
             success: req.query.success
         });
     } catch (error) {
-        console.error('Error viewing asset:', error);  
-        return res.redirect('/assets?error=Error loading asset details');
+        console.error('Error viewing asset:', error);
+        res.redirect('/assets?error=Error loading asset details');
     }
 };
 
-//create new asset 
 exports.create = async (req, res) => {
     try {
-        let assetData = req.body;    
+        let assetData = parseAssetData(req.body);
         
-        // Convert string to numeric fields 
-        if (assetData.warranty_months && assetData.warranty_months.trim() !== '') {
-            assetData.warranty_months = parseInt(assetData.warranty_months);
-        } else {
-            assetData.warranty_months = null;
-        }
-        if (assetData.purchase_cost && assetData.purchase_cost.trim() !== '') {
-            assetData.purchase_cost = parseFloat(assetData.purchase_cost);
-        } else {
-            assetData.purchase_cost = null;
-        }
-        if (assetData.current_value && assetData.current_value.trim() !== '') {
-            assetData.current_value = parseFloat(assetData.current_value);
-        } else {
-            assetData.current_value = null;
-        }
-        if (assetData.category_id && assetData.category_id.trim() !== '') {
-            assetData.category_id = parseInt(assetData.category_id);
-        } else {
-            assetData.category_id = null;
-        }
-// Convert active to boolean 
-        assetData.is_active = assetData.is_active === 'true';
-// Generate asset tag if not provided 
+        // Handle asset tag
         if (!assetData.asset_tag || assetData.asset_tag.trim() === '') {
-            const lastAsset = await Asset.findOne({
-                attributes: ['asset_tag'],
-                order: [['asset_tag', 'DESC']],
-                limit: 1
-            });
-            let lastId = 0;
-            if (lastAsset && lastAsset.asset_tag) {
-                const match = lastAsset.asset_tag.match(/\d+/);
-                if (match) {
-                    lastId = parseInt(match[0]);
-                }
-            }
-            assetData.asset_tag = `AST${String(lastId + 1).padStart(4, '0')}`;
+            assetData.asset_tag = await generateAssetTag();
         } else {
- // Check if the provided asset_tag already exists
             const existingAsset = await Asset.findOne({
                 where: { asset_tag: assetData.asset_tag.trim() }
             });
             if (existingAsset) {
-                // Preserve all form data and show appropriate error
-                const formData = { ...req.body };
-                // Convert boolean values back to strings for form re-population
-                formData.is_active = formData.is_active ? 'true' : 'false';
-                
-                return res.render('asset/asset-form', {
-                    isEdit: false,
-                    asset: null,
-                    categories: await AssetCategory.findAll({ 
-                        where: { is_active: true },
-                        order: [['name', 'ASC']]
-                    }),
-                    currentPage: 'assets',
-                    formData: formData,
-                    error: 'Asset tag already exists. Please use a different tag or leave empty to auto-generate.'
-                });
+                return renderFormWithError(res, false, 
+                    'Asset tag already exists. Please use a different tag or leave empty to auto-generate.');
             }
         }
-// Start transaction
-        const transaction = await db.sequelize.transaction();  
+        
+        // Check duplicate serial number
+        if (assetData.serial_number && assetData.serial_number.trim() !== '') {
+            const existingAsset = await Asset.findOne({
+                where: { serial_number: assetData.serial_number.trim() }
+            });
+            if (existingAsset) {
+                return renderFormWithError(res, false, 
+                    'Serial number already exists. Please use a different serial number or leave empty.');
+            }
+        }
+        
+        // Create asset with transaction
+        const transaction = await db.sequelize.transaction();
         try {
-// Create the asset
             const asset = await Asset.create(assetData, { transaction });
- // Create history record for asset creation
             await AssetHistory.create({
                 asset_id: asset.id,
                 action_type: 'created',
                 action_date: new Date(),
                 notes: `Asset created with status: ${assetData.status}`
             }, { transaction });
+            
             await transaction.commit();
-            return res.redirect('/assets?success=Asset created successfully');
+            res.redirect('/assets?success=Asset created successfully');
         } catch (transactionError) {
             await transaction.rollback();
             throw transactionError;
         }
     } catch (error) {
         console.error('Error creating asset:', error);
-        let errorMessage = 'Error creating asset';
-        
-        if (error.name === 'SequelizeValidationError') {
-            errorMessage = error.errors.map(e => e.message).join(', ');
-        } else if (error.name === 'SequelizeUniqueConstraintError') {
-            errorMessage = 'Asset tag already exists';
-        } else {
-            errorMessage = error.message;
-        }
-        
-        return res.redirect('/assets/form?error=' + encodeURIComponent(errorMessage));
+        const errorMessage = error.name === 'SequelizeValidationError' 
+            ? error.errors.map(e => e.message).join(', ')
+            : error.name === 'SequelizeUniqueConstraintError'
+            ? 'Asset tag already exists'
+            : error.message;
+            
+        renderFormWithError(res, false, errorMessage);
     }
 };
-//update asset
+
 exports.update = async (req, res) => {
     try {
         const { id } = req.params;
-        let assetData = req.body;
+        let assetData = parseAssetData(req.body);
         
-        // Convert string to numeric fields
-        if (assetData.warranty_months && assetData.warranty_months.trim() !== '') {
-            assetData.warranty_months = parseInt(assetData.warranty_months);
-        } else {
-            assetData.warranty_months = null;
-        }
-        if (assetData.purchase_cost && assetData.purchase_cost.trim() !== '') {
-            assetData.purchase_cost = parseFloat(assetData.purchase_cost);
-        } else {
-            assetData.purchase_cost = null;
-        }
-        if (assetData.current_value && assetData.current_value.trim() !== '') {
-            assetData.current_value = parseFloat(assetData.current_value);
-        } else {
-            assetData.current_value = null;
-        }
-        if (assetData.category_id && assetData.category_id.trim() !== '') {
-            assetData.category_id = parseInt(assetData.category_id);
-        } else {
-            assetData.category_id = null;
-        }
-        assetData.is_active = assetData.is_active === 'true';
-
-// Don't allow asset_tag to be update
+        // Don't allow updating certain fields
         delete assetData.asset_tag;
         delete assetData.current_assignment;
         delete assetData.currently_assigned_to;
+        
+        // Check duplicate serial number (excluding current asset)
+        if (assetData.serial_number && assetData.serial_number.trim() !== '') {
+            const existingAsset = await Asset.findOne({
+                where: { 
+                    serial_number: assetData.serial_number.trim(),
+                    id: { [Op.ne]: parseInt(id) }
+                }
+            });
+            if (existingAsset) {
+                const currentAsset = await Asset.findByPk(id);
+                return renderFormWithError(res, true, 
+                    'Serial number already exists. Please use a different serial number.', 
+                    getFormData(req), currentAsset);
+            }
+        }
+        
+        // Update asset
         await Asset.update(assetData, { where: { id } });
-// Create history record for asset update
+        
+        // Create history record
         await AssetHistory.create({
             asset_id: parseInt(id),
             action_type: 'updated',
-            action_date: new Date(),
+            action_date: new Date()
         });
-// Redirect to assets list
-        return res.redirect('/assets');
-
+        
+        res.redirect('/assets');
     } catch (error) {
         console.error('Error updating asset:', error);
-        return res.redirect('/assets?error=' + encodeURIComponent(error.message));
+        const errorMessage = error.name === 'SequelizeValidationError' 
+            ? error.errors.map(e => e.message).join(', ')
+            : error.name === 'SequelizeUniqueConstraintError'
+            ? 'Asset tag already exists'
+            : error.message;
+            
+        const currentAsset = await Asset.findByPk(req.params.id);
+        renderFormWithError(res, true, errorMessage, getFormData(req), currentAsset);
     }
 };
-//delete asset
+
 exports.delete = async (req, res) => {
     const transaction = await db.sequelize.transaction();
     try {
         const { id } = req.params;
         
-        // Check if asset exists
         const asset = await Asset.findByPk(id, { transaction });
         if (!asset) {
             await transaction.rollback();
             return res.redirect('/assets?error=Asset not found');
         }
         
-        try {
-            // First, delete related asset assignments
-            await db.AssetAssignment.destroy({ 
-                where: { asset_id: id },
-                transaction 
-            });
-            
-            // Then, delete related asset histories
-            await db.AssetHistory.destroy({ 
-                where: { asset_id: id },
-                transaction 
-            });
-            
-            // Finally, delete the asset
-            await Asset.destroy({ 
-                where: { id },
-                transaction 
-            });
-            
-            await transaction.commit();
-            return res.redirect('/assets?success=Asset and all related records deleted successfully');
-            
-        } catch (error) {
-            await transaction.rollback();
-            console.error('Error in transaction while deleting asset:', error);
-            throw error;
-        }
+        // Delete related records in order
+        await db.AssetAssignment.destroy({ where: { asset_id: id }, transaction });
+        await db.AssetHistory.destroy({ where: { asset_id: id }, transaction });
+        await Asset.destroy({ where: { id }, transaction });
+        
+        await transaction.commit();
+        res.redirect('/assets?success=Asset and all related records deleted successfully');
     } catch (error) {
+        await transaction.rollback();
         console.error('Error deleting asset:', error);
         const errorMessage = error.message.includes('foreign key constraint') 
             ? 'Cannot delete asset: It has related records that could not be removed' 
             : 'Error deleting asset: ' + error.message;
-        return res.redirect('/assets?error=' + encodeURIComponent(errorMessage));
+        res.redirect('/assets?error=' + encodeURIComponent(errorMessage));
+    }
+};
+
+exports.listAPI = async (req, res) => {
+    try {
+        const { category = '', status = '', is_active = 'true', branch = '' } = req.query;
+        const whereClause = {};
+
+        // Build where clause (same logic as list function)
+        if (category) {
+            if (!isNaN(category)) {
+                whereClause.category_id = parseInt(category);
+            } else {
+                const foundCategory = await db.AssetCategory.findOne({
+                    where: { name: category, is_active: true },
+                    raw: true
+                });
+                if (foundCategory) whereClause.category_id = foundCategory.id;
+            }
+        }
+
+        if (status) whereClause.status = status;
+        if (branch) whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
+        whereClause.is_active = is_active === 'true';
+
+        const assets = await Asset.findAll({
+            where: whereClause,
+            include: [{ model: db.AssetCategory, as: 'category', attributes: ['id', 'name'] }]
+        });
+
+        res.json({ success: true, data: { assets } });
+    } catch (error) {
+        console.error('Error fetching assets API:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error fetching assets',
+            message: error.message
+        });
     }
 };
