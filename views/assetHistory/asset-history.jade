@@ -38,7 +38,7 @@ block content
                       .list-group-item
                         .d-flex.w-100.justify-content-between
                           strong= event.title
-                          span.badge.bg-light.text-muted= new Date(event.date).toLocaleString()
+                          span.badge.bg-light.text-muted= new Date(event.date).toISOString().split('T')[0]
                         .mb-1
                           if event.description
                             div= event.description
