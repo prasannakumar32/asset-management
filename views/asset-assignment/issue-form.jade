@@ -112,6 +112,15 @@ block scripts
       const submitBtn = form.querySelector('button[type="submit"]');
       const originalBtnText = submitBtn.innerHTML;
       
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+      
       try {
         const formData = new FormData(form);
         const response = await fetch(form.action, {

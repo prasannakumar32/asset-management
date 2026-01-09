@@ -25,18 +25,15 @@ exports.stockView = async (req, res) => {
       if (!assetsByBranch[branch]) {
         assetsByBranch[branch] = {
           assets: [],
-          count: 0,
-          totalValue: 0,
           available: 0,
           assigned: 0,
           maintenance: 0,
-          retired: 0,
-          scrapped: 0
+          scrapped: 0,
+          totalValue: 0
         };
       }
 
       assetsByBranch[branch].assets.push(asset);
-      assetsByBranch[branch].count++;
       assetsByBranch[branch][asset.status]++;
       availableCount[asset.status]++;
       
@@ -44,6 +41,7 @@ exports.stockView = async (req, res) => {
       assetsByBranch[branch].totalValue += assetValue;
       totalValue += assetValue;
     });
+
     res.render('stock/stock', {
       assetsByBranch,
       totalValue,

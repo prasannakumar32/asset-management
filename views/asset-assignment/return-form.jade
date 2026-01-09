@@ -136,13 +136,18 @@ block scripts
       }
     }
 
-    // Simple form submission
+    // Form submission with validation
     document.getElementById('returnForm').onsubmit = async function(e) {
       e.preventDefault();
       
       const form = e.target;
       const submitBtn = form.querySelector('button[type="submit"]');
       const originalBtnText = submitBtn.innerHTML;
+      
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
       
       // Show loading state
       submitBtn.disabled = true;

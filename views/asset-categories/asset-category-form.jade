@@ -13,7 +13,7 @@ block content
           else
             i.fas.fa-folder-plus.me-2(style="color: #4e73df;")
             | Add New Category
-        form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', novalidate, enctype='application/x-www-form-urlencoded')
+        form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', enctype='application/x-www-form-urlencoded')
           .form-section
             h6.form-section-title
               i.fas.fa-info-circle.me-2
@@ -47,9 +47,11 @@ block content
               | Description
             .form-row(style="grid-template-columns: 1fr;")
               .form-group-wrapper
-                label(for='description') Description
+                label(for='description')
+                  span.required-field Description
                 textarea(class='form-control' id='description' name='description' rows='4'
-                        placeholder='Enter category description')= (isEdit && category ? (category.description || '') : (formData && formData.description ? formData.description : ''))
+                        placeholder='Enter category description'
+                        required)= (isEdit && category ? (category.description || '') : (formData && formData.description ? formData.description : ''))
           .form-dialog-footer
             a.form-action-btn.form-action-btn-secondary(href='/asset-categories')
               i.fas.fa-times
