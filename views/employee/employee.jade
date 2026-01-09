@@ -115,8 +115,8 @@ block content
                         th.email-col Email
                         th.actions-col Actions
                     tbody
-                      if employee && Array.isArray(employee) && employee.length > 0
-                        each emp in employee
+                      if employees && Array.isArray(employees) && employees.length > 0
+                        each emp in employees
                           tr
                             td.name-td
                               span= emp.first_name + ' ' + emp.last_name
@@ -138,3 +138,10 @@ block content
                                   i.fas.fa-eye
                                 button.delete-btn(type='button', onclick='confirmDelete(#{emp.id}, "#{emp.first_name} #{emp.last_name}")' title='Delete Employee')
                                   i.fas.fa-trash
+                      else
+                        tr
+                          td(colspan='7' style='text-align: center; padding: 2rem;')
+                            .text-muted
+                              i.fas.fa-users.me-2
+                              | No employees found. 
+                              a(href='/employee/form') Add your first employee

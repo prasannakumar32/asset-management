@@ -27,9 +27,12 @@ const getFormOptions = async () => {
         raw: true
     });
 
+    const departmentList = departments.map(d => d.department).filter(d => d);
+    const branchList = branches.map(b => b.branch).filter(b => b);
+
     return {
-        departments: departments.map(d => d.department).filter(d => d),
-        branches: branches.map(b => b.branch).filter(b => b),
+        departments: departmentList.length > 0 ? departmentList : ['Engineering', 'Sales', 'Marketing', 'HR', 'Finance'],
+        branches: branchList.length > 0 ? branchList : ['Head Office', 'North Branch', 'South Branch', 'East Branch', 'West Branch'],
         statuses: ['active', 'inactive']
     };
 };
@@ -221,7 +224,7 @@ exports.create = async (req, res) => {
             });
             if (existingEmployee) {
                 return renderFormWithError(res, false, 
-                    'Employee ID already exists. Please use a different ID or leave empty to auto-generate.');
+                    `Employee ID '${employeeData.employee_id.trim()}' is already registered. Please use a different Employee ID.`);
             }
         }
         
