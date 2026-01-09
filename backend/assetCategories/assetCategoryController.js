@@ -5,7 +5,7 @@ const AssetCategory = db.AssetCategory;
 // Show asset categories page 
 exports.showCategoryPage = async (req, res) => {
     try {
-        const { status = 'active' } = req.query;
+        const { status = '' } = req.query;
         const whereClause = {};
         if (status === 'active') {
             whereClause.is_active = true;

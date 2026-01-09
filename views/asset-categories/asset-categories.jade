@@ -63,7 +63,7 @@ block content
                   .filter-form-group
                     label.form-label.mb-0.fs-sm.text-muted(for='status') Status
                     select.form-select.form-select-sm(name='status', id='status')
-                      option(value='') All
+                      option(value='', selected=!status) All
                       option(value='active', selected=status === 'active') Active
                       option(value='inactive', selected=status === 'inactive') Inactive
           .card-body.pt-3
