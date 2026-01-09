@@ -8,7 +8,7 @@ block content
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           i.fas.fa-trash-alt.me-2(style="color: #e74a3b;")
           | Scrap Asset
-        form(action='/api/asset-assignment/scrap', method='POST', id='scrapForm', novalidate)
+        form(action='/asset-assignment/scrap', method='POST', id='scrapForm')
           .form-section
             h6.form-section-title
               i.fas.fa-info-circle.me-2
@@ -109,8 +109,8 @@ block scripts
         const assetSelect = document.getElementById('assetId');
         
         if (result.success && result.data) {
-          // Display assets that can be scrapped (not available and not already scrapped)
-          const availableAssets = result.data.assets ? result.data.assets.filter(asset => asset.status !== 'scrapped' && asset.status !== 'assigned') : [];
+          // Display assets that can be scrapped (not already scrapped)
+          const availableAssets = result.data.assets ? result.data.assets.filter(asset => asset.status !== 'scrapped') : [];
           // Clear existing options
           assetSelect.innerHTML = '<option value="">Select Asset</option>';
           
@@ -141,13 +141,18 @@ block scripts
       const submitBtn = form.querySelector('button[type="submit"]');
       const originalBtnText = submitBtn.innerHTML;
       
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      
       // Show loading state
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas.fa-spinner fa-spin me-2"></i>Processing...';
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
       
       try {
         const formData = new FormData(form);
-        const response = await fetch('/api/asset-assignment/scrap', {
+        const response = await fetch('/asset-assignment/scrap', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(Object.fromEntries(formData.entries()))

@@ -229,11 +229,12 @@ exports.scrapAsset = async (req, res) => {
   try {
     const { asset_id, scrap_date, reason, method, notes } = req.body;
     
+    // Simple validation for required fields
     if (!asset_id || !scrap_date || !reason || !method) {
       await transaction.rollback();
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields'
+        message: 'Please fill in all required fields: Asset, Scrap Date, Reason, and Method'
       });
     }
 
@@ -262,7 +263,7 @@ exports.scrapAsset = async (req, res) => {
       if (assignment) {
         assignment.status = 'returned';
         assignment.return_date = scrap_date;
-        assignment.return_condition = 'scrapped';
+        assignment.return_condition = 'damaged';
         assignment.notes = `Asset marked as scrapped. ${notes || ''}`.trim();
         await assignment.save({ transaction });
       }
