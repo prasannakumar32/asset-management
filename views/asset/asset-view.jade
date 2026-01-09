@@ -61,7 +61,7 @@ block content
               .view-detail-label
                 i.fas.fa-money-bill-wave
                 | Purchase Cost (₹)
-              .view-detail-value= asset.purchase_cost ? `$${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A'
+              .view-detail-value= asset.purchase_cost ? `₹${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A'
           .view-detail-row
             .view-detail-item
               .view-detail-label
@@ -77,7 +77,7 @@ block content
               .view-detail-label
                 i.fas.fa-chart-line
                 | Current Value (₹)
-              .view-detail-value= asset.current_value ? `$${parseFloat(asset.current_value).toFixed(2)}` : 'N/A'
+              .view-detail-value= asset.current_value ? `₹${parseFloat(asset.current_value).toFixed(2)}` : 'N/A'
         .view-detail-section
           h6.view-section-title
             i.fas.fa-map-marker-alt.me-2
