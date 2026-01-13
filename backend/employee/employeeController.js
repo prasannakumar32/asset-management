@@ -215,43 +215,34 @@ exports.create = async (req, res) => {
     try {
         let employeeData = parseEmployeeData(req.body);
         
-// Handle employee ID
+        // Handle employee ID
         if (!employeeData.employee_id || employeeData.employee_id.trim() === '') {
             employeeData.employee_id = await generateEmployeeId();
-        } else {
-            const existingEmployee = await Employee.findOne({
-                where: { employee_id: employeeData.employee_id.trim() }
-            });
-            if (existingEmployee) {
-                return renderFormWithError(res, false, 
-                    `Employee ID '${employeeData.employee_id.trim()}' is already registered. Please use a different Employee ID.`);
-            }
         }
         
-// Check duplicate email
-        if (employeeData.email && employeeData.email.trim() !== '') {
-            const existingEmployee = await Employee.findOne({
-                where: { email: employeeData.email.trim() }
+        // Create employee
+        const employee = await Employee.create(employeeData);
+        
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.status(201).json({ 
+                success: true, 
+                message: 'Employee created successfully',
+                data: { employee }
             });
-            if (existingEmployee) {
-                return renderFormWithError(res, false, 
-                    'Email address already exists. Please use a different email address.');
-            }
         }
         
-// Create employee
-        await Employee.create(employeeData);
         res.redirect('/employee?success=Employee created successfully');
         
     } catch (error) {
         console.error('Error creating employee:', error);
-        const errorMessage = error.name === 'SequelizeValidationError' 
-            ? error.errors.map(e => e.message).join(', ')
-            : error.name === 'SequelizeUniqueConstraintError'
-            ? 'Employee ID or email already exists'
-            : error.message;
             
-        renderFormWithError(res, false, errorMessage);
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.status(500).json({ success: false, error: 'Error creating employee' });
+        }
+            
+        renderFormWithError(res, false, 'Error creating employee');
     }
 };
 
@@ -259,39 +250,43 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         let employeeData = parseEmployeeData(req.body);
-//Don't allow updating employee ID
+        
+        // Don't allow updating employee ID
         delete employeeData.employee_id;
         
-// Check duplicate email (excluding current employee)
-        if (employeeData.email && employeeData.email.trim() !== '') {
-            const existingEmployee = await Employee.findOne({
-                where: { 
-                    email: employeeData.email.trim(),
-                    id: { [Op.ne]: parseInt(id) }
-                }
-            });
-            if (existingEmployee) {
-                const currentEmployee = await Employee.findByPk(id);
-                return renderFormWithError(res, true, 
-                    'Email address already exists. Please use a different email address.', 
-                    getFormData(req), currentEmployee);
+        // Update employee
+        const [updatedRowsCount] = await Employee.update(employeeData, { where: { id } });
+        
+        if (updatedRowsCount === 0) {
+            if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+                return res.status(404).json({ success: false, error: 'Employee not found' });
             }
+            return res.redirect('/employee');
         }
         
-// Update employee
-        await Employee.update(employeeData, { where: { id } });
+        // Get updated employee to return in API response
+        const updatedEmployee = await Employee.findByPk(id);
+        
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.json({ 
+                success: true, 
+                message: 'Employee updated successfully',
+                data: { employee: updatedEmployee }
+            });
+        }
         
         res.redirect('/employee');
     } catch (error) {
         console.error('Error updating employee:', error);
-        const errorMessage = error.name === 'SequelizeValidationError' 
-            ? error.errors.map(e => e.message).join(', ')
-            : error.name === 'SequelizeUniqueConstraintError'
-            ? 'Email address already exists'
-            : error.message;
+            
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.status(500).json({ success: false, error: 'Error updating employee' });
+        }
             
         const currentEmployee = await Employee.findByPk(req.params.id);
-        renderFormWithError(res, true, errorMessage, getFormData(req), currentEmployee);
+        renderFormWithError(res, true, 'Error updating employee', getFormData(req), currentEmployee);
     }
 };
 
@@ -299,19 +294,22 @@ exports.delete = async (req, res) => {
     try {
         const { id } = req.params;
         
-        const employee = await Employee.findByPk(id);
-        if (!employee) {
-            return res.redirect('/employee?error=Employee not found');
-        }
-        
         await Employee.destroy({ where: { id } });
+        
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.json({ success: true, message: 'Employee deleted successfully' });
+        }
         
         res.redirect('/employee?success=Employee deleted successfully');
     } catch (error) {
         console.error('Error deleting employee:', error);
-        const errorMessage = error.message.includes('foreign key constraint') 
-            ? 'Cannot delete employee: It has related records that could not be removed' 
-            : 'Error deleting employee: ' + error.message;
-        res.redirect('/employee?error=' + encodeURIComponent(errorMessage));
+            
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.status(500).json({ success: false, error: 'Error deleting employee' });
+        }
+        
+        res.redirect('/employee?error=Error deleting employee');
     }
 };

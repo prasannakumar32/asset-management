@@ -295,15 +295,24 @@ exports.delete = async (req, res) => {
         const asset = await Asset.findByPk(id, { transaction });
         if (!asset) {
             await transaction.rollback();
+            if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+                return res.status(404).json({ success: false, error: 'Asset not found' });
+            }
             return res.redirect('/assets?error=Asset not found');
         }
         
-// Delete related records in order
+        // Delete related records in order
         await db.AssetAssignment.destroy({ where: { asset_id: id }, transaction });
         await db.AssetHistory.destroy({ where: { asset_id: id }, transaction });
         await Asset.destroy({ where: { id }, transaction });
         
         await transaction.commit();
+        
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.json({ success: true, message: 'Asset deleted successfully' });
+        }
+        
         res.redirect('/assets?success=Asset and all related records deleted successfully');
     } catch (error) {
         await transaction.rollback();
@@ -311,6 +320,12 @@ exports.delete = async (req, res) => {
         const errorMessage = error.message.includes('foreign key constraint') 
             ? 'Cannot delete asset: It has related records that could not be removed' 
             : 'Error deleting asset: ' + error.message;
+            
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.status(500).json({ success: false, error: errorMessage });
+        }
+        
         res.redirect('/assets?error=' + encodeURIComponent(errorMessage));
     }
 };

@@ -57,6 +57,7 @@ router.use('/api/assets', assetRoutes);
 const employeeRoutes = require('../employee/employeeRoute');
 router.get('/employee', employeeController.list);
 router.delete('/employee/:id', employeeController.delete);
+router.use('/api/employee', employeeRoutes);
 router.use('/employee', employeeRoutes);
 
 // Asset Assignment Routes
@@ -81,6 +82,7 @@ router.get('/asset-assignment/scrap', (req, res) => {
 const assetCategoriesRoutes = require('../assetCategories/assetCategoryRoute');
 router.get('/asset-categories', assetCategoryController.showCategoryPage);
 router.get('/asset-categories/:id/view', assetCategoryController.viewCategory);
+router.use('/api/asset-categories', assetCategoriesRoutes);
 router.use('/asset-categories', assetCategoriesRoutes);
 
 // Dashboard Routes

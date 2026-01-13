@@ -144,3 +144,49 @@ block content
             button.form-action-btn.form-action-btn-primary(type='submit')
               i.fas.fa-save
               = isEdit ? 'Update Employee' : 'Add Employee'
+
+    script.
+      document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('employeeForm');
+        const isEdit = #{isEdit ? 'true' : 'false'};
+        const employeeId = #{employee ? employee.id : 'null'};
+        
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(form);
+          const data = {};
+          
+          // Convert FormData to plain object
+          for (let [key, value] of formData.entries()) {
+            data[key] = value;
+          }
+          
+          // Determine URL and method based on edit/create
+          const url = isEdit ? `/api/employee/${employeeId}` : '/api/employee';
+          const method = isEdit ? 'PUT' : 'POST';
+          
+          fetch(url, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Redirect to employee list on success
+              window.location.href = '/employee';
+            } else {
+              // Show error message
+              console.error('Error:', data.error);
+              alert('Error: ' + data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+          });
+        });
+      });

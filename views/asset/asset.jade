@@ -26,15 +26,16 @@ block content
               | Clear Filters
     
     script.
-      // Wait for DOM to be fully loaded
       document.addEventListener('DOMContentLoaded', function() {
-        // Auto submit for filters
-        const filterForm = document.getElementById('filterForm');
+        loadAssets();
+        
+        // Auto submit for filters 
         const categorySelect = document.getElementById('category');
         const statusSelect = document.getElementById('status');
         const isActiveSelect = document.getElementById('is_active');
+        const branchSelect = document.getElementById('branch');
         
-        // Helper function to add event listener if element exists
+        // Helper function
         function addFilterListener(element, callback) {
           if (element) {
             element.addEventListener('change', callback);
@@ -42,12 +43,77 @@ block content
         }
 
         // Add event listeners for filter controls
-        const branchSelect = document.getElementById('branch');
-        addFilterListener(categorySelect, () => filterForm && filterForm.submit());
-        addFilterListener(statusSelect, () => filterForm && filterForm.submit());
-        addFilterListener(isActiveSelect, () => filterForm && filterForm.submit());
-        addFilterListener(branchSelect, () => filterForm && filterForm.submit());
+        addFilterListener(categorySelect, loadAssets);
+        addFilterListener(statusSelect, loadAssets);
+        addFilterListener(isActiveSelect, loadAssets);
+        addFilterListener(branchSelect, loadAssets);
       });
+      
+      // Load assets
+      function loadAssets() {
+        const category = document.getElementById('category')?.value || '';
+        const status = document.getElementById('status')?.value || '';
+        const is_active = document.getElementById('is_active')?.value || 'true';
+        const branch = document.getElementById('branch')?.value || '';
+        
+        const params = new URLSearchParams({ category, status, is_active, branch });
+        
+        fetch(`/api/assets?${params}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              updateAssetTable(data.data.assets);
+            } else {
+              console.error('Error loading assets:', data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error loading assets:', error);
+          });
+      }
+      
+      // Update asset table with new data
+      function updateAssetTable(assets) {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        assets.forEach(asset => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="name-td">
+              <span>${asset.name}</span>
+            </td>
+            <td class="category-td">
+              ${asset.category ? `<span>${asset.category.name}</span>` : ''}
+            </td>
+            <td class="serial-td">
+              <span>${asset.serial_number}</span>
+            </td>
+            <td class="status-td">
+              ${asset.status}
+            </td>
+            <td class="location-td">
+              <span>${asset.location}</span>
+            </td>
+            <td class="actions-td">
+              <div class="btn-group btn-group-sm" role="group">
+                <a href="/assets/${asset.id}/form" class="btn btn-outline-primary action-btn" title="Edit Asset">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <a href="/assets/${asset.id}" class="btn btn-outline-info action-btn" title="View Asset Details">
+                  <i class="fas fa-eye"></i>
+                </a>
+                <button class="delete-btn btn btn-outline-danger" type="button" onclick="confirmDelete(${asset.id}, '${asset.name}')" title="Delete Asset">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
       
       // Clear all filters function
       function clearAllFilters() {
@@ -55,19 +121,29 @@ block content
         document.getElementById('status').value = '';
         document.getElementById('is_active').value = '';
         document.getElementById('branch').value = '';
-        const filterForm = document.getElementById('filterForm');
-        if (filterForm) filterForm.submit();
-          else console.error('filterform not found')
+        loadAssets();
       }
       
       // Delete confirmation 
       function confirmDelete(assetId, assetName) {
         if (confirm('Are you sure you want to delete "' + assetName + '"? This action cannot be undone.')) {
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = '/assets/' + assetId + '?_method=DELETE';
-          document.body.appendChild(form);
-          form.submit();
+          fetch(`/api/assets/${assetId}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success || data.redirect) {
+              loadAssets(); // Reload the assets table
+            } else {
+              console.error('Error deleting asset:', data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error deleting asset:', error);
+          });
         }
       }
     .row.asset-list-row
@@ -120,24 +196,3 @@ block content
                       th.assigned-col Location
                       th.actions-col Actions
                   tbody
-                    each asset in assets
-                      tr
-                        td.name-td
-                          span= asset.name
-                        td.category-td
-                          if asset.category
-                            span= asset.category.name
-                        td.serial-td
-                          span= asset.serial_number
-                        td.status-td
-                          = asset.status
-                        td.location-td
-                          span= asset.location
-                        td.actions-td
-                          .btn-group.btn-group-sm(role='group')
-                            a.btn.btn-outline-primary.action-btn(href='/assets/#{asset.id}/form' title='Edit Asset')
-                              i.fas.fa-edit
-                            a.btn.btn-outline-info.action-btn(href='/assets/#{asset.id}' title='View Asset Details')
-                              i.fas.fa-eye
-                            button.delete-btn(type='button', onclick='confirmDelete(#{asset.id}, "#{asset.name}")' title='Delete Asset')
-                              i.fas.fa-trash

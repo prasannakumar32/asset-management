@@ -28,8 +28,10 @@ block content
     script.
       // Wait for DOM to be fully loaded
       document.addEventListener('DOMContentLoaded', function() {
-        // Auto submit for filters
-        const filterForm = document.getElementById('filterForm');
+        // Load initial data
+        loadEmployees();
+        
+        // Auto submit for filters using API
         const departmentSelect = document.getElementById('department');
         const statusSelect = document.getElementById('status');
         const branchSelect = document.getElementById('branch');
@@ -42,12 +44,78 @@ block content
         }
 
         // Add event listeners for filter controls
-        if (filterForm) {
-          if (departmentSelect) addFilterListener(departmentSelect, () => filterForm.submit());
-          if (statusSelect) addFilterListener(statusSelect, () => filterForm.submit());
-          if (branchSelect) addFilterListener(branchSelect, () => filterForm.submit());
-        }
+        addFilterListener(departmentSelect, loadEmployees);
+        addFilterListener(statusSelect, loadEmployees);
+        addFilterListener(branchSelect, loadEmployees);
       });
+      
+      // Load employees via API
+      function loadEmployees() {
+        const department = document.getElementById('department')?.value || '';
+        const status = document.getElementById('status')?.value || '';
+        const branch = document.getElementById('branch')?.value || '';
+        
+        const params = new URLSearchParams({ department, status, branch });
+        
+        fetch('/api/employee?' + params.toString())
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              updateEmployeeTable(data.data.employees);
+            } else {
+              console.error('Error loading employees:', data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error loading employees:', error);
+          });
+      }
+      
+      // Update employee table with new data
+      function updateEmployeeTable(employees) {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        employees.forEach(emp => {
+          const row = document.createElement('tr');
+          row.innerHTML = 
+            '<td class="name-td">' +
+              '<span>' + emp.first_name + ' ' + emp.last_name + '</span>' +
+            '</td>' +
+            '<td class="position-td">' +
+              '<span>' + (emp.position || '') + '</span>' +
+            '</td>' +
+            '<td class="department-td">' +
+              '<span>' + (emp.department || '') + '</span>' +
+            '</td>' +
+            '<td class="status-td">' +
+              '<span class="badge ' + (emp.status === 'active' ? 'bg-success' : 'bg-danger') + '">' + (emp.status === 'active' ? 'Active' : 'Inactive') + '</span>' +
+            '</td>' +
+            '<td class="phone-td">' +
+              '<span>' + (emp.phone || '') + '</span>' +
+            '</td>' +
+            '<td class="email-td">' +
+              '<span>' + (emp.email || '') + '</span>' +
+            '</td>' +
+            '<td class="actions-td">' +
+              '<div class="d-flex gap-1 justify-content-end">' +
+                '<a href="/employee/' + emp.id + '/form" class="btn btn-outline-primary btn-sm action-btn" title="Edit Employee">' +
+                  '<i class="fas fa-edit"></i>' +
+                '</a>' +
+                '<a href="/employee/' + emp.id + '" class="btn btn-outline-info btn-sm action-btn" title="View Employee Details">' +
+                  '<i class="fas fa-eye"></i>' +
+                '</a>' +
+                '<button class="delete-btn" type="button" onclick="confirmDelete(' + emp.id + ', \'' + emp.first_name + ' ' + emp.last_name + '\')" title="Delete Employee">' +
+                  '<i class="fas fa-trash"></i>' +
+                '</button>' +
+              '</div>' +
+            '</td>';
+          tbody.appendChild(row);
+        });
+      }
+      
       // Clear all filters function
       function clearAllFilters() {
         const dept = document.getElementById('department');
@@ -56,19 +124,29 @@ block content
         if (dept) dept.value = '';
         if (status) status.value = '';
         if (branch) branch.value = '';
-        const filterForm = document.getElementById('filterForm');
-        if (filterForm) filterForm.submit();
-          else console.error('filterform not found');
+        loadEmployees();
       }
       
       // Delete confirmation 
       function confirmDelete(employeeId, employeeName) {
-        if (confirm('Are you sure you want to delete ' + JSON.stringify(employeeName) + '? This action cannot be undone.')) {
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = '/employee/' + employeeId + '/delete';
-          document.body.appendChild(form);
-          form.submit();
+        if (confirm('Are you sure you want to delete ' + employeeName + '? This action cannot be undone.')) {
+          fetch('/api/employee/' + employeeId, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success || data.redirect) {
+              loadEmployees(); // Reload the employees table
+            } else {
+              console.error('Error deleting employee:', data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error deleting employee:', error);
+          });
         }
       }
     .row.employee-list-row
@@ -114,26 +192,4 @@ block content
                         th.email-col Email
                         th.actions-col Actions
                     tbody
-                      if employees && Array.isArray(employees) && employees.length > 0
-                        each emp in employees
-                          tr
-                            td.name-td
-                              span= emp.first_name + ' ' + emp.last_name
-                            td.position-td
-                              span= emp.position 
-                            td.department-td
-                              span= emp.department 
-                            td.status-td
-                              span.badge(class=emp.status === 'active' ? 'bg-success' : 'bg-danger')= emp.status === 'active' ? 'Active' : 'Inactive'
-                            td.phone-td
-                              span= emp.phone
-                            td.email-td
-                              span= emp.email
-                            td.actions-td
-                              .d-flex.gap-1.justify-content-end
-                                a.btn.btn-outline-primary.btn-sm.action-btn(href='/employee/#{emp.id}/form' title='Edit Employee')
-                                  i.fas.fa-edit
-                                a.btn.btn-outline-info.btn-sm.action-btn(href='/employee/#{emp.id}' title='View Employee Details')
-                                  i.fas.fa-eye
-                                button.delete-btn(type='button', onclick='confirmDelete(#{emp.id}, "#{emp.first_name} #{emp.last_name}")' title='Delete Employee')
-                                  i.fas.fa-trash
+                      // Employees will be loaded via API
