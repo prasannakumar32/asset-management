@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const assetCategoryController = require('./assetCategoryController');
 
+// Show categories page (handles both regular and API requests)
+router.get('/', assetCategoryController.showCategoryPage);
+
 // Create a new asset category
 router.post('/', assetCategoryController.create);
 

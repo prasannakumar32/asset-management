@@ -16,6 +16,12 @@ exports.showCategoryPage = async (req, res) => {
             where: whereClause,
             order: [['name', 'ASC']]
         });
+        
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.json({ success: true, data: { categories } });
+        }
+        
         res.render('asset-categories/asset-categories', {
             categories,
             status,
@@ -26,6 +32,16 @@ exports.showCategoryPage = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching categories for page:', error);
+        
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.status(500).json({
+                success: false,
+                error: 'Error fetching categories',
+                message: error.message
+            });
+        }
+        
         res.redirect('/dashboard');
     }
 };
@@ -124,22 +140,43 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = async (req, res) => {
+    const transaction = await db.sequelize.transaction();
     try {
         const { id } = req.params;
-        const transaction = await db.sequelize.transaction();
-        try {
-            await AssetCategory.destroy({ 
-                where: { id },
-                transaction 
-            });   
-            await transaction.commit();
-            return res.redirect('/asset-categories');
-        } catch (transactionError) {
+        
+        const category = await AssetCategory.findByPk(id, { transaction });
+        if (!category) {
             await transaction.rollback();
-            throw transactionError;
+            if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+                return res.status(404).json({ success: false, error: 'Category not found' });
+            }
+            return res.redirect('/asset-categories?error=Category not found');
         }
+        
+        await AssetCategory.destroy({ 
+            where: { id },
+            transaction 
+        });   
+        await transaction.commit();
+        
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.json({ success: true, message: 'Category deleted successfully' });
+        }
+        
+        return res.redirect('/asset-categories?success=Category deleted successfully');
     } catch (error) {
+        await transaction.rollback();
         console.error('Error deleting category:', error);
+        const errorMessage = error.message.includes('foreign key constraint') 
+            ? 'Cannot delete category: It has related records that could not be removed' 
+            : 'Error deleting category: ' + error.message;
+            
+        // Check if this is an API request
+        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            return res.status(500).json({ success: false, error: errorMessage });
+        }
+        
         return res.status(500).render('error', { 
             message: 'Error deleting category',
             error: error.message 

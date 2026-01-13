@@ -5,31 +5,56 @@ block content
     .container-fluid
       h1.mb-4 Asset Management Dashboard
       .dashboard-horizontal
-        .card
+        .card(data-metric="employees")
           .card-icon
             i.fa.fa-users.fa-2x
           .card-content
             h3 Total Employees
-            .number #{employeeCount || 0}
+            .number.loading Loading...
             .description Registered employees
-        .card
+        .card(data-metric="assets")
           .card-icon
             i.fa.fa-cubes.fa-2x
           .card-content
             h3 Total Assets
-            .number #{assetCount || 0}
+            .number.loading Loading...
             .description Active assets in system
-        .card
+        .card(data-metric="assigned")
           .card-icon
             i.fa.fa-user.fa-2x
           .card-content
             h3 Assigned Assets
-            .number #{assignedCount || 0}
+            .number.loading Loading...
             .description Currently assigned
-        .card
+        .card(data-metric="available")
           .card-icon
             i.fa.fa-check-circle.fa-2x
           .card-content
             h3 Available Assets
-            .number #{availableCount || 0}
+            .number.loading Loading...
             .description Available for assignment
+
+  script.
+    async function loadDashboardData() {
+      try {
+        const res = await fetch('/api/dashboard');
+        const data = await res.json();
+        
+        if (data.success) {
+          document.querySelector('[data-metric="employees"] .number').textContent = data.data.employeeCount || 0;
+          document.querySelector('[data-metric="assets"] .number').textContent = data.data.assetCount || 0;
+          document.querySelector('[data-metric="assigned"] .number').textContent = data.data.assignedCount || 0;
+          document.querySelector('[data-metric="available"] .number').textContent = data.data.availableCount || 0;
+          
+          document.querySelectorAll('.number').forEach(el => el.classList.remove('loading'));
+        }
+      } catch (error) {
+        document.querySelectorAll('.number').forEach(el => {
+          el.textContent = '0';
+          el.classList.remove('loading');
+        });
+      }
+    }
+
+    loadDashboardData();
+    setInterval(loadDashboardData, 30000);

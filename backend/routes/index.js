@@ -6,10 +6,12 @@ const passport = require('passport');
 const assetController = require('../asset/assetController');
 const employeeController = require('../employee/employeeController');
 const assetAssignmentController = require('../assetAssignment/assetAssignmentController');
-const dashboardController = require('../dashboard/dashboardController');
 const assetCategoryController = require('../assetCategories/assetCategoryController');
 const stockController = require('../stock/stockController');
 const assetHistoryRoute = require('../assetHistory/assetHistoryRoute');
+
+// Import route files
+const dashboardRoutes = require('../dashboard/dashboardRoute');
 
 // Authentication Routes
 router.get('/login', (req, res) => res.render('login'));
@@ -86,7 +88,7 @@ router.use('/api/asset-categories', assetCategoriesRoutes);
 router.use('/asset-categories', assetCategoriesRoutes);
 
 // Dashboard Routes
-router.get('/dashboard', dashboardController.getDashboard);
+router.use('/dashboard', dashboardRoutes);
 
 // Stock Routes
 router.get('/stock', stockController.stockView);
