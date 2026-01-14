@@ -11,10 +11,9 @@ block content
           a.btn.btn-primary.shadow.btn-sm(href='/asset-categories/form')
             i.fas.fa-plus.me-2
             | Add New Category
-          if status
-            button.btn.btn-info.shadow.btn-sm(type='button', onclick='clearAllFilters()')
-              i.fas.fa-filter-circle-xmark.me-2
-              | Clear Filters
+          button.btn.btn-info.shadow.btn-sm.ms-2(type='button', onclick='clearAllFilters()')
+            i.fas.fa-filter-circle-xmark.me-2
+            | Clear Filters
     
     script.
       document.addEventListener('DOMContentLoaded', function() {
@@ -96,7 +95,8 @@ block content
       
       // Clear all filters function
       function clearAllFilters() {
-        document.getElementById('status').value = '';
+        const status = document.getElementById('status');
+        if (status) status.value = '';
         loadCategories();
       }
       

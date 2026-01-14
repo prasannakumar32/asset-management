@@ -104,6 +104,10 @@ app.use('/asset-history', assetHistoryRoutes);
 const employeeRoutes = require('./backend/employee/employeeRoute');
 app.use('/api/employee', employeeRoutes);
 
+// Dashboard API route
+const dashboardController = require('./backend/dashboard/dashboardController');
+app.get('/api/dashboard', dashboardController.getDashboardData);
+
 // Main routes (should be after API routes)
 const mainRoutes = require('./backend/routes');
 app.use('/', mainRoutes);

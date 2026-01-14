@@ -20,10 +20,9 @@ block content
           a.btn.btn-danger.shadow(href='/asset-assignment/scrap')
             i.fas.fa-trash.me-2
             | Scrap Asset
-          if department || status || branch
-            button.btn.btn-info.shadow.ms-2(type='button', onclick='clearAllFilters()')
-              i.fas.fa-filter-circle-xmark.me-2
-              | Clear Filters
+          button.btn.btn-info.shadow.ms-2(type='button', onclick='clearAllFilters()')
+            i.fas.fa-filter-circle-xmark.me-2
+            | Clear Filters
     
     script.
       // Wait for DOM to be fully loaded
@@ -34,6 +33,7 @@ block content
         // Auto submit for filters using API
         const departmentSelect = document.getElementById('department');
         const statusSelect = document.getElementById('status');
+        const isActiveSelect = document.getElementById('is_active');
         const branchSelect = document.getElementById('branch');
         
         // Helper function to add event listener if element exists
@@ -46,16 +46,18 @@ block content
         // Add event listeners for filter controls
         addFilterListener(departmentSelect, loadEmployees);
         addFilterListener(statusSelect, loadEmployees);
+        addFilterListener(isActiveSelect, loadEmployees);
         addFilterListener(branchSelect, loadEmployees);
       });
       
-      // Load employees via API
+      // Load employees
       function loadEmployees() {
         const department = document.getElementById('department')?.value || '';
         const status = document.getElementById('status')?.value || '';
+        const is_active = document.getElementById('is_active')?.value || '';
         const branch = document.getElementById('branch')?.value || '';
         
-        const params = new URLSearchParams({ department, status, branch });
+        const params = new URLSearchParams({ department, status, is_active, branch });
         
         fetch('/api/employee?' + params.toString())
           .then(response => response.json())
@@ -77,6 +79,18 @@ block content
         if (!tbody) return;
         
         tbody.innerHTML = '';
+        
+        if (employees.length === 0) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td colspan="7" class="text-center py-4 text-muted">
+              <i class="fas fa-search me-2"></i>
+              No employees found for the selected filters
+            </td>
+          `;
+          tbody.appendChild(row);
+          return;
+        }
         
         employees.forEach(emp => {
           const row = document.createElement('tr');
@@ -120,9 +134,11 @@ block content
       function clearAllFilters() {
         const dept = document.getElementById('department');
         const status = document.getElementById('status');
+        const isActive = document.getElementById('is_active');
         const branch = document.getElementById('branch');
         if (dept) dept.value = '';
         if (status) status.value = '';
+        if (isActive) isActive.value = '';
         if (branch) branch.value = '';
         loadEmployees();
       }
@@ -173,6 +189,12 @@ block content
                       option(value='active', selected=status === 'active') Active
                       option(value='inactive', selected=status === 'inactive') Inactive
                   .filter-form-group
+                    label.form-label.mb-0.fs-sm.text-muted(for='is_active') Active
+                    select.form-select.form-select-sm(name='is_active', id='is_active')
+                      option(value='') All
+                      option(value='true', selected=is_active === 'true') Active
+                      option(value='false', selected=is_active === 'false') Inactive
+                  .filter-form-group
                     label.form-label.mb-0.fs-sm.text-muted(for='branch') Branch
                     select.form-select.form-select-sm(name='branch', id='branch')
                       option(value='') All
@@ -192,4 +214,4 @@ block content
                         th.email-col Email
                         th.actions-col Actions
                     tbody
-                      // Employees will be loaded via API
+                    

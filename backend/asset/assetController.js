@@ -83,16 +83,14 @@ exports.showAssetForm = async (req, res) => {
             asset = await Asset.findByPk(id, {
                 include: [{ model: db.AssetCategory, as: 'category', attributes: ['id', 'name'] }]
             });
-            if (!asset) return res.redirect('/assets?error=Asset not found');
+            if (!asset) return res.redirect('/assets');
         }
         
         res.render('asset/asset-form', {
             isEdit,
             asset,
             ...options,
-            currentPage: 'assets',
-            error: req.query.error,
-            success: req.query.success
+            currentPage: 'assets'
         });
     } catch (error) {
         console.error('Error loading asset form:', error);
@@ -101,62 +99,15 @@ exports.showAssetForm = async (req, res) => {
             isEdit: !!req.params.id,
             asset: null,
             ...options,
-            currentPage: 'assets',
-            error: req.query.error || 'Error loading form'
+            currentPage: 'assets'
         });
     }
 };
 
 exports.list = async (req, res) => {
-    try {
-        const { category = '', status = '', is_active = '', branch = '' } = req.query;
-        const whereClause = {};
-
- // Build where clause
-        if (category) {
-            if (!isNaN(category))
-                whereClause.category_id = parseInt(category);
-        }
-
-        if (status && ['available', 'assigned', 'maintenance', 'retired', 'scrapped'].includes(status)) {
-            whereClause.status = status;
-        }
-        
-        whereClause.is_active = is_active === 'true' || is_active === 'false' ? is_active === 'true' : true;
-        if (branch) whereClause.branch = branch;
-
-        const assets = await Asset.findAll({
-            where: whereClause,
-            include: [{ model: db.AssetCategory, as: 'category', attributes: ['id', 'name'] }]
-        });
-
-        const options = await getFormOptions();
-
-        res.render('asset/asset', {
-            assets,
-            ...options,
-            category,
-            status,
-            is_active,
-            branch,
-            currentPage: 'assets',
-            success: req.query.success,
-            error: req.query.error
-        });
-    } catch (error) {
-        console.error('Error fetching assets:', error);
-        res.render('asset/asset', {
-            assets: [],
-            categories: [],
-            branches: [],
-            category: req.query.category || '',
-            status: req.query.status || '',
-            is_active: req.query.is_active || 'true',
-            branch: req.query.branch || '',
-            currentPage: 'assets',
-            error: 'Failed to load assets'
-        });
-    }
+    res.render('asset/asset', {
+        currentPage: 'assets'
+    });
 };
 
 exports.viewAsset = async (req, res) => {
@@ -166,17 +117,15 @@ exports.viewAsset = async (req, res) => {
             include: [{ model: db.AssetCategory, as: 'category', attributes: ['id', 'name'] }]
         });
         
-        if (!asset) return res.redirect('/assets?error=Asset not found');
+        if (!asset) return res.redirect('/assets');
         
         res.render('asset/asset-view', {
             asset,
-            currentPage: 'assets',
-            error: req.query.error,
-            success: req.query.success
+            currentPage: 'assets'
         });
     } catch (error) {
         console.error('Error viewing asset:', error);
-        res.redirect('/assets?error=Error loading asset details');
+        res.redirect('/assets');
     }
 };
 
@@ -220,7 +169,7 @@ exports.create = async (req, res) => {
             }, { transaction });
             
             await transaction.commit();
-            res.redirect('/assets?success=Asset created successfully');
+            res.redirect('/assets');
         } catch (transactionError) {
             await transaction.rollback();
             throw transactionError;
@@ -295,10 +244,13 @@ exports.delete = async (req, res) => {
         const asset = await Asset.findByPk(id, { transaction });
         if (!asset) {
             await transaction.rollback();
-            if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            // Check if this is an API request
+            const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
+            
+            if (isApiRequest) {
                 return res.status(404).json({ success: false, error: 'Asset not found' });
             }
-            return res.redirect('/assets?error=Asset not found');
+            return res.redirect('/assets');
         }
         
         // Delete related records in order
@@ -309,11 +261,13 @@ exports.delete = async (req, res) => {
         await transaction.commit();
         
         // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
+        
+        if (isApiRequest) {
             return res.json({ success: true, message: 'Asset deleted successfully' });
         }
         
-        res.redirect('/assets?success=Asset and all related records deleted successfully');
+        res.redirect('/assets');
     } catch (error) {
         await transaction.rollback();
         console.error('Error deleting asset:', error);
@@ -322,11 +276,13 @@ exports.delete = async (req, res) => {
             : 'Error deleting asset: ' + error.message;
             
         // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
+        
+        if (isApiRequest) {
             return res.status(500).json({ success: false, error: errorMessage });
         }
         
-        res.redirect('/assets?error=' + encodeURIComponent(errorMessage));
+        res.redirect('/assets');
     }
 };
 

@@ -17,11 +17,6 @@ exports.showCategoryPage = async (req, res) => {
             order: [['name', 'ASC']]
         });
         
-        // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
-            return res.json({ success: true, data: { categories } });
-        }
-        
         res.render('asset-categories/asset-categories', {
             categories,
             status,
@@ -32,17 +27,34 @@ exports.showCategoryPage = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching categories for page:', error);
-        
-        // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
-            return res.status(500).json({
-                success: false,
-                error: 'Error fetching categories',
-                message: error.message
-            });
+        res.redirect('/dashboard');
+    }
+};
+
+// API endpoint for categories
+exports.listAPI = async (req, res) => {
+    try {
+        const { status = '' } = req.query;
+        const whereClause = {};
+        if (status === 'active') {
+            whereClause.is_active = true;
+        } else if (status === 'inactive') {
+            whereClause.is_active = false;
         }
         
-        res.redirect('/dashboard');
+        const categories = await AssetCategory.findAll({
+            where: whereClause,
+            order: [['name', 'ASC']]
+        });
+
+        res.json({ success: true, data: { categories } });
+    } catch (error) {
+        console.error('Error fetching categories API:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error fetching categories',
+            message: error.message
+        });
     }
 };
 
@@ -96,6 +108,7 @@ exports.viewCategory = async (req, res) => {
         });
     }
 };
+
 //create category 
 exports.create = async (req, res) => {
     try {
@@ -108,10 +121,33 @@ exports.create = async (req, res) => {
             is_active
         });
 
+        // Check if this is an API request
+        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
+
+        if (isApiRequest) {
+            return res.json({ 
+                success: true, 
+                message: 'Category created successfully',
+                data: { category }
+            });
+        }
+
         return res.redirect('/asset-categories?success=Category created successfully');
     } catch (error) {
         console.error('Error creating category:', error);
+        
+        // Check if this is an API request
+        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
 
+        if (isApiRequest) {
+            return res.status(500).json({
+                success: false,
+                error: 'Error creating category',
+                message: error.message
+            });
+        }
+        
+        res.redirect('/asset-categories?error=Error creating category');
     }
 };
 
@@ -120,21 +156,52 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         const categoryData = req.body;
         
-// Process the is_active field properly
+        // Process the is_active field properly
         if (categoryData.is_active !== undefined) {
             categoryData.is_active = categoryData.is_active === 'true' || categoryData.is_active === true;
         }
         
         const [updatedRowsCount] = await AssetCategory.update(categoryData, { where: { id } });
         
+        // Check if this is an API request
+        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
+        
         if (updatedRowsCount === 0) {
+            if (isApiRequest) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'Category not found'
+                });
+            }
             return res.redirect('/asset-categories');
         }
         
-// Redirect to categories list
+        // Check if this is an API request
+        if (isApiRequest) {
+            const updatedCategory = await AssetCategory.findByPk(id);
+            return res.json({
+                success: true,
+                message: 'Category updated successfully',
+                data: { category: updatedCategory }
+            });
+        }
+        
+        // Redirect to categories list
         return res.redirect('/asset-categories');
     } catch (error) {
         console.error('Error updating category:', error);
+        
+        // Check if this is an API request
+        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
+        
+        if (isApiRequest) {
+            return res.status(500).json({
+                success: false,
+                error: 'Error updating category',
+                message: error.message
+            });
+        }
+        
         return res.redirect(`/asset-categories/${id}/form`);
     }
 };
@@ -144,10 +211,14 @@ exports.delete = async (req, res) => {
     try {
         const { id } = req.params;
         
+        // Check if this is an API request
+        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
+        
         const category = await AssetCategory.findByPk(id, { transaction });
+        
         if (!category) {
             await transaction.rollback();
-            if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+            if (isApiRequest) {
                 return res.status(404).json({ success: false, error: 'Category not found' });
             }
             return res.redirect('/asset-categories?error=Category not found');
@@ -159,8 +230,7 @@ exports.delete = async (req, res) => {
         });   
         await transaction.commit();
         
-        // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+        if (isApiRequest) {
             return res.json({ success: true, message: 'Category deleted successfully' });
         }
         
@@ -173,10 +243,12 @@ exports.delete = async (req, res) => {
             : 'Error deleting category: ' + error.message;
             
         // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
+        
+        if (isApiRequest) {
             return res.status(500).json({ success: false, error: errorMessage });
         }
-        
+            
         return res.status(500).render('error', { 
             message: 'Error deleting category',
             error: error.message 

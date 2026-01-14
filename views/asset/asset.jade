@@ -20,13 +20,13 @@ block content
           a.btn.btn-danger.shadow(href='/asset-assignment/scrap')
             i.fas.fa-trash.me-2
             | Scrap Asset
-          if category || status || is_active
-            button.btn.btn-info.shadow.ms-2(type='button', onclick='clearAllFilters()')
-              i.fas.fa-filter-circle-xmark.me-2
-              | Clear Filters
+          button.btn.btn-info.shadow.ms-2(type='button', onclick='clearAllFilters()')
+            i.fas.fa-filter-circle-xmark.me-2
+            | Clear Filters
     
     script.
       document.addEventListener('DOMContentLoaded', function() {
+        loadFilterOptions();
         loadAssets();
         
         // Auto submit for filters 
@@ -48,6 +48,75 @@ block content
         addFilterListener(isActiveSelect, loadAssets);
         addFilterListener(branchSelect, loadAssets);
       });
+      
+      // Load filter options (categories and branches)
+      function loadFilterOptions() {
+        // Load categories
+        fetch('/api/asset-categories')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              populateCategories(data.data.categories);
+            } else {
+              console.error('Error loading categories:', data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error loading categories:', error);
+          });
+        
+        // Load branches from assets
+        fetch('/api/assets')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              populateBranches(data.data.assets);
+            } else {
+              console.error('Error loading branches:', data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error loading branches:', error);
+          });
+      }
+      
+      // Populate category dropdown
+      function populateCategories(categories) {
+        const categorySelect = document.getElementById('category');
+        if (!categorySelect) return;
+        
+        // Clear existing options except "All"
+        categorySelect.innerHTML = '<option value="">All</option>';
+        
+        categories.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category.id;
+          option.textContent = category.name;
+          categorySelect.appendChild(option);
+        });
+      }
+      
+      // Populate branch dropdown
+      function populateBranches(assets) {
+        const branchSelect = document.getElementById('branch');
+        if (!branchSelect) return;
+        
+        // Clear existing options except "All"
+        branchSelect.innerHTML = '<option value="">All</option>';
+        
+        // Get unique branches
+        const branches = [...new Set(assets
+          .map(asset => asset.branch)
+          .filter(branch => branch)
+        )].sort();
+        
+        branches.forEach(branch => {
+          const option = document.createElement('option');
+          option.value = branch;
+          option.textContent = branch;
+          branchSelect.appendChild(option);
+        });
+      }
       
       // Load assets
       function loadAssets() {
@@ -78,6 +147,18 @@ block content
         if (!tbody) return;
         
         tbody.innerHTML = '';
+        
+        if (assets.length === 0) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td colspan="6" class="text-center py-4 text-muted">
+              <i class="fas fa-search me-2"></i>
+              No assets found for the selected filters
+            </td>
+          `;
+          tbody.appendChild(row);
+          return;
+        }
         
         assets.forEach(asset => {
           const row = document.createElement('tr');
@@ -119,7 +200,7 @@ block content
       function clearAllFilters() {
         document.getElementById('category').value = '';
         document.getElementById('status').value = '';
-        document.getElementById('is_active').value = '';
+        document.getElementById('is_active').value = 'true';
         document.getElementById('branch').value = '';
         loadAssets();
       }
@@ -160,31 +241,25 @@ block content
                     label.form-label.mb-0.fs-sm.text-muted(for='category') Category
                     select.form-select.form-select-sm(name='category', id='category')
                       option(value='') All
-                      if categories && categories.length > 0
-                        each cat in categories
-                          option(value=cat.id, selected=cat.id.toString() === (category || '').toString()) #{cat.name}
                   .filter-form-group
                     label.form-label.mb-0.fs-sm.text-muted(for='status') Status
                     select.form-select.form-select-sm(name='status', id='status')
                       option(value='') All
-                      option(value='available', selected=status === 'available') Available
-                      option(value='assigned', selected=status === 'assigned') Assigned
-                      option(value='maintenance', selected=status === 'maintenance') Maintenance
-                      option(value='retired', selected=status === 'retired') Retired
-                      option(value='scrapped', selected=status === 'scrapped') Scrapped
+                      option(value='available') Available
+                      option(value='assigned') Assigned
+                      option(value='maintenance') Maintenance
+                      option(value='retired') Retired
+                      option(value='scrapped') Scrapped
                   .filter-form-group
                     label.form-label.mb-0.fs-sm.text-muted(for='is_active') Active
                     select.form-select.form-select-sm(name='is_active', id='is_active')
                       option(value='') All
-                      option(value='true', selected=is_active === 'true') Active
-                      option(value='false', selected=is_active === 'false') Inactive
+                      option(value='true') Active
+                      option(value='false') Inactive
                   .filter-form-group
                     label.form-label.mb-0.fs-sm.text-muted(for='branch') Branch
                     select.form-select.form-select-sm(name='branch', id='branch')
                       option(value='') All
-                      if branches && branches.length > 0
-                        each b in branches
-                          option(value=b, selected=branch === b)= b
           .card-body.pt-3
                 table.table.table-hover.mb-0.table.mt-3
                   thead

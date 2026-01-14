@@ -13,15 +13,6 @@ block content
             i.fas.fa-plus.me-2(style="color: #4e73df;")
             | Add New Asset
         
-        // Messages
-        if error && error.length > 0
-          .alert.alert-danger.mb-3
-            = error
-        
-        if success && success.length > 0
-          .alert.alert-success.mb-3
-            = success
-        
         form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate)
           .form-section
             h6.form-section-title
@@ -127,21 +118,6 @@ block content
                 input(type='text' class='form-control' id='location' name='location' 
                       value=(isEdit ? (formData && formData.location) || (asset && asset.location) : (formData && formData.location) || '')
                       placeholder='Enter location')
-            .form-row
-              .form-group-wrapper
-                label(for='status')
-                  span.required-field Status
-                select.form-control(id='status' name='status' required)
-                  option(value='') Select Status
-                  option(value='available' selected=(isEdit ? (formData && formData.status === 'available') || (asset && asset.status === 'available') : (formData && formData.status === 'available'))) Available
-                  option(value='assigned' selected=(isEdit ? (formData && formData.status === 'assigned') || (asset && asset.status === 'assigned') : (formData && formData.status === 'assigned'))) Assigned
-                  option(value='maintenance' selected=(isEdit ? (formData && formData.status === 'maintenance') || (asset && asset.status === 'maintenance') : (formData && formData.status === 'maintenance'))) Maintenance
-                  option(value='retired' selected=(isEdit ? (formData && formData.status === 'retired') || (asset && asset.status === 'retired') : (formData && formData.status === 'retired'))) Retired
-                  option(value='scrapped' selected=(isEdit ? (formData && formData.status === 'scrapped') || (asset && asset.status === 'scrapped') : (formData && formData.status === 'scrapped'))) Scrapped
-          .form-section
-            h6.form-section-title
-              i.fas.fa-sticky-note.me-2
-              | Additional Information
             .form-row(style="grid-template-columns: 1fr;")
               .form-group-wrapper
                 label(for='is_active') Active Status

@@ -37,24 +37,26 @@ block content
   script.
     async function loadDashboardData() {
       try {
-        const res = await fetch('/api/dashboard');
-        const data = await res.json();
+        const response = await fetch('/api/dashboard');
+        const data = await response.json();
         
         if (data.success) {
-          document.querySelector('[data-metric="employees"] .number').textContent = data.data.employeeCount || 0;
-          document.querySelector('[data-metric="assets"] .number').textContent = data.data.assetCount || 0;
-          document.querySelector('[data-metric="assigned"] .number').textContent = data.data.assignedCount || 0;
-          document.querySelector('[data-metric="available"] .number').textContent = data.data.availableCount || 0;
-          
+          document.querySelector('[data-metric="employees"] .number').textContent = data.data.employeeCount;
+          document.querySelector('[data-metric="assets"] .number').textContent = data.data.assetCount;
+          document.querySelector('[data-metric="assigned"] .number').textContent = data.data.assignedCount;
+          document.querySelector('[data-metric="available"] .number').textContent = data.data.availableCount;
           document.querySelectorAll('.number').forEach(el => el.classList.remove('loading'));
+        } else {
+          throw new Error(data.error || 'Failed to load data');
         }
       } catch (error) {
+        console.error('Dashboard error:', error);
         document.querySelectorAll('.number').forEach(el => {
           el.textContent = '0';
           el.classList.remove('loading');
         });
       }
     }
-
-    loadDashboardData();
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
+    
     setInterval(loadDashboardData, 30000);
