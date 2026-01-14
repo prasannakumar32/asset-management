@@ -83,6 +83,8 @@ router.get('/asset-assignment/scrap', (req, res) => {
 // Asset Categories Routes
 const assetCategoriesRoutes = require('../assetCategories/assetCategoryRoute');
 router.get('/asset-categories', assetCategoryController.showCategoryPage);
+router.get('/asset-categories/form', assetCategoryController.showCategoryForm);
+router.get('/asset-categories/:id/form', assetCategoryController.showCategoryForm);
 router.get('/asset-categories/:id/view', assetCategoryController.viewCategory);
 router.use('/api/asset-categories', assetCategoriesRoutes);
 router.use('/asset-categories', assetCategoriesRoutes);
@@ -92,5 +94,14 @@ router.use('/dashboard', dashboardRoutes);
 
 // Stock Routes
 router.get('/stock', stockController.showStockPage);
+
+// Asset History Page Route
+router.get('/asset-history', (req, res) => {
+  res.render('assetHistory/asset-history');
+});
+
+router.get('/asset-history/:id', (req, res) => {
+  res.render('assetHistory/asset-history');
+});
 
 module.exports = router;
