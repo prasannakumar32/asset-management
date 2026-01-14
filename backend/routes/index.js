@@ -91,6 +91,6 @@ router.use('/asset-categories', assetCategoriesRoutes);
 router.use('/dashboard', dashboardRoutes);
 
 // Stock Routes
-router.get('/stock', stockController.stockView);
+router.get('/stock', stockController.showStockPage);
 
 module.exports = router;

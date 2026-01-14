@@ -63,7 +63,7 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// 🔑 Set JADE as view engine
+// Set JADE as view engine
 app.set('view engine', 'jade');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -107,6 +107,10 @@ app.use('/api/employee', employeeRoutes);
 // Dashboard API route
 const dashboardController = require('./backend/dashboard/dashboardController');
 app.get('/api/dashboard', dashboardController.getDashboardData);
+
+// Stock API route
+const stockRoutes = require('./backend/stock/stockRoute');
+app.use('/api/stock', stockRoutes);
 
 // Main routes (should be after API routes)
 const mainRoutes = require('./backend/routes');

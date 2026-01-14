@@ -1,6 +1,20 @@
 const db = require('../models');
 const { Op } = require('sequelize');
- 
+
+// Render stock page (pure API-driven, no server-side data)
+exports.showStockPage = async (req, res) => {
+  try {
+    res.render('stock/stock', {
+      title: 'Stock View',
+      currentPage: 'stock'
+    });
+  } catch (error) {
+    console.error('Error rendering stock page:', error);
+    res.redirect('/dashboard');
+  }
+};
+
+// API endpoint for stock data
 exports.stockView = async (req, res) => {
   try {
     const allAssets = await db.Asset.findAll({
@@ -14,7 +28,7 @@ exports.stockView = async (req, res) => {
       order: [['branch', 'ASC'], ['name', 'ASC']]
     });
 
-//set asset fetch by branch 
+    // Group assets by branch
     const assetsByBranch = {};
     let totalValue = 0;
     const availableCount = { available: 0, assigned: 0, maintenance: 0, retired: 0, scrapped: 0 };
@@ -42,15 +56,21 @@ exports.stockView = async (req, res) => {
       totalValue += assetValue;
     });
 
-    res.render('stock/stock', {
-      assetsByBranch,
-      totalValue,
-      totalAssets: allAssets.length,
-      currentPage: 'stock',
-      availableCount
+    res.json({
+      success: true,
+      data: {
+        assetsByBranch,
+        totalValue,
+        totalAssets: allAssets.length,
+        availableCount
+      }
     });
   } catch (error) {
-    console.error('Error loading stock view:', error);
-    res.redirect('/dashboard');
+    console.error('Error loading stock data:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load stock data',
+      message: error.message
+    });
   }
 };

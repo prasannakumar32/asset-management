@@ -6,19 +6,8 @@ const AssetCategory = db.AssetCategory;
 exports.showCategoryPage = async (req, res) => {
     try {
         const { status = '' } = req.query;
-        const whereClause = {};
-        if (status === 'active') {
-            whereClause.is_active = true;
-        } else if (status === 'inactive') {
-            whereClause.is_active = false;
-        }
-        const categories = await AssetCategory.findAll({
-            where: whereClause,
-            order: [['name', 'ASC']]
-        });
         
         res.render('asset-categories/asset-categories', {
-            categories,
             status,
             title: 'Asset Categories',
             currentPage: 'asset-categories',
@@ -26,7 +15,7 @@ exports.showCategoryPage = async (req, res) => {
             success: req.query.success
         });
     } catch (error) {
-        console.error('Error fetching categories for page:', error);
+        console.error('Error rendering categories page:', error);
         res.redirect('/dashboard');
     }
 };

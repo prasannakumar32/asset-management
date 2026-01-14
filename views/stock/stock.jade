@@ -1,76 +1,190 @@
 extends ../navbar
 
 block content
-  .container-fluid
-    h1.mb-4 Stock View
-    .dashboard-horizontal
-      .card
-        .card-icon
-          i.fa.fa-cubes.fa-2x
-        .card-content
-          h3 Total Assets
-          .number #{totalAssets || 0}
-          .description Active assets in system
-      .card
-        .card-icon
-          i.fa.fa-check-circle.fa-2x
-        .card-content
-          h3 Available
-          .number #{(typeof availableCount !== 'undefined' && availableCount.available) ? availableCount.available : 0}
-          .description Available for assignment
-      .card
-        .card-icon
-          i.fa.fa-user.fa-2x
-        .card-content
-          h3 Assigned
-          .number #{(typeof availableCount !== 'undefined' && availableCount.assigned) ? availableCount.assigned : 0}
-          .description Currently assigned
-      .card
-        .card-icon
-          i.fa.fa-code-branch.fa-2x
-        .card-content
-          h3 Branches
-          .number #{Object.keys(assetsByBranch).length}
-          .description Active branches
-    each branchData, branch in assetsByBranch
-      .card.mb-4
-        .card-header
-          .d-flex.justify-content-between.align-items-center
-            h5.mb-0
-              i.fas.fa-building.me-2
-              = branch
-            .d-flex.align-items-center
-            if branchData.available > 0
-              span.badge.bg-success.me-1= branchData.available + ' available'
-            if branchData.assigned > 0
-              span.badge.bg-info.me-1= branchData.assigned + ' assigned'
-            if branchData.maintenance > 0
-              span.badge.me-1= branchData.maintenance + ' maintenance'
-            if branchData.scrapped > 0
-              span.badge.bg-danger.me-1= branchData.scrapped + ' scrapped'
-        .card-body
-          .row
-            .col-md-8
-              .table-responsive
-                table.table.table-sm.table-striped
-                  thead
-                    tr
-                      th Asset Tag
-                      th Name
-                      th Category
-                      th Status
-                      th Value
-                  tbody
-                    each asset in branchData.assets
-                      tr
-                        td= asset.asset_tag || 'N/A'
-                        td
-                          a(href='/assets/' + asset.id)= asset.name
-                        td= asset.category ? asset.category.name : 'Uncategorized'
-                        td
-                          span.badge(class=asset.status === 'available' ? 'bg-success' : (asset.status === 'assigned' ? 'bg-info' : (asset.status === 'maintenance' ? '' : 'bg-danger')))= asset.status.charAt(0).toUpperCase() + asset.status.slice(1)
-                        td= asset.current_value ? `₹${parseFloat(asset.current_value).toFixed(2)}` : (asset.purchase_cost ? `₹${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A')
-                    if branchData.assets.length > 0 && branchData.totalValue > 0
-                      tr
-                        td(colspan='4', style='text-align: right;') Total Value:
-                        td ₹#{parseFloat(branchData.totalValue).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+  .container-fluid.px-4.py-4
+    .row.mb-4
+      .col-12
+        h1.mb-4 Stock View
+    
+    .row.mb-4
+      .col-12
+        .dashboard-horizontal
+          .card(data-metric="totalAssets")
+            .card-icon
+              i.fa.fa-cubes.fa-2x
+            .card-content
+              h3 Total Assets
+              .number.loading 0
+              .description Active assets in system
+          .card(data-metric="available")
+            .card-icon
+              i.fa.fa-check-circle.fa-2x
+            .card-content
+              h3 Available
+              .number.loading 0
+              .description Available for assignment
+          .card(data-metric="assigned")
+            .card-icon
+              i.fa.fa-user.fa-2x
+            .card-content
+              h3 Assigned
+              .number.loading 0
+              .description Currently assigned
+          .card(data-metric="branches")
+            .card-icon
+              i.fa.fa-code-branch.fa-2x
+            .card-content
+              h3 Branches
+              .number.loading 0
+              .description Active branches
+    
+    #stockDataContainer
+      .text-center.py-5
+        .spinner-border.text-primary(role='status')
+        p.mt-2.text-muted Loading stock data...
+    
+    script.
+      document.addEventListener('DOMContentLoaded', loadStockData);
+      
+      function loadStockData() {
+        fetch('/api/stock')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              updateDashboard(data.data);
+              renderStockData(data.data);
+            } else {
+              showError('Unable to load stock data');
+            }
+          })
+          .catch(error => {
+            console.error('Stock data error:', error);
+            showError('Failed to connect to server');
+          });
+      }
+      
+      function updateDashboard(data) {
+        // Update dashboard cards using same pattern as dashboard
+        const totalAssetsEl = document.querySelector('[data-metric="totalAssets"] .number');
+        const availableEl = document.querySelector('[data-metric="available"] .number');
+        const assignedEl = document.querySelector('[data-metric="assigned"] .number');
+        const branchesEl = document.querySelector('[data-metric="branches"] .number');
+        
+        if (totalAssetsEl) {
+          totalAssetsEl.textContent = data.totalAssets || 0;
+          totalAssetsEl.classList.remove('loading');
+        }
+        if (availableEl) {
+          availableEl.textContent = data.availableCount?.available || 0;
+          availableEl.classList.remove('loading');
+        }
+        if (assignedEl) {
+          assignedEl.textContent = data.availableCount?.assigned || 0;
+          assignedEl.classList.remove('loading');
+        }
+        if (branchesEl) {
+          branchesEl.textContent = Object.keys(data.assetsByBranch || {}).length;
+          branchesEl.classList.remove('loading');
+        }
+      }
+      
+      function renderStockData(data) {
+        const container = document.getElementById('stockDataContainer');
+        const assetsByBranch = data.assetsByBranch || {};
+        
+        if (Object.keys(assetsByBranch).length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-5">
+              <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">No assets found</h5>
+              <p class="text-muted">There are currently no assets in the system.</p>
+            </div>
+          `;
+          return;
+        }
+        
+        let html = '';
+        for (const [branch, branchData] of Object.entries(assetsByBranch)) {
+          html += createBranchSection(branch, branchData);
+        }
+        container.innerHTML = html;
+      }
+      
+      function createBranchSection(branch, branchData) {
+        const badges = getStatusBadges(branchData);
+        const assetRows = branchData.assets.map(asset => `
+          <tr>
+            <td><small class="text-muted">${asset.asset_tag || 'N/A'}</small></td>
+            <td><a href="/assets/${asset.id}" class="text-decoration-none">${asset.name}</a></td>
+            <td><span class="badge bg-light text-dark">${asset.category?.name || 'Uncategorized'}</span></td>
+            <td><span class="badge ${getStatusClass(asset.status)}">${asset.status}</span></td>
+            <td class="fw-semibold">₹${parseFloat(asset.current_value || asset.purchase_cost || 0).toFixed(2)}</td>
+          </tr>
+        `).join('');
+        
+        const totalValue = branchData.totalValue ? 
+          `<tr class="table-active">
+            <td colspan="4" class="text-end fw-bold">Total Value:</td>
+            <td class="fw-bold text-success">₹${parseFloat(branchData.totalValue).toFixed(2)}</td>
+          </tr>` : '';
+        
+        return `
+          <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+              <h5 class="mb-0 fw-semibold">
+                <i class="fas fa-building me-2 text-primary"></i>${branch}
+              </h5>
+              <div>${badges}</div>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Asset Tag</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Category</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${assetRows}
+                    ${totalValue}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      function getStatusBadges(branchData) {
+        const badges = [];
+        if (branchData.available > 0) badges.push(`<span class="badge bg-success me-1">${branchData.available} available</span>`);
+        if (branchData.assigned > 0) badges.push(`<span class="badge bg-info me-1">${branchData.assigned} assigned</span>`);
+        if (branchData.maintenance > 0) badges.push(`<span class="badge bg-warning me-1">${branchData.maintenance} maintenance</span>`);
+        if (branchData.scrapped > 0) badges.push(`<span class="badge bg-danger me-1">${branchData.scrapped} scrapped</span>`);
+        if (branchData.retired > 0) badges.push(`<span class="badge bg-secondary me-1">${branchData.retired} retired</span>`);
+        return badges.join('');
+      }
+      
+      function getStatusClass(status) {
+        const classes = {
+          'available': 'bg-success',
+          'assigned': 'bg-info',
+          'maintenance': 'bg-warning',
+          'retired': 'bg-secondary',
+          'scrapped': 'bg-danger'
+        };
+        return classes[status] || 'bg-secondary';
+      }
+      
+      function showError(message) {
+        document.getElementById('stockDataContainer').innerHTML = `
+          <div class="alert alert-warning text-center" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            ${message}
+          </div>
+        `;
+      }
