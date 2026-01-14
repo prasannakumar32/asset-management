@@ -1,11 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const assetHistoryController = require('./assetHistoryController');
-
-// Get assets history
-router.get('/', assetHistoryController.listAllAssetHistories);
-router.get('/all', assetHistoryController.listAllAssetHistories);
-// Get single asset history by id
-router.get('/:id', assetHistoryController.getAssetHistory);
+//asset history route 
+router.get('/', assetHistoryController.listAPI);
+router.get('/:id', assetHistoryController.getAssetHistoryAPI);
 
 module.exports = router;

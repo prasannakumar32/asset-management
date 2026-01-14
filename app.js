@@ -100,6 +100,7 @@ app.use('/api/asset-categories', assetCategoriesRoutes);
 // AssetHistory routes
 const assetHistoryRoutes = require('./backend/assetHistory/assetHistoryRoute');
 app.use('/asset-history', assetHistoryRoutes);
+app.use('/api/asset-history', assetHistoryRoutes);
 // Employee routes
 const employeeRoutes = require('./backend/employee/employeeRoute');
 app.use('/api/employee', employeeRoutes);

@@ -2,73 +2,112 @@ extends ../navbar
 
 block content
   .container-fluid.px-4.py-4.asset-page-container
-    .row.mb-4.asset-page-row
-      .col-12
-        h1.text-center.mb-4.asset-page-header Asset History
-    if asset && timeline
+    h1.text-center.mb-4.asset-page-header Asset History
+    
+    #assetListview
+      .card
+        .card-header.mb-3
+          h5.mb-0.card-title
+            i.fas.fa-list.me-2
+            | Asset List
+        .card-body.pt-3
+          table.table.table-hover.mb-0.table.mt-3
+            thead
+              tr
+                th Name
+                th Tag
+                th Category
+                th Status
+                th Actions
+            tbody
+              tr
+                td(colspan="5").text-center.py-4
+                  i.fas.fa-spinner.fa-spin.me-2
+                  | Loading assets...
+
+    #assetDetailview(style='display: none;')
+      .row
+        .col-12
+          button.btn.btn-secondary.mb-3(onclick='showAssetList()')
+            i.fas.fa-arrow-left.me-2
+            | Back to Asset List
       .row
         .col-md-4.mb-4
-          .asset-history-details
-            .card
-              .card-header.bg-light
-                h6.mb-0 Asset Details
-              .card-body
-                p.mb-1
-                  strong Name: 
-                  | #{asset.name}
-                p.mb-1
-                  strong Tag: 
-                  | #{asset.asset_tag || 'N/A'}
-                p.mb-1
-                  strong Category: 
-                  | #{asset.category ? asset.category.name : 'N/A'}
-                p.mb-0
-                  strong Status: 
-                  | #{asset.status || 'N/A'}
-        .col-md-8
           .card
             .card-header.bg-light
-              h6.mb-0
-                i.fas.fa-clock.me-2
-                | Timeline
+              h6.mb-0 Asset Details
             .card-body
-              if timeline && timeline.length > 0
-                .asset-history-timeline
-                    each event in timeline
-                      .list-group-item
-                        .d-flex.w-100.justify-content-between
-                          strong= event.title
-                          span.badge.bg-light.text-muted= new Date(event.date).toISOString().split('T')[0]
-                        .mb-1
-                          if event.description
-                            div= event.description
-                          if event.details
-                            small= event.details
-              else
-                .text-center.py-4
-                  i.fas.fa-history.text-muted.mb-3(style="font-size: 2.5rem;")
-    else if assets && assets.length > 0
-      .card
-        .card-body
-          .table-responsive
-            table.table.table-sm.table-hover
-              thead
-                tr
-                  th Name
-                  th Tag
-                  th Category
-                  th Status
-                  th Actions
-              tbody
-                each asset in assets
-                  tr
-                    td= asset.name
-                    td= asset.asset_tag || 'N/A'
-                    td= asset.category ? asset.category.name : 'N/A'
-                    td= asset.status
-                    td
-                      a.btn.btn-sm.btn-outline-primary(href=`/asset-history/${asset.id}`)
-                        i.fas.fa-eye.me-1
-                        | View
-    else
-      .alert.alert-info No assets found.
+              p.mb-1
+                strong Name: 
+                span#assetName Loading...
+              p.mb-1
+                strong Tag: 
+                span#assetTag Loading...
+              p.mb-1
+                strong Category: 
+                span#assetCategory Loading...
+              p.mb-0
+                strong Status: 
+                span#assetStatus Loading...
+        .col-md-8
+          .card
+            .card-header.bg-light.py-3
+              h3.mb-0
+                i.fas.fa-clock.me-2
+                | History
+            .card-body
+              #timelineContainer
+                i.fas.fa-spinner.fa-spin.me-2
+                | Loading timeline...
+        .col-12
+        
+    script.
+      const loadAssets=()=>fetch('/api/asset-history').then(r=>r.json()).then(d=>d.success?updateAssetTable(d.data.assets):console.error('Error loading assets:',d.error)).catch(e=>console.error('Error loading assets:',e));
+      const updateAssetTable=assets=>{
+        const tbody=document.querySelector('tbody');
+        if(!tbody)return;
+        tbody.innerHTML=assets.length?assets.map(a=>`
+          <tr>
+            <td><span>${a.name}</span></td>
+            <td><span>${a.asset_tag||'N/A'}</span></td>
+            <td>${a.category?`<span>${a.category.name}</span>`:'N/A'}</td>
+            <td><span>${a.status||'N/A'}</span></td>
+            <td><a href="/asset-history/${a.id}" class="btn btn-sm btn-outline-primary" onclick="loadAssetDetail(${a.id});return false;"><i class="fas fa-eye"></i> View</a></td>
+          </tr>`).join(''):`<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fas fa-search me-2"></i>No assets found</td></tr>`;
+      };
+      const loadAssetDetail=id=>fetch(`/api/asset-history/${id}`).then(r=>r.json()).then(d=>d.success?showAssetDetail(d.data):(console.error('Error loading asset detail:',d.error),alert('Error loading asset history: '+d.error))).catch(e=>(console.error('Error loading asset detail:',e),alert('Error loading asset history')));
+      const showAssetDetail=data=>{
+        document.getElementById('assetName').textContent=data.asset.name||'N/A';
+        document.getElementById('assetTag').textContent=data.asset.asset_tag||'N/A';
+        document.getElementById('assetCategory').textContent=data.asset.category?data.asset.category.name:'N/A';
+        document.getElementById('assetStatus').textContent=data.asset.status||'N/A';
+        updateTimeline(data.timeline);
+        document.getElementById('assetListview').style.display='none';
+        document.getElementById('assetDetailview').style.display='block';
+        history.pushState({assetId:data.asset.id},'',`/asset-history/${data.asset.id}`);
+      };
+      const updateTimeline=timeline=>{
+        const container=document.getElementById('timelineContainer');
+        if(!container)return;
+        container.innerHTML=!timeline||!timeline.length?`<div class="text-center py-4"><i class="fas fa-history text-muted mb-3" style="font-size: 2.5rem;"></i><p class="text-muted">No history records found</p></div>`:'<div class="asset-history-timeline">'+timeline.map(e=>`
+          <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+              <strong>${e.title}</strong>
+              <span class="badge bg-light text-muted">${new Date(e.date).toISOString().split('T')[0]}</span>
+            </div>
+            <div class="mb-1">${e.description?`<div>${e.description}</div>`:''}${e.details?`<small>${e.details}</small>`:''}</div>
+          </div>`).join('')+'</div>';
+      };
+      const showAssetList=()=>{
+        document.getElementById('assetDetailview').style.display='none';
+        document.getElementById('assetListview').style.display='block';
+        history.pushState({},'', '/asset-history');
+      };
+      
+      document.addEventListener('DOMContentLoaded',()=>{
+        loadAssets();
+        const p=window.location.pathname.split('/');
+        if(p.length>2&&p[2]&&p[2]!=='all')loadAssetDetail(p[2]);
+      });
+      
+      window.addEventListener('popstate',e=>e.state&&e.state.assetId?loadAssetDetail(e.state.assetId):showAssetList());
