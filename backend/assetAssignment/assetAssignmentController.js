@@ -34,13 +34,100 @@ exports.createAssignment = async (req, res) => {
       status: 'assigned'
     };
 
+    // Validate required fields
+    const fieldErrors = {};
+    if (!assignmentData.asset_id) {
+      fieldErrors.asset_id = 'Asset is required';
+    }
+    if (!assignmentData.employee_id) {
+      fieldErrors.employee_id = 'Employee is required';
+    }
+    if (!assignmentData.assigned_by) {
+      fieldErrors.assigned_by = 'Assigned by is required';
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        fieldErrors
+      });
+    }
+
+    // Check if asset is available
+    const asset = await Asset.findByPk(assignmentData.asset_id);
+    if (!asset) {
+      return res.status(400).json({
+        success: false,
+        error: 'Asset not found',
+        fieldErrors: {
+          asset_id: 'Selected asset not found'
+        }
+      });
+    }
+
+    if (asset.status !== 'available') {
+      return res.status(400).json({
+        success: false,
+        error: 'Asset is not available for assignment',
+        fieldErrors: {
+          asset_id: 'Asset is not available'
+        }
+      });
+    }
+
+    // Check if employee exists and is active
+    const employee = await Employee.findByPk(assignmentData.employee_id);
+    if (!employee) {
+      return res.status(400).json({
+        success: false,
+        error: 'Employee not found',
+        fieldErrors: {
+          employee_id: 'Selected employee not found'
+        }
+      });
+    }
+
+    if (employee.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        error: 'Employee is not active',
+        fieldErrors: {
+          employee_id: 'Selected employee is not active'
+        }
+      });
+    }
+
     const assignment = await AssetAssignment.create(assignmentData);
     await updateAssetStatus(assignmentData.asset_id, 'assigned');
 
-    sendResponse(res, 201, true, 'Asset assigned successfully', { data: assignment });
+    return res.status(201).json({
+      success: true,
+      message: 'Asset assigned successfully',
+      data: { assignment }
+    });
   } catch (error) {
     console.error('Error creating assignment:', error);
-    sendError(res, 500, 'Error assigning asset', error.message);
+    
+    // Handle validation errors
+    if (error.name === 'SequelizeValidationError') {
+      const fieldErrors = {};
+      error.errors.forEach(err => {
+        fieldErrors[err.path] = err.message;
+      });
+      
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        fieldErrors
+      });
+    }
+    
+    return res.status(500).json({
+      success: false,
+      error: 'Error assigning asset',
+      message: error.message
+    });
   }
 };
 
@@ -112,12 +199,41 @@ exports.returnAsset = async (req, res) => {
   try {
     const { employee_id, asset_id, return_date, return_condition, notes } = req.body;
     
+    // Validate required fields
+    const fieldErrors = {};
+    if (!employee_id) {
+      fieldErrors.employee_id = 'Employee is required';
+    }
+    if (!asset_id) {
+      fieldErrors.asset_id = 'Asset is required';
+    }
+    if (!return_date) {
+      fieldErrors.return_date = 'Return date is required';
+    }
+    if (!return_condition) {
+      fieldErrors.return_condition = 'Return condition is required';
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        fieldErrors
+      });
+    }
+    
     const assignment = await AssetAssignment.findOne({
       where: { employee_id, asset_id, status: 'assigned' }
     });
     
     if (!assignment) {
-      return sendError(res, 404, 'Active assignment not found');
+      return res.status(400).json({
+        success: false,
+        error: 'No active assignment found for this employee and asset',
+        fieldErrors: {
+          asset_id: 'Asset is not currently assigned to this employee'
+        }
+      });
     }
 
     await withTransaction(async (transaction) => {
@@ -139,10 +255,32 @@ exports.returnAsset = async (req, res) => {
       }, { transaction });
     });
 
-    sendResponse(res, 200, true, 'Asset returned successfully');
+    return res.json({
+      success: true,
+      message: 'Asset returned successfully'
+    });
   } catch (error) {
     console.error('Error returning asset:', error);
-    sendError(res, 500, 'Error returning asset', error.message);
+    
+    // Handle validation errors
+    if (error.name === 'SequelizeValidationError') {
+      const fieldErrors = {};
+      error.errors.forEach(err => {
+        fieldErrors[err.path] = err.message;
+      });
+      
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        fieldErrors
+      });
+    }
+    
+    return res.status(500).json({
+      success: false,
+      error: 'Error returning asset',
+      message: error.message
+    });
   }
 };
 
@@ -164,17 +302,55 @@ exports.showReturnForm = async (req, res) => {
 // Scrap asset
 exports.scrapAsset = async (req, res) => {
   try {
-    const { asset_id, scrap_date, reason, method, notes } = req.body;
+    const { asset_id, scrap_date, reason, method, employee_id } = req.body;
     
-    if (!asset_id || !scrap_date || !reason || !method) {
-      return sendError(res, 400, 'Please fill in all required fields: Asset, Scrap Date, Reason, and Method');
+    // Validate required fields
+    const fieldErrors = {};
+    if (!asset_id) {
+      fieldErrors.asset_id = 'Asset is required';
+    }
+    if (!scrap_date) {
+      fieldErrors.scrap_date = 'Scrap date is required';
+    }
+    if (!reason || reason.trim() === '') {
+      fieldErrors.reason = 'Reason is required';
+    }
+    if (!method) {
+      fieldErrors.method = 'Scrap method is required';
+    }
+    if (!employee_id) {
+      fieldErrors.employee_id = 'Employee is required';
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        fieldErrors
+      });
     }
 
     await withTransaction(async (transaction) => {
       const asset = await Asset.findByPk(asset_id, { transaction });
       
       if (!asset) {
-        throw new Error('Asset not found');
+        return res.status(400).json({
+          success: false,
+          error: 'Asset not found',
+          fieldErrors: {
+            asset_id: 'Selected asset not found'
+          }
+        });
+      }
+
+      if (asset.status === 'scrapped') {
+        return res.status(400).json({
+          success: false,
+          error: 'Asset is already scrapped',
+          fieldErrors: {
+            asset_id: 'Asset is already scrapped'
+          }
+        });
       }
 
       if (asset.status === 'assigned') {
@@ -188,7 +364,7 @@ exports.scrapAsset = async (req, res) => {
             status: 'returned',
             return_date: scrap_date,
             return_condition: 'damaged',
-            notes: `Asset marked as scrapped. ${notes || ''}`.trim()
+            notes: `Asset marked as scrapped. Reason: ${reason}. Method: ${method}.`
           }, { transaction });
         }
       }
@@ -199,17 +375,36 @@ exports.scrapAsset = async (req, res) => {
         asset_id,
         action_type: 'scrapped',
         action_date: scrap_date,
-        performed_by: req.user?.id || null,
-        notes: `Asset marked as scrapped. Reason: ${reason}. Method: ${method}. ${notes || ''}`.trim()
+        performed_by: employee_id,
+        notes: `Asset marked as scrapped. Reason: ${reason}. Method: ${method}.`
       }, { transaction });
     });
 
-    sendResponse(res, 200, true, 'Asset has been marked as scrapped successfully', { asset_id });
+    return res.json({
+      success: true,
+      message: 'Asset has been marked as scrapped successfully'
+    });
   } catch (error) {
     console.error('Error scrapping asset:', error);
-    if (error.message === 'Asset not found') {
-      return sendError(res, 404, 'Asset not found');
+    
+    // Handle validation errors
+    if (error.name === 'SequelizeValidationError') {
+      const fieldErrors = {};
+      error.errors.forEach(err => {
+        fieldErrors[err.path] = err.message;
+      });
+      
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        fieldErrors
+      });
     }
-    sendError(res, 500, 'Failed to scrap asset', error.message);
+    
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to scrap asset',
+      message: error.message
+    });
   }
 };

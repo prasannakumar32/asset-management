@@ -122,7 +122,7 @@ block content
       function loadAssets() {
         const category = document.getElementById('category')?.value || '';
         const status = document.getElementById('status')?.value || '';
-        const is_active = document.getElementById('is_active')?.value || 'true';
+        const is_active = document.getElementById('is_active')?.value || '';
         const branch = document.getElementById('branch')?.value || '';
         
         const params = new URLSearchParams({ category, status, is_active, branch });
@@ -200,7 +200,7 @@ block content
       function clearAllFilters() {
         document.getElementById('category').value = '';
         document.getElementById('status').value = '';
-        document.getElementById('is_active').value = 'true';
+        document.getElementById('is_active').value = '';
         document.getElementById('branch').value = '';
         loadAssets();
       }

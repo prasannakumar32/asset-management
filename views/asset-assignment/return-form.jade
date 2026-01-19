@@ -8,6 +8,10 @@ block content
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           i.fas.fa-undo.me-2(style="color: #4e73df;")
           | Return Asset from Employee
+        
+        // Flash messages container
+        #alertContainer
+        
         form(action='/api/asset-assignment/return', method='POST', id='returnForm', novalidate)
           .form-section
             h6.form-section-title
@@ -19,16 +23,19 @@ block content
                   span.required-field Employee
                 select#employeeId.form-control(name='employee_id', required)
                   option(value='') Select Employee
+                .invalid-feedback(id='employee_id-error')
               .form-group-wrapper
                 label(for='assetId')
                   span.required-field Asset
                 select#assetId.form-control(name='asset_id', required)
                   option(value='') Select Asset
+                .invalid-feedback(id='asset_id-error')
             .form-row
               .form-group-wrapper
                 label(for='returnDate')
                   span.required-field Return Date
                 input#returnDate.form-control(name='return_date', type='date', value=new Date().toISOString().split('T')[0], required)
+                .invalid-feedback(id='return_date-error')
               .form-group-wrapper
                 label(for='returnCondition')
                   span.required-field Return Condition
@@ -39,6 +46,7 @@ block content
                   option(value='fair') Fair
                   option(value='poor') Poor
                   option(value='damaged') Damaged
+                .invalid-feedback(id='return_condition-error')
           .form-section
             h6.form-section-title
               i.fas.fa-sticky-note.me-2
@@ -47,6 +55,7 @@ block content
               .form-group-wrapper
                 label(for='notes') Notes
                 textarea#notes.form-control(name='notes', placeholder='Enter any additional notes...')
+                .invalid-feedback(id='notes-error')
           .form-dialog-footer
             a.form-action-btn.form-action-btn-secondary(href='/assets')
               i.fas.fa-times
@@ -59,120 +68,151 @@ block scripts
   script.
     document.addEventListener('DOMContentLoaded', function() {
       loadEmployees();
-      setupEmployeeChangeHandler();
+      setupFormSubmission();
     });
 
     async function loadEmployees() {
       try {
         const response = await fetch('/api/employee');
         const result = await response.json();
-        const select = document.getElementById('employeeId');
+        const employeeSelect = document.getElementById('employeeId');
         
         if (result.success && result.data && result.data.employees) {
-          // Clear existing options
-          select.innerHTML = '<option value="">Select Employee</option>';
+          employeeSelect.innerHTML = '<option value="">Select Employee</option>';
           
           result.data.employees.forEach(employee => {
             if (employee.status === 'active') {
               const option = document.createElement('option');
               option.value = employee.id;
               option.textContent = `${employee.first_name} ${employee.last_name} (${employee.email})`;
-              select.appendChild(option);
+              employeeSelect.appendChild(option);
             }
           });
           
-          if (select.children.length === 1) {
-            console.warn('No active employees found');
+          if (employeeSelect.children.length === 1) {
+            showAlert('No active employees found', 'warning');
           }
         } else {
-          console.error('Error loading employees:', result.error || 'Invalid response format');
+          showAlert('Error loading employees', 'danger');
         }
       } catch (error) {
         console.error('Error loading employees:', error);
+        showAlert('Failed to load employees', 'danger');
       }
     }
 
-    function setupEmployeeChangeHandler() {
-      const employeeSelect = document.getElementById('employeeId');
-      employeeSelect.addEventListener('change', loadEmployeeAssets);
-    }
-
-    async function loadEmployeeAssets() {
-      const employeeId = document.getElementById('employeeId').value;
+    // Load assets when employee is selected
+    document.getElementById('employeeId').addEventListener('change', async function() {
+      const employeeId = this.value;
       const assetSelect = document.getElementById('assetId');
       
       if (!employeeId) {
-        assetSelect.innerHTML = '<option value="">Select Employee First</option>';
+        assetSelect.innerHTML = '<option value="">Select Asset</option>';
         return;
       }
-
+      
       try {
-        const response = await fetch(`/asset-assignment/employee/${employeeId}`);
+        const response = await fetch(`/api/assets?assigned_to=${employeeId}&status=assigned`);
         const result = await response.json();
         
-        // Clear existing options
-        assetSelect.innerHTML = '<option value="">Select Asset</option>';
-        
-        if (result.success && result.data && result.data.assignments) {
-          const assignments = result.data.assignments;
+        if (result.success && result.data && result.data.assets) {
+          assetSelect.innerHTML = '<option value="">Select Asset</option>';
           
-          if (assignments.length === 0) {
-            assetSelect.innerHTML = '<option value="">No assigned assets found</option>';
-            return;
-          }
-          
-          assignments.forEach(assignment => {
+          result.data.assets.forEach(asset => {
             const option = document.createElement('option');
-            option.value = assignment.asset.id;
-            option.textContent = `${assignment.asset.name} (${assignment.asset.asset_tag})`;
+            option.value = asset.id;
+            option.textContent = `${asset.name} (${asset.asset_tag})`;
             assetSelect.appendChild(option);
           });
+          
+          if (assetSelect.children.length === 1) {
+            showAlert('No assigned assets found for this employee', 'warning');
+          }
         } else {
-          assetSelect.innerHTML = '<option value="">No assigned assets found</option>';
+          showAlert('Error loading assigned assets', 'danger');
         }
       } catch (error) {
-        console.error('Error loading employee assets:', error);
-        assetSelect.innerHTML = '<option value="">Error loading assets</option>';
+        console.error('Error loading assets:', error);
+        showAlert('Failed to load assigned assets', 'danger');
+      }
+    });
+    
+    function setupFormSubmission() {
+      const form = document.getElementById('returnForm');
+      
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Clear previous errors
+        clearErrors();
+        
+        // Get form data
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+          const response = await fetch('/api/asset-assignment/return', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            showAlert(result.message || 'Asset returned successfully', 'success');
+            setTimeout(() => {
+              window.location.href = '/assets';
+            }, 1500);
+          } else {
+            // Show error message
+            showAlert(result.error || 'Error returning asset', 'danger');
+            
+            // Show field-specific errors if available
+            if (result.fieldErrors) {
+              Object.keys(result.fieldErrors).forEach(field => {
+                showFieldError(field, result.fieldErrors[field]);
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error submitting form:', error);
+          showAlert('Error submitting form', 'danger');
+        }
+      });
+    }
+    
+    // Show alert message
+    function showAlert(message, type) {
+      const alertContainer = document.getElementById('alertContainer');
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show mb-3`;
+      alertDiv.role = 'alert';
+      alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      
+      alertContainer.innerHTML = '';
+      alertContainer.appendChild(alertDiv);
+    }
+    
+    // Show field-specific error
+    function showFieldError(field, message) {
+      const errorElement = document.getElementById(`${field}-error`);
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
       }
     }
-
-    // Form submission with validation
-    document.getElementById('returnForm').onsubmit = async function(e) {
-      e.preventDefault();
-      
-      const form = e.target;
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn.innerHTML;
-      
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-      
-      // Show loading state
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas.fa-spinner fa-spin me-2"></i>Processing...';
-      
-      try {
-        const formData = new FormData(form);
-        const response = await fetch('/asset-assignment/return', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(Object.fromEntries(formData.entries()))
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          window.location.href = '/assets';
-        } else {
-          alert(result.message || 'Failed to process return');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
-      }
+    
+    // Clear all errors
+    function clearErrors() {
+      document.querySelectorAll('.invalid-feedback').forEach(element => {
+        element.textContent = '';
+        element.style.display = 'none';
+      });
     }

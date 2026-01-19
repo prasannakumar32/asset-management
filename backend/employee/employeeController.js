@@ -46,7 +46,7 @@ const parseEmployeeData = (employeeData) => {
     }
     
 // Handle optional fields
-    const optionalFields = ['phone', 'position', 'branch', 'notes'];
+    const optionalFields = ['phone', 'position', 'notes'];
     optionalFields.forEach(field => {
         employeeData[field] = employeeData[field] && employeeData[field].trim() !== '' 
             ? employeeData[field].trim() 
@@ -75,13 +75,25 @@ const generateEmployeeId = async () => {
 const renderFormWithError = async (res, isEdit, error, formData = null, employee = null) => {
     const options = await getFormOptions();
     
+    // Format hire date for form display - handle both string and Date formats
+    let hireDateValue = '';
+    if (formData?.hire_date) {
+        if (typeof formData.hire_date === 'string') {
+            hireDateValue = formData.hire_date;
+        } else if (formData.hire_date instanceof Date) {
+            hireDateValue = formData.hire_date.toISOString().split('T')[0];
+        }
+    } else if (employee?.hire_date) {
+        hireDateValue = new Date(employee.hire_date).toISOString().split('T')[0];
+    }
+    
     return res.render('employee/employee-form', {
         isEdit,
         employee,
         ...options,
         currentPage: 'employee',
         formData: formData || getFormData(res.req),
-        hireDateValue: formData?.hire_date || '',
+        hireDateValue,
         error
     });
 };
@@ -215,34 +227,124 @@ exports.create = async (req, res) => {
     try {
         let employeeData = parseEmployeeData(req.body);
         
+        // Validate required fields
+        const requiredFields = ['first_name', 'email', 'department', 'branch', 'status', 'hire_date'];
+        const missingFields = [];
+        
+        requiredFields.forEach(field => {
+            if (!employeeData[field] || employeeData[field].trim() === '') {
+                missingFields.push(field);
+            }
+        });
+        
+        if (missingFields.length > 0) {
+            const fieldErrors = {};
+            missingFields.forEach(field => {
+                fieldErrors[field] = `${field.replace('_', ' ')} is required`;
+            });
+            
+            return res.status(400).json({
+                success: false,
+                error: 'Required fields are missing',
+                fieldErrors
+            });
+        }
+        
         // Handle employee ID
         if (!employeeData.employee_id || employeeData.employee_id.trim() === '') {
             employeeData.employee_id = await generateEmployeeId();
+        } else {
+            // Check duplicate employee ID
+            const existingEmployee = await Employee.findOne({
+                where: { employee_id: employeeData.employee_id.trim() }
+            });
+            if (existingEmployee) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Employee ID already exists. Please use a different ID or leave empty to auto-generate.',
+                    fieldErrors: {
+                        employee_id: 'Employee ID already exists'
+                    }
+                });
+            }
         }
         
-        // Create employee
-        const employee = await Employee.create(employeeData);
+        // Check duplicate email
+        if (employeeData.email && employeeData.email.trim() !== '') {
+            const existingEmployee = await Employee.findOne({
+                where: { email: employeeData.email.trim().toLowerCase() }
+            });
+            if (existingEmployee) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Email already exists. Please use a different email address.',
+                    fieldErrors: {
+                        email: 'Email already exists'
+                    }
+                });
+            }
+        }
         
-        // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
+        // Create employee with transaction
+        const transaction = await db.sequelize.transaction();
+        try {
+            const employee = await Employee.create(employeeData, { transaction });
+            await transaction.commit();
+            
             return res.status(201).json({ 
                 success: true, 
                 message: 'Employee created successfully',
                 data: { employee }
             });
+        } catch (transactionError) {
+            await transaction.rollback();
+            throw transactionError;
         }
-        
-        res.redirect('/employee?success=Employee created successfully');
-        
     } catch (error) {
         console.error('Error creating employee:', error);
+        
+        // Handle validation errors
+        if (error.name === 'SequelizeValidationError') {
+            const fieldErrors = {};
+            error.errors.forEach(err => {
+                fieldErrors[err.path] = err.message;
+            });
             
-        // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
-            return res.status(500).json({ success: false, error: 'Error creating employee' });
+            return res.status(400).json({
+                success: false,
+                error: 'Validation failed',
+                fieldErrors
+            });
         }
+        
+        // Handle unique constraint errors
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            let field, message;
+            if (error.errors[0].path === 'employee_id') {
+                field = 'employee_id';
+                message = 'Employee ID already exists';
+            } else if (error.errors[0].path === 'email') {
+                field = 'email';
+                message = 'Email already exists';
+            } else {
+                field = error.errors[0].path;
+                message = `${field} already exists`;
+            }
             
-        renderFormWithError(res, false, 'Error creating employee');
+            return res.status(400).json({
+                success: false,
+                error: message,
+                fieldErrors: {
+                    [field]: message
+                }
+            });
+        }
+        
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Error creating employee',
+            message: error.message 
+        });
     }
 };
 
@@ -251,42 +353,143 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         let employeeData = parseEmployeeData(req.body);
         
+        // Validate required fields
+        const requiredFields = ['first_name', 'email', 'department', 'branch', 'status', 'hire_date'];
+        const missingFields = [];
+        
+        requiredFields.forEach(field => {
+            if (!employeeData[field] || employeeData[field].trim() === '') {
+                missingFields.push(field);
+            }
+        });
+        
+        if (missingFields.length > 0) {
+            const fieldErrors = {};
+            missingFields.forEach(field => {
+                fieldErrors[field] = `${field.replace('_', ' ')} is required`;
+            });
+            
+            return res.status(400).json({
+                success: false,
+                error: 'Required fields are missing',
+                fieldErrors
+            });
+        }
+        
         // Don't allow updating employee ID
         delete employeeData.employee_id;
+        
+        // Check duplicate email (excluding current employee)
+        if (employeeData.email && employeeData.email.trim() !== '') {
+            const existingEmployee = await Employee.findOne({
+                where: { 
+                    email: employeeData.email.trim().toLowerCase(),
+                    id: { [Op.ne]: parseInt(id) }
+                }
+            });
+            if (existingEmployee) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Email already exists. Please use a different email address.',
+                    fieldErrors: {
+                        email: 'Email already exists'
+                    }
+                });
+            }
+        }
         
         // Update employee
         const [updatedRowsCount] = await Employee.update(employeeData, { where: { id } });
         
         if (updatedRowsCount === 0) {
-            if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
-                return res.status(404).json({ success: false, error: 'Employee not found' });
-            }
-            return res.redirect('/employee');
+            return res.status(404).json({ success: false, error: 'Employee not found' });
         }
         
         // Get updated employee to return in API response
         const updatedEmployee = await Employee.findByPk(id);
         
-        // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
-            return res.json({ 
-                success: true, 
-                message: 'Employee updated successfully',
-                data: { employee: updatedEmployee }
+        return res.json({ 
+            success: true, 
+            message: 'Employee updated successfully',
+            data: { employee: updatedEmployee }
+        });
+        
+    } catch (error) {
+        console.error('Error updating employee:', error);
+        
+        // Handle validation errors
+        if (error.name === 'SequelizeValidationError') {
+            const fieldErrors = {};
+            error.errors.forEach(err => {
+                fieldErrors[err.path] = err.message;
+            });
+            
+            return res.status(400).json({
+                success: false,
+                error: 'Validation failed',
+                fieldErrors
             });
         }
         
-        res.redirect('/employee');
-    } catch (error) {
-        console.error('Error updating employee:', error);
+        // Handle unique constraint errors
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            let field, message;
+            if (error.errors[0].path === 'email') {
+                field = 'email';
+                message = 'Email already exists';
+            } else {
+                field = error.errors[0].path;
+                message = `${field} already exists`;
+            }
             
-        // Check if this is an API request
-        if (req.xhr || req.headers.accept.indexOf('json') !== -1) {
-            return res.status(500).json({ success: false, error: 'Error updating employee' });
+            return res.status(400).json({
+                success: false,
+                error: message,
+                fieldErrors: {
+                    [field]: message
+                }
+            });
         }
-            
-        const currentEmployee = await Employee.findByPk(req.params.id);
-        renderFormWithError(res, true, 'Error updating employee', getFormData(req), currentEmployee);
+        
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Error updating employee',
+            message: error.message 
+        });
+    }
+};
+
+exports.getFormOptions = async (req, res) => {
+    try {
+        const options = await getFormOptions();
+        res.json({ success: true, data: options });
+    } catch (error) {
+        console.error('Error fetching form options:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error fetching form options',
+            message: error.message
+        });
+    }
+};
+
+exports.getEmployeeById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const employee = await Employee.findByPk(id);
+        
+        if (!employee) {
+            return res.status(404).json({ success: false, error: 'Employee not found' });
+        }
+        
+        res.json({ success: true, data: { employee } });
+    } catch (error) {
+        console.error('Error fetching employee:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error fetching employee',
+            message: error.message
+        });
     }
 };
 

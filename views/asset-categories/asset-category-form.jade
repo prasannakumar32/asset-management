@@ -6,14 +6,14 @@ block content
       .form-dialog-header
       
       .form-dialog-content
-        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
-          if isEdit
-            i.fas.fa-edit.me-2(style="color: #4e73df;")
-            | Edit Category
-          else
-            i.fas.fa-folder-plus.me-2(style="color: #4e73df;")
-            | Add New Category
-        form(action=(isEdit && category ? `/asset-categories/${category.id}?_method=PUT` : '/asset-categories'), method='POST', id='categoryForm', enctype='application/x-www-form-urlencoded')
+        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;" id="formTitle")
+          i.fas.fa-folder-plus.me-2(style="color: #4e73df;")
+          | Add New Category
+        
+        // Flash messages container
+        #alertContainer
+        
+        form(action='/api/asset-categories', method='POST', id='categoryForm', novalidate)
           .form-section
             h6.form-section-title
               i.fas.fa-info-circle.me-2
@@ -23,24 +23,25 @@ block content
                 label(for='name')
                   span.required-field Category Name
                 input(type='text' class='form-control' id='name' name='name' 
-                      value=(isEdit && category ? category.name : (formData && formData.name ? formData.name : '')) 
                       required
                       placeholder='Enter category name')
+                .invalid-feedback(id='name-error')
               .form-group-wrapper
                 label(for='is_active') Status
                 select(class='form-control' id='is_active' name='is_active')
-                  option(value='true' selected=(isEdit ? (category && category.is_active) : true)) Active
-                  option(value='false' selected=(isEdit ? (category && !category.is_active) : false)) Inactive
-            .form-row(style="grid-template-columns: 1fr;")
+                  option(value='true') Active
+                  option(value='false') Inactive
+                .invalid-feedback(id='is_active-error')
+            .form-row
               .form-group-wrapper
-                if isEdit && category
-                  label(for='category_id') Category ID
-                  input(type='text' class='form-control' 
-                        id='category_id' 
-                        name='id'
-                        value=category.id
-                        readonly
-                        style='background-color: #e9ecef; cursor: not-allowed;')
+                label(for='category_id') Category ID
+                input(type='text' class='form-control' 
+                      id='category_id' 
+                      name='id'
+                      readonly
+                      style='background-color: #e9ecef; cursor: not-allowed; display: none;'
+                      placeholder='Auto-generated')
+                .invalid-feedback(id='id-error')
           .form-section
             h6.form-section-title
               i.fas.fa-align-left.me-2
@@ -51,15 +52,166 @@ block content
                   span.required-field Description
                 textarea(class='form-control' id='description' name='description' rows='4'
                         placeholder='Enter category description'
-                        required)= (isEdit && category ? (category.description || '') : (formData && formData.description ? formData.description : ''))
+                        required)
+                .invalid-feedback(id='description-error')
           .form-dialog-footer
             a.form-action-btn.form-action-btn-secondary(href='/asset-categories')
               i.fas.fa-times
               | Cancel
-            if isEdit
-              a.form-action-btn.form-action-btn-secondary(href='/asset-categories/#{category.id}/view')
-                i.fas.fa-eye
-                | View
+            a.form-action-btn.form-action-btn-secondary(id='viewCategoryBtn' style='display: none;')
+              i.fas.fa-eye
+              | View
             button.form-action-btn.form-action-btn-primary(type='submit')
               i.fas.fa-save
-              = isEdit ? 'Update Category' : 'Create Category'
+              | Create Category
+
+    script.
+      // Global variables
+      let isEdit = false;
+      let categoryId = null;
+      
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're in edit mode by checking the URL
+        const pathParts = window.location.pathname.split('/');
+        isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
+        
+        if (isEdit) {
+          categoryId = pathParts[pathParts.length - 2];
+          loadCategoryData(categoryId);
+          updateFormForEdit();
+        }
+        
+        // Setup form submission
+        setupFormSubmission();
+      });
+      
+      // Update form for edit mode
+      function updateFormForEdit() {
+        document.getElementById('formTitle').innerHTML = `
+          <i class="fas fa-edit me-2" style="color: #4e73df;"></i>
+          Edit Category
+        `;
+        document.querySelector('button[type="submit"]').innerHTML = `
+          <i class="fas fa-save"></i>
+          Update Category
+        `;
+        document.getElementById('viewCategoryBtn').style.display = 'inline-flex';
+        
+        // Show category_id field and remove display: none style
+        const categoryField = document.getElementById('category_id');
+        categoryField.style.display = 'block';
+        categoryField.style.backgroundColor = '#e9ecef';
+        categoryField.style.cursor = 'not-allowed';
+      }
+      
+      // Load category data for edit mode
+      async function loadCategoryData(categoryId) {
+        try {
+          const response = await fetch(`/api/asset-categories/${categoryId}`);
+          const result = await response.json();
+          
+          if (result.success) {
+            const category = result.data.category;
+            
+            // Populate form fields
+            document.getElementById('name').value = category.name || '';
+            document.getElementById('description').value = category.description || '';
+            document.getElementById('is_active').value = category.is_active ? 'true' : 'false';
+            document.getElementById('category_id').value = category.id || '';
+            
+            // Update form action for edit mode
+            document.getElementById('categoryForm').action = `/api/asset-categories/${categoryId}?_method=PUT`;
+            
+            // Set View button href
+            document.getElementById('viewCategoryBtn').href = `/asset-categories/${categoryId}/view`;
+          }
+        } catch (error) {
+          console.error('Error loading category data:', error);
+          showAlert('Error loading category data', 'danger');
+        }
+      }
+      
+      // Setup form submission
+      function setupFormSubmission() {
+        const form = document.getElementById('categoryForm');
+        
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          // Clear previous errors
+          clearErrors();
+          
+          // Get form data
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+          
+          try {
+            const url = isEdit ? `/api/asset-categories/${categoryId}` : '/api/asset-categories';
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+              method: method,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+              showAlert(result.message || 'Category saved successfully', 'success');
+              setTimeout(() => {
+                window.location.href = '/asset-categories';
+              }, 1500);
+            } else {
+              // Show error message
+              showAlert(result.error || 'Error saving category', 'danger');
+              
+              // Show field-specific errors if available
+              if (result.fieldErrors) {
+                Object.keys(result.fieldErrors).forEach(field => {
+                  showFieldError(field, result.fieldErrors[field]);
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error submitting form:', error);
+            showAlert('Error submitting form', 'danger');
+          }
+        });
+      }
+      
+      // Show alert message
+      function showAlert(message, type) {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mb-3`;
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+          <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        alertContainer.innerHTML = '';
+        alertContainer.appendChild(alertDiv);
+      }
+      
+      // Show field-specific error
+      function showFieldError(field, message) {
+        const errorElement = document.getElementById(`${field}-error`);
+        if (errorElement) {
+          errorElement.textContent = message;
+          errorElement.style.display = 'block';
+        }
+      }
+      
+      // Clear all errors
+      function clearErrors() {
+        document.querySelectorAll('.invalid-feedback').forEach(element => {
+          element.textContent = '';
+          element.style.display = 'none';
+        });
+      }

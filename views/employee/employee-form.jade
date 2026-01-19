@@ -5,29 +5,14 @@ block content
     .form-dialog
       .form-dialog-header
       .form-dialog-content
-        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
-          if isEdit
-            i.fas.fa-edit.me-2(style="color: #4e73df;")
-            | Edit Employee
-          else
-            i.fas.fa-user-plus.me-2(style="color: #4e73df;")
-            | Add New Employee
+        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;" id="formTitle")
+          i.fas.fa-user-plus.me-2(style="color: #4e73df;")
+          | Add New Employee
         
-        // Flash messages
-        if error && error.length > 0
-          - const isDuplicateEmail = error.includes('already registered') || error.includes('Email address');
-          .alert(class=isDuplicateEmail ? 'alert-danger alert-dismissible fade show mb-3' : 'alert-danger mb-3', role='alert')
-            if isDuplicateEmail
-              i.fas.fa-exclamation-triangle.me-2
-              strong Duplicate Email Error! 
-              br
-              = error
-              button(type='button', class='btn-close', data-bs-dismiss='alert', aria-label='Close')
-            else
-              i.fas.fa-exclamation-circle.me-2
-              = error
+        // Flash messages container
+        #alertContainer
         
-        form(action=(isEdit ? `/employee/${employee.id}?_method=PUT` : '/employee'), method='POST', id='employeeForm')
+        form(action='/api/employee', method='POST', id='employeeForm', novalidate)
           .form-section
             h6.form-section-title
               i.fas.fa-user.me-2
@@ -37,48 +22,51 @@ block content
                 label(for='first_name')
                   span.required-field First Name
                 input(type='text' class='form-control' id='first_name' name='first_name' 
-                      value=(formData && formData.first_name) || (isEdit && employee && employee.first_name) || ''
                       required
                       minlength='2'
                       pattern='[a-zA-Z\s]+'
                       title='First name should only contain letters and spaces, minimum 2 characters'
-                      placeholder='Enter first name')
+                      placeholder='Enter first name'
+                      oninput='this.value = this.value.trim();')
+                .invalid-feedback(id='first_name-error')
               .form-group-wrapper
                 label(for='last_name')
                   span.required-field Last Name
                 input(type='text' class='form-control' id='last_name' name='last_name' 
-                      value=(formData && formData.last_name) || (isEdit && employee && employee.last_name) || ''
                       pattern='[a-zA-Z\s]+'
-                      placeholder='Enter last name')
+                      placeholder='Enter last name'
+                      oninput='this.value = this.value.trim();')
+                .invalid-feedback(id='last_name-error')
             .form-row
               .form-group-wrapper
                 label(for='email')
                   span.required-field Email
                 input(type='email' class='form-control' id='email' name='email' 
-                      value=(formData && formData.email) || (isEdit && employee && employee.email) || ''
                       required
                       maxlength='100'
-                      placeholder='Enter email address')
+                      placeholder='Enter email address'
+                      oninput='this.value = this.value.trim();')
+                .invalid-feedback(id='email-error')
               .form-group-wrapper
                 label.form-label
                   i.fas.fa-phone.me-1
                   | Phone
-                input.form-control(type='tel', name='phone', 
-                      value=(formData && formData.phone) || (isEdit && employee && employee.phone) || '',
+                input.form-control(type='tel', name='phone', id='phone',
                       placeholder='Enter phone number with country code (e.g., +919003381176) or 10 digits',
                       pattern='^(?:\\+\\d{1,3}\\s?)?\\d{10}$',
                       maxlength='14',
                       title='Enter 10 digits or country code + 10 digits (e.g., 9003381176 or +919003381176)')
+                .invalid-feedback(id='phone-error')
             .form-row
               .form-group-wrapper
                 label(for='employee_id') Employee ID
                 input(type='text' class='form-control' id='employee_id' name='employee_id' 
-                      value=(formData && formData.employee_id) || (isEdit && employee && employee.employee_id) || ''
-                      readonly=isEdit
                       maxlength='20'
-                      pattern='[a-zA-Z0-9\s]+',
+                      pattern='[a-zA-Z0-9\s]+'
                       title="Employee ID should only contain letters, numbers, and spaces"
-                      placeholder='Will be auto-generated')
+                      placeholder='Will be auto-generated'
+                      oninput='this.value = this.value.trim();')
+                .invalid-feedback(id='employee_id-error')
           .form-section
             h6.form-section-title
               i.fas.fa-briefcase.me-2
@@ -87,38 +75,40 @@ block content
               .form-group-wrapper
                 label(for='position') Position
                 input(type='text' class='form-control' id='position' name='position' 
-                      value=(formData && formData.position) || (isEdit && employee && employee.position) || ''
-                      placeholder='Enter job position')
+                      placeholder='Enter job position'
+                      oninput='this.value = this.value.trim();'
+                      pattern='[a-zA-Z\s]+'
+                      title='Position should only contain letters and spaces')
+                .invalid-feedback(id='position-error')
               .form-group-wrapper
-                label(for='department') Department
+                label(for='department')
+                  span.required-field Department
                 select.form-control(id='department' name='department' required)
                   option(value='') Select Department
-                  if departments && departments.length > 0
-                    each department in departments
-                      option(value=department 
-                             selected=(formData && formData.department === department) || (isEdit && employee && employee.department === department))
-                        = department
+                .invalid-feedback(id='department-error')
             .form-row
               .form-group-wrapper
-                label(for='branch') Branch
-                input.form-control(type='text' id='branch' name='branch' 
-                      value=(formData && formData.branch) || (isEdit && employee && employee.branch) || ''
-                      placeholder='Enter branch location')
+                label(for='branch')
+                  span.required-field Branch
+                select.form-control(id='branch' name='branch' required)
+                  option(value='') Select Branch
+                .invalid-feedback(id='branch-error')
               .form-group-wrapper
                 label(for='hire_date') 
                   span.required-field Hire Date
-                input(type='date' class='form-control' id='hire_date' name='hire_date' value=hireDateValue
+                input(type='date' class='form-control' id='hire_date' name='hire_date' 
                       required
                       placeholder='please select hire date')
+                .invalid-feedback(id='hire_date-error')
             .form-row
               .form-group-wrapper
                 label(for='status')
                   span.required-field Status
                 select(class='form-control' id='status' name='status' required)
                   option(value='') Select Status
-                  - const statusValue = (formData && formData.status) || (isEdit && employee && employee.status);
-                  option(value='active' selected=(statusValue === 'active')) Active
-                  option(value='inactive' selected=(statusValue === 'inactive')) Inactive
+                  option(value='active') Active
+                  option(value='inactive') Inactive
+                .invalid-feedback(id='status-error')
           .form-section
             h6.form-section-title
               i.fas.fa-sticky-note.me-2
@@ -128,61 +118,260 @@ block content
                 label(for='notes') Notes
                 textarea(class='form-control' id='notes' name='notes' rows='4' 
                       placeholder='Enter any additional notes or comments')
-                  = (formData && formData.notes) || (isEdit && employee && employee.notes) || ''
           .form-dialog-footer
             a.form-action-btn.form-action-btn-secondary(href='/employee')
               i.fas.fa-times
               | Cancel
-            if isEdit
-              a.form-action-btn.form-action-btn-secondary(href='/employee/#{employee.id}')
-                i.fas.fa-eye
-                | View
+            a.form-action-btn.form-action-btn-secondary(id='viewEmployeeBtn' style='display: none;')
+              i.fas.fa-eye
+              | View
             button.form-action-btn.form-action-btn-primary(type='submit')
               i.fas.fa-save
-              = isEdit ? 'Update Employee' : 'Add Employee'
+              | Add Employee
 
     script.
+      // Global variables
+      let isEdit = false;
+      let employeeId = null;
+      
+      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('employeeForm');
-        const isEdit = #{isEdit ? 'true' : 'false'};
-        const employeeId = #{employee ? employee.id : 'null'};
+        // Check if we're in edit mode by checking the URL
+        const pathParts = window.location.pathname.split('/');
+        isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
         
-        form.addEventListener('submit', function(e) {
-          e.preventDefault();
+        // Load form option
+        loadFormOptions().then(() => {
+          if (isEdit) {
+            employeeId = pathParts[pathParts.length - 2];
+            loadEmployeeData(employeeId);
+            updateFormForEdit();
+          }
+        });
+        
+        // Setup form submission
+        setupFormSubmission();
+      });
+      
+      // Update form for edit mode
+      function updateFormForEdit() {
+        document.getElementById('formTitle').innerHTML = `
+          <i class="fas fa-edit me-2" style="color: #4e73df;"></i>
+          Edit Employee
+        `;
+        document.querySelector('button[type="submit"]').innerHTML = `
+          <i class="fas fa-save"></i>
+          Update Employee
+        `;
+        document.getElementById('employee_id').readOnly = true;
+        document.getElementById('viewEmployeeBtn').style.display = 'inline-flex';
+      }
+      
+      // Load form options (departments and branches)
+      async function loadFormOptions() {
+        try {
+          const response = await fetch('/api/employee/employee-form-options');
+          const result = await response.json();
           
-          const formData = new FormData(form);
-          const data = {};
+          if (result.success) {
+            // Load departments
+            const departmentSelect = document.getElementById('department');
+            if (departmentSelect) {
+              departmentSelect.innerHTML = '<option value="">Select Department</option>';
+              result.data.departments.forEach(department => {
+                const option = document.createElement('option');
+                option.value = department;
+                option.textContent = department;
+                departmentSelect.appendChild(option);
+              });
+            }
+
+            // Load branches
+            const branchSelect = document.getElementById('branch');
+            if (branchSelect) {
+              branchSelect.innerHTML = '<option value="">Select Branch</option>';
+              result.data.branches.forEach(branch => {
+                const option = document.createElement('option');
+                option.value = branch;
+                option.textContent = branch;
+                branchSelect.appendChild(option);
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error loading form options:', error);
+          showAlert('Error loading form options', 'danger');
+        }
+      }
+      
+      // Load employee data for edit mode
+      async function loadEmployeeData(employeeId) {
+        try {
+          const response = await fetch(`/api/employee/${employeeId}`);
           
-          // Convert FormData to plain object
-          for (let [key, value] of formData.entries()) {
-            data[key] = value;
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
           
-          // Determine URL and method based on edit/create
-          const url = isEdit ? `/api/employee/${employeeId}` : '/api/employee';
-          const method = isEdit ? 'PUT' : 'POST';
+          const result = await response.json();
           
-          fetch(url, {
-            method: method,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              // Redirect to employee list on success
-              window.location.href = '/employee';
+          if (result.success) {
+            const employee = result.data.employee;
+            
+            // Helper function to safely set element value
+            const safeSetValue = (elementId, value) => {
+              const element = document.getElementById(elementId);
+              if (element) {
+                element.value = value || '';
+              } else {
+                console.error(`Element not found: ${elementId}`);
+              }
+            };
+            
+            // Populate form fields safely
+            safeSetValue('first_name', employee.first_name);
+            safeSetValue('last_name', employee.last_name);
+            safeSetValue('email', employee.email);
+            safeSetValue('phone', employee.phone);
+            safeSetValue('employee_id', employee.employee_id);
+            safeSetValue('position', employee.position);
+            safeSetValue('department', employee.department);
+            safeSetValue('branch', employee.branch);
+            safeSetValue('hire_date', employee.hire_date ? new Date(employee.hire_date).toISOString().split('T')[0] : '');
+            safeSetValue('status', employee.status);
+            safeSetValue('notes', employee.notes);
+            
+            // Update form action for edit mode
+            const form = document.getElementById('employeeForm');
+            if (form) {
+              form.action = `/api/employee/${employeeId}?_method=PUT`;
+            }
+            
+            // Set View button href
+            const viewBtn = document.getElementById('viewEmployeeBtn');
+            if (viewBtn) {
+              viewBtn.href = `/employee/${employeeId}`;
+            }
+          } else {
+            throw new Error(result.error || 'Failed to load employee data');
+          }
+        } catch (error) {
+          showAlert(`Error loading employee data: ${error.message}`, 'danger');
+        }
+      }
+      
+      // Setup form submission
+      function setupFormSubmission() {
+        const form = document.getElementById('employeeForm');
+        
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          // Clear previous errors
+          clearErrors();
+          
+          // Simple frontend validation for required fields
+          const requiredFields = ['first_name', 'email', 'department', 'branch', 'status', 'hire_date'];
+          const validationErrors = {};
+          
+          requiredFields.forEach(field => {
+            const element = document.getElementById(field);
+            const value = element ? element.value.trim() : '';
+            
+            if (!value) {
+              const fieldName = field.replace('_', ' ');
+              validationErrors[field] = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
+            }
+          });
+          
+          // Email validation
+          const emailElement = document.getElementById('email');
+          if (emailElement && emailElement.value.trim()) {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(emailElement.value.trim())) {
+              validationErrors.email = 'Please enter a valid email address';
+            }
+          }
+          
+          // If there are validation errors, show them and stop submission
+          if (Object.keys(validationErrors).length > 0) {
+            Object.keys(validationErrors).forEach(field => {
+              showFieldError(field, validationErrors[field]);
+            });
+            showAlert('Please fix the errors below', 'danger');
+            return;
+          }
+          
+          // Get form data
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+          
+          try {
+            const url = isEdit ? `/api/employee/${employeeId}` : '/api/employee';
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+              method: method,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+              showAlert(result.message || 'Employee saved successfully', 'success');
+              setTimeout(() => {
+                window.location.href = '/employee';
+              }, 1500);
             } else {
               // Show error message
-              console.error('Error:', data.error);
-              alert('Error: ' + data.error);
+              showAlert(result.error || 'Error saving employee', 'danger');
+              
+              // Show field-specific errors if available
+              if (result.fieldErrors) {
+                Object.keys(result.fieldErrors).forEach(field => {
+                  showFieldError(field, result.fieldErrors[field]);
+                });
+              }
             }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
-          });
+          } catch (error) {
+            console.error('Error submitting form:', error);
+            showAlert('Error submitting form', 'danger');
+          }
         });
-      });
+      }
+      
+      // Show alert message
+      function showAlert(message, type) {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mb-3`;
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+          <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        alertContainer.innerHTML = '';
+        alertContainer.appendChild(alertDiv);
+      }
+      
+      // Show field-specific error
+      function showFieldError(field, message) {
+        const errorElement = document.getElementById(`${field}-error`);
+        if (errorElement) {
+          errorElement.textContent = message;
+          errorElement.style.display = 'block';
+        }
+      }
+      
+      // Clear all errors
+      function clearErrors() {
+        document.querySelectorAll('.invalid-feedback').forEach(element => {
+          element.textContent = '';
+          element.style.display = 'none';
+        });
+      }

@@ -11,110 +11,189 @@ block content
               i.fas.fa-cube.me-2(style="color: #4e73df;")
               | Asset Details
         hr(style="border: none; border-top: 1px solid #e3e6f0; margin: 2rem 0;")
-        .view-detail-section
-          h6.view-section-title
-            i.fas.fa-info-circle.me-2
-            | Basic Information
-          .view-detail-row
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-tag
-                | Asset Name
-              .view-detail-value= asset.name || 'N/A'
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-barcode
-                | Asset Tag
-              .view-detail-value= asset.asset_tag || 'N/A'
-          .view-detail-row
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-barcode
-                | Serial Number
-              .view-detail-value= asset.serial_number || 'N/A'
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-tags
-                | Category
-              .view-detail-value= asset.category ? asset.category.name : 'N/A'
-          .view-detail-row
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-cube
-                | Model
-              .view-detail-value= asset.model || 'N/A'
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-industry
-                | Manufacturer
-              .view-detail-value= asset.manufacturer || 'N/A'
-        .view-detail-section
-          h6.view-section-title
-            | Financial Information (₹)
-          .view-detail-row
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-calendar-alt
-                | Purchase Date
-              .view-detail-value= asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString('en-IN'): 'N/A'
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-money-bill-wave
-                | Purchase Cost (₹)
-              .view-detail-value= asset.purchase_cost ? `₹${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A'
-          .view-detail-row
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-shield-alt
-                | Warranty
-              .view-detail-value
-                - const warrantyYears = asset.warranty_years || (asset.warranty_months ? Math.round(asset.warranty_months / 12 * 10) / 10 : null);
-                if warrantyYears
-                  = warrantyYears > 0 ? `${warrantyYears} year${warrantyYears !== 1 ? 's' : ''}` : 'N/A'
-                else
-                  | N/A
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-chart-line
-                | Current Value (₹)
-              .view-detail-value= asset.current_value ? `₹${parseFloat(asset.current_value).toFixed(2)}` : 'N/A'
-        .view-detail-section
-          h6.view-section-title
-            i.fas.fa-map-marker-alt.me-2
-            | Location
-          .view-detail-row
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-building
-                | Branch
-              .view-detail-value= asset.branch || 'N/A'
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-map-marker-alt
-                | Location
-              .view-detail-value= asset.location || 'N/A'
-          .view-detail-row
-            .view-detail-item
-              .view-detail-label
-                i.fas.fa-info-circle
-                | Status
-              .view-detail-value
-                if asset.status
-                  span.badge(class=asset.status === 'active' ? 'bg-success' : asset.status === 'inactive' ? 'bg-secondary' : asset.status === 'archived' ? 'bg-dark' : 'bg-info' style="font-size: 0.85rem; padding: 0.4rem 0.75rem;")
-                    | #{asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
-                else
-                  .view-detail-value.text-muted N/A
-        if asset.notes && asset.notes.trim()
+        #assetLoading.text-center.py-5
+          i.fas.fa-spinner.fa-spin.me-2
+          | Loading asset details...
+        #assetContent(style="display: none;")
           .view-detail-section
+            h6.view-section-title
+              i.fas.fa-info-circle.me-2
+              | Basic Information
+            .view-detail-row
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-tag
+                  | Asset Name
+                .view-detail-value#assetName N/A
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-barcode
+                  | Asset Tag
+                .view-detail-value#assetTag N/A
+            .view-detail-row
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-barcode
+                  | Serial Number
+                .view-detail-value#serialNumber N/A
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-tags
+                  | Category
+                .view-detail-value#category N/A
+            .view-detail-row
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-cube
+                  | Model
+                .view-detail-value#model N/A
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-industry
+                  | Manufacturer
+                .view-detail-value#manufacturer N/A
+          .view-detail-section
+            h6.view-section-title
+              | Financial Information (₹)
+            .view-detail-row
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-calendar-alt
+                  | Purchase Date
+                .view-detail-value#purchaseDate N/A
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-money-bill-wave
+                  | Purchase Cost (₹)
+                .view-detail-value#purchaseCost N/A
+            .view-detail-row
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-shield-alt
+                  | Warranty
+                .view-detail-value#warranty N/A
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-chart-line
+                  | Current Value (₹)
+                .view-detail-value#currentValue N/A
+          .view-detail-section
+            h6.view-section-title
+              i.fas.fa-map-marker-alt.me-2
+              | Location
+            .view-detail-row
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-building
+                  | Branch
+                .view-detail-value#branch N/A
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-map-marker-alt
+                  | Location
+                .view-detail-value#location N/A
+            .view-detail-row
+              .view-detail-item
+                .view-detail-label
+                  i.fas.fa-info-circle
+                  | Status
+                .view-detail-value#status N/A
+          #notesSection.view-detail-section(style="display: none;")
             .view-notes-section
               h6.view-notes-title
                 i.fas.fa-sticky-note
                 | Additional Notes
-              .view-notes-content= asset.notes
+              .view-notes-content#notes
       .view-dialog-footer
-        a.view-action-btn.view-action-btn-primary(href='/assets/#{asset.id}/form')
+        a.view-action-btn.view-action-btn-primary#editBtn(href='#')
           i.fas.fa-edit
           | Edit Asset
         a.view-action-btn.view-action-btn-secondary(href='/assets')
           i.fas.fa-list
           | Back to List
+    
+    script.
+      // Load asset data via API
+      async function loadAssetData() {
+        try {
+          const pathParts = window.location.pathname.split('/');
+          const assetId = pathParts[pathParts.length - 1];
+          
+          const response = await fetch(`/api/assets/${assetId}`);
+          const result = await response.json();
+          
+          if (result.success) {
+            displayAssetData(result.data.asset);
+          } else {
+            showError('Asset not found');
+          }
+        } catch (error) {
+          console.error('Error loading asset data:', error);
+          showError('Error loading asset data');
+        }
+      }
+      
+      // Display asset data in the view
+      function displayAssetData(asset) {
+        document.getElementById('assetLoading').style.display = 'none';
+        document.getElementById('assetContent').style.display = 'block';
+        
+        // Basic Information
+        document.getElementById('assetName').textContent = asset.name || 'N/A';
+        document.getElementById('assetTag').textContent = asset.asset_tag || 'N/A';
+        document.getElementById('serialNumber').textContent = asset.serial_number || 'N/A';
+        document.getElementById('category').textContent = asset.category ? asset.category.name : 'N/A';
+        document.getElementById('model').textContent = asset.model || 'N/A';
+        document.getElementById('manufacturer').textContent = asset.manufacturer || 'N/A';
+        
+        // Financial Information
+        document.getElementById('purchaseDate').textContent = asset.purchase_date ? 
+          new Date(asset.purchase_date).toLocaleDateString('en-IN') : 'N/A';
+        document.getElementById('purchaseCost').textContent = asset.purchase_cost ? 
+          `₹${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A';
+        
+        const warrantyYears = asset.warranty_years || (asset.warranty_months ? 
+          Math.round(asset.warranty_months / 12 * 10) / 10 : null);
+        document.getElementById('warranty').textContent = warrantyYears > 0 ? 
+          `${warrantyYears} year${warrantyYears !== 1 ? 's' : ''}` : 'N/A';
+        
+        document.getElementById('currentValue').textContent = asset.current_value ? 
+          `₹${parseFloat(asset.current_value).toFixed(2)}` : 'N/A';
+        
+        // Location
+        document.getElementById('branch').textContent = asset.branch || 'N/A';
+        document.getElementById('location').textContent = asset.location || 'N/A';
+        
+        // Status
+        const statusElement = document.getElementById('status');
+        if (asset.status) {
+          const statusClass = asset.status === 'active' ? 'bg-success' : 
+            asset.status === 'inactive' ? 'bg-secondary' : 
+            asset.status === 'archived' ? 'bg-dark' : 'bg-info';
+          statusElement.innerHTML = `<span class="badge ${statusClass}" style="font-size: 0.85rem; padding: 0.4rem 0.75rem;">${asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}</span>`;
+        } else {
+          statusElement.textContent = 'N/A';
+        }
+        
+        // Notes
+        if (asset.notes && asset.notes.trim()) {
+          document.getElementById('notesSection').style.display = 'block';
+          document.getElementById('notes').textContent = asset.notes;
+        }
+        
+        // Set edit button href
+        document.getElementById('editBtn').href = `/assets/${asset.id}/form`;
+      }
+      
+      // Show error message
+      function showError(message) {
+        document.getElementById('assetLoading').innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            ${message}
+          </div>
+        `;
+      }
+      
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', loadAssetData);

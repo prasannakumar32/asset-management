@@ -93,7 +93,7 @@ const assetRoutes = require('./backend/asset/assetRoute');
 app.use('/api/assets', assetRoutes);
 // AssetAssignment routes
 const assetAssignmentRoutes = require('./backend/assetAssignment/assetAssignmentRoute');
-app.use('/asset-assignment', assetAssignmentRoutes);
+app.use('/api/asset-assignment', assetAssignmentRoutes);
 // AssetCategories routes
 const assetCategoriesRoutes = require('./backend/assetCategories/assetCategoryRoute');
 app.use('/api/asset-categories', assetCategoriesRoutes);

@@ -53,14 +53,22 @@ router.get('/assets/:id', assetController.viewAsset);
 router.post('/assets', assetController.create);
 router.put('/assets/:id', assetController.update);
 router.delete('/assets/:id', assetController.delete);
+
+// API routes for assets
 router.use('/api/assets', assetRoutes);
 
 // Employee Routes
 const employeeRoutes = require('../employee/employeeRoute');
-router.get('/employee', employeeController.list);
-router.delete('/employee/:id', employeeController.delete);
 router.use('/api/employee', employeeRoutes);
-router.use('/employee', employeeRoutes);
+router.get('/employee', employeeController.list);
+router.get('/employee/form', employeeController.showForm);
+router.get('/employee/:id/form', employeeController.showForm);
+router.get('/employee/:id/view', employeeController.view);
+router.post('/employee', employeeController.create);
+router.put('/employee/:id', employeeController.update);
+router.delete('/employee/:id', employeeController.delete);
+
+// Asset Assignment Routes
 
 // Asset Assignment Routes
 router.get('/asset-assignment', (req, res) => {
@@ -86,8 +94,6 @@ router.get('/asset-categories', assetCategoryController.showCategoryPage);
 router.get('/asset-categories/form', assetCategoryController.showCategoryForm);
 router.get('/asset-categories/:id/form', assetCategoryController.showCategoryForm);
 router.get('/asset-categories/:id/view', assetCategoryController.viewCategory);
-router.use('/api/asset-categories', assetCategoriesRoutes);
-router.use('/asset-categories', assetCategoriesRoutes);
 
 // Dashboard Routes
 router.use('/dashboard', dashboardRoutes);

@@ -8,7 +8,11 @@ block content
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           i.fas.fa-trash-alt.me-2(style="color: #e74a3b;")
           | Scrap Asset
-        form(action='/asset-assignment/scrap', method='POST', id='scrapForm')
+        
+        // Flash messages container
+        #alertContainer
+        
+        form(action='/api/asset-assignment/scrap', method='POST', id='scrapForm', novalidate)
           .form-section
             h6.form-section-title
               i.fas.fa-info-circle.me-2
@@ -19,10 +23,12 @@ block content
                   span.required-field Asset
                 select#assetId.form-control(name='asset_id', required)
                   option(value='') Select Asset
+                .invalid-feedback(id='asset_id-error')
               .form-group-wrapper
                 label(for='scrapDate')
                   span.required-field Scrap Date
                 input#scrapDate.form-control(name='scrap_date', type='date', value=new Date().toISOString().split('T')[0], required)
+                .invalid-feedback(id='scrap_date-error')
             .form-row
               .form-group-wrapper
                 label(for='method')
@@ -34,10 +40,13 @@ block content
                   option(value='sold') Sold
                   option(value='donated') Donated
                   option(value='other') Other
+                .invalid-feedback(id='method-error')
               .form-group-wrapper
                 label(for='employeeId')
                   span.required-field Scrapped By
                 select#employeeId.form-control(name='employee_id', required)
+                  option(value='') Select Employee
+                .invalid-feedback(id='employee_id-error')
           .form-section
             h6.form-section-title
               i.fas.fa-comment.me-2
@@ -47,129 +56,157 @@ block content
                 label(for='reason')
                   span.required-field Reason
                 textarea#reason.form-control(name='reason', rows='4', required, placeholder='Enter the reason for scrapping this asset...', style="resize: vertical; min-height: 120px;")
+                .invalid-feedback(id='reason-error')
           .form-dialog-footer
             a.form-action-btn.form-action-btn-secondary(href='/assets')
               i.fas.fa-times
               | Cancel
-            button.form-action-btn.form-action-btn-danger(type='submit')
+            button.form-action-btn.form-action-btn-primary(type='submit')
               i.fas.fa-trash-alt
-              | Confirm Scrap
+              | Scrap Asset
 
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', function() {
-      loadAvailableAssets();
+      loadAssets();
       loadEmployees();
+      setupFormSubmission();
     });
+
+    async function loadAssets() {
+      try {
+        const response = await fetch('/api/assets?is_active=true');
+        const result = await response.json();
+        const assetSelect = document.getElementById('assetId');
+        
+        if (result.success && result.data && result.data.assets) {
+          assetSelect.innerHTML = '<option value="">Select Asset</option>';
+          
+          result.data.assets.forEach(asset => {
+            const option = document.createElement('option');
+            option.value = asset.id;
+            option.textContent = `${asset.name} (${asset.asset_tag}) - ${asset.status}`;
+            assetSelect.appendChild(option);
+          });
+          
+          if (assetSelect.children.length === 1) {
+            showAlert('No assets found', 'warning');
+          }
+        } else {
+          showAlert('Error loading assets', 'danger');
+        }
+      } catch (error) {
+        console.error('Error loading assets:', error);
+        showAlert('Failed to load assets', 'danger');
+      }
+    }
+
     async function loadEmployees() {
       try {
         const response = await fetch('/api/employee');
         const result = await response.json();
-        const select = document.getElementById('employeeId');
+        const employeeSelect = document.getElementById('employeeId');
         
-        if (!select) {
-          console.error('Employee select element not found');
-          return;
-        }
-        if (result.success && result.data && Array.isArray(result.data.employees)) {
-          // Clear existing options
-          select.innerHTML = '<option value="">Select Employee</option>';
-          const activeEmployees = result.data.employees.filter(employee => employee.status === 'active');
-          if (activeEmployees.length === 0) {
-            console.warn('No active employees found');
-            return;
-          }
-          activeEmployees.forEach(employee => {
-            const option = document.createElement('option');
-            option.value = employee.id;
-            option.textContent = `${employee.first_name} ${employee.last_name} (${employee.employee_id || employee.email})`;
-            select.appendChild(option);
+        if (result.success && result.data && result.data.employees) {
+          employeeSelect.innerHTML = '<option value="">Select Employee</option>';
+          
+          result.data.employees.forEach(employee => {
+            if (employee.status === 'active') {
+              const option = document.createElement('option');
+              option.value = employee.id;
+              option.textContent = `${employee.first_name} ${employee.last_name} (${employee.email})`;
+              employeeSelect.appendChild(option);
+            }
           });
-          // If there's only one employee, select it by default
-          if (activeEmployees.length === 1) {
-            select.value = activeEmployees[0].id;
+          
+          if (employeeSelect.children.length === 1) {
+            showAlert('No active employees found', 'warning');
           }
         } else {
-          console.error('Error loading employees:', result.error || 'Invalid response format');
-          select.innerHTML = '<option value="">Error loading employees</option>';
+          showAlert('Error loading employees', 'danger');
         }
       } catch (error) {
         console.error('Error loading employees:', error);
-        const select = document.getElementById('employeeId');
-        if (select) {
-          select.innerHTML = '<option value="">Error loading employees</option>';
-        }
+        showAlert('Failed to load employees', 'danger');
       }
     }
-
-    async function loadAvailableAssets() {
-      try {
-        const response = await fetch('/api/assets');
-        const result = await response.json();
-        const assetSelect = document.getElementById('assetId');
+    
+    function setupFormSubmission() {
+      const form = document.getElementById('scrapForm');
+      
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        if (result.success && result.data) {
-          // Display assets that can be scrapped (not already scrapped)
-          const availableAssets = result.data.assets ? result.data.assets.filter(asset => asset.status !== 'scrapped') : [];
-          // Clear existing options
-          assetSelect.innerHTML = '<option value="">Select Asset</option>';
-          
-          if (availableAssets.length === 0) {
-            assetSelect.innerHTML = '<option value="">No assets available for scrapping</option>';
-            return;
-          }
-          // Populate dropdown
-          availableAssets.forEach(asset => {
-            const option = document.createElement('option');
-            option.value = asset.id;
-            option.textContent = `${asset.name} (${asset.asset_tag || 'No Tag'}) - ${asset.status}`;
-            assetSelect.appendChild(option);
-          });
-        } else {
-          console.error('Error loading assets:', result.error || 'Unknown error');
-        }
-      } catch (error) {
-        console.error('Error loading assets:', error);
-      }
-    }
-
-    // Form submission
-    document.getElementById('scrapForm').onsubmit = async function(e) {
-      e.preventDefault();
-      
-      const form = e.target;
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn.innerHTML;
-      
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-      
-      // Show loading state
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
-      
-      try {
+        // Clear previous errors
+        clearErrors();
+        
+        // Get form data
         const formData = new FormData(form);
-        const response = await fetch('/asset-assignment/scrap', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(Object.fromEntries(formData.entries()))
-        });
+        const data = Object.fromEntries(formData.entries());
         
-        const result = await response.json();
-        
-        if (result.success) {
-          window.location.href = '/assets';
-        } else {
-          alert(result.message || 'Failed to scrap asset');
+        try {
+          const response = await fetch('/api/asset-assignment/scrap', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            showAlert(result.message || 'Asset scrapped successfully', 'success');
+            setTimeout(() => {
+              window.location.href = '/assets';
+            }, 1500);
+          } else {
+            // Show error message
+            showAlert(result.error || 'Error scrapping asset', 'danger');
+            
+            // Show field-specific errors if available
+            if (result.fieldErrors) {
+              Object.keys(result.fieldErrors).forEach(field => {
+                showFieldError(field, result.fieldErrors[field]);
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error submitting form:', error);
+          showAlert('Error submitting form', 'danger');
         }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
+      });
+    }
+    
+    // Show alert message
+    function showAlert(message, type) {
+      const alertContainer = document.getElementById('alertContainer');
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show mb-3`;
+      alertDiv.role = 'alert';
+      alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      
+      alertContainer.innerHTML = '';
+      alertContainer.appendChild(alertDiv);
+    }
+    
+    // Show field-specific error
+    function showFieldError(field, message) {
+      const errorElement = document.getElementById(`${field}-error`);
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
       }
-    };
+    }
+    
+    // Clear all errors
+    function clearErrors() {
+      document.querySelectorAll('.invalid-feedback').forEach(element => {
+        element.textContent = '';
+        element.style.display = 'none';
+      });
+    }

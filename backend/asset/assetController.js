@@ -133,7 +133,7 @@ exports.create = async (req, res) => {
     try {
         let assetData = parseAssetData(req.body);
         
-// Handle asset tag
+        // Handle asset tag
         if (!assetData.asset_tag || assetData.asset_tag.trim() === '') {
             assetData.asset_tag = await generateAssetTag();
         } else {
@@ -141,23 +141,33 @@ exports.create = async (req, res) => {
                 where: { asset_tag: assetData.asset_tag.trim() }
             });
             if (existingAsset) {
-                return renderFormWithError(res, false, 
-                    'Asset tag already exists. Please use a different tag or leave empty to auto-generate.');
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Asset tag already exists. Please use a different tag or leave empty to auto-generate.',
+                    fieldErrors: {
+                        asset_tag: 'Asset tag already exists'
+                    }
+                });
             }
         }
         
-// Check duplicate serial number
+        // Check duplicate serial number
         if (assetData.serial_number && assetData.serial_number.trim() !== '') {
             const existingAsset = await Asset.findOne({
                 where: { serial_number: assetData.serial_number.trim() }
             });
             if (existingAsset) {
-                return renderFormWithError(res, false, 
-                    'Serial number already exists. Please use a different serial number or leave empty.');
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Serial number already exists. Please use a different serial number or leave empty.',
+                    fieldErrors: {
+                        serial_number: 'Serial number already exists'
+                    }
+                });
             }
         }
         
-// Create asset with transaction
+        // Create asset with transaction
         const transaction = await db.sequelize.transaction();
         try {
             const asset = await Asset.create(assetData, { transaction });
@@ -169,20 +179,61 @@ exports.create = async (req, res) => {
             }, { transaction });
             
             await transaction.commit();
-            res.redirect('/assets');
+            
+            return res.status(201).json({ 
+                success: true, 
+                message: 'Asset created successfully',
+                data: { asset }
+            });
         } catch (transactionError) {
             await transaction.rollback();
             throw transactionError;
         }
     } catch (error) {
         console.error('Error creating asset:', error);
-        const errorMessage = error.name === 'SequelizeValidationError' 
-            ? error.errors.map(e => e.message).join(', ')
-            : error.name === 'SequelizeUniqueConstraintError'
-            ? 'Asset tag already exists'
-            : error.message;
+        
+        // Handle validation errors
+        if (error.name === 'SequelizeValidationError') {
+            const fieldErrors = {};
+            error.errors.forEach(err => {
+                fieldErrors[err.path] = err.message;
+            });
             
-        renderFormWithError(res, false, errorMessage);
+            return res.status(400).json({
+                success: false,
+                error: 'Validation failed',
+                fieldErrors
+            });
+        }
+        
+        // Handle unique constraint errors
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            let field, message;
+            if (error.errors[0].path === 'asset_tag') {
+                field = 'asset_tag';
+                message = 'Asset tag already exists';
+            } else if (error.errors[0].path === 'serial_number') {
+                field = 'serial_number';
+                message = 'Serial number already exists';
+            } else {
+                field = error.errors[0].path;
+                message = `${field} already exists`;
+            }
+            
+            return res.status(400).json({
+                success: false,
+                error: message,
+                fieldErrors: {
+                    [field]: message
+                }
+            });
+        }
+        
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Error creating asset',
+            message: error.message 
+        });
     }
 };
 
@@ -191,12 +242,12 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         let assetData = parseAssetData(req.body);
         
-// Don't allow updating certain fields
+        // Don't allow updating certain fields
         delete assetData.asset_tag;
         delete assetData.current_assignment;
         delete assetData.currently_assigned_to;
         
-// Check duplicate serial number (excluding current asset)
+        // Check duplicate serial number (excluding current asset)
         if (assetData.serial_number && assetData.serial_number.trim() !== '') {
             const existingAsset = await Asset.findOne({
                 where: { 
@@ -205,34 +256,61 @@ exports.update = async (req, res) => {
                 }
             });
             if (existingAsset) {
-                const currentAsset = await Asset.findByPk(id);
-                return renderFormWithError(res, true, 
-                    'Serial number already exists. Please use a different serial number.', 
-                    getFormData(req), currentAsset);
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Serial number already exists. Please use a different serial number.',
+                    fieldErrors: {
+                        serial_number: 'Serial number already exists'
+                    }
+                });
             }
         }
         
-// Update asset
-        await Asset.update(assetData, { where: { id } });
+        // Update asset
+        const [updatedRowsCount] = await Asset.update(assetData, { where: { id } });
         
-// Create history record
+        if (updatedRowsCount === 0) {
+            return res.status(404).json({ success: false, error: 'Asset not found' });
+        }
+        
+        // Create history record
         await AssetHistory.create({
             asset_id: parseInt(id),
             action_type: 'updated',
             action_date: new Date()
         });
         
-        res.redirect('/assets');
+        // Get updated asset to return in API response
+        const updatedAsset = await Asset.findByPk(id);
+        
+        return res.json({ 
+            success: true, 
+            message: 'Asset updated successfully',
+            data: { asset: updatedAsset }
+        });
+        
     } catch (error) {
         console.error('Error updating asset:', error);
-        const errorMessage = error.name === 'SequelizeValidationError' 
-            ? error.errors.map(e => e.message).join(', ')
-            : error.name === 'SequelizeUniqueConstraintError'
-            ? 'Asset tag already exists'
-            : error.message;
+        
+        // Handle validation errors
+        if (error.name === 'SequelizeValidationError') {
+            const fieldErrors = {};
+            error.errors.forEach(err => {
+                fieldErrors[err.path] = err.message;
+            });
             
-        const currentAsset = await Asset.findByPk(req.params.id);
-        renderFormWithError(res, true, errorMessage, getFormData(req), currentAsset);
+            return res.status(400).json({
+                success: false,
+                error: 'Validation failed',
+                fieldErrors
+            });
+        }
+        
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Error updating asset',
+            message: error.message 
+        });
     }
 };
 

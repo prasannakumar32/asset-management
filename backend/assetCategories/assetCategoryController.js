@@ -107,39 +107,84 @@ exports.create = async (req, res) => {
         const { name, description } = req.body;
         const is_active = req.body.is_active === 'true' || req.body.is_active === true;
         
+        // Validate required fields
+        const fieldErrors = {};
+        if (!name || name.trim() === '') {
+            fieldErrors.name = 'Category name is required';
+        }
+        if (!description || description.trim() === '') {
+            fieldErrors.description = 'Description is required';
+        }
+
+        if (Object.keys(fieldErrors).length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Validation failed',
+                fieldErrors
+            });
+        }
+
+        // Check for duplicate category name
+        const existingCategory = await AssetCategory.findOne({
+            where: { 
+                name: name.trim()
+            }
+        });
+
+        if (existingCategory) {
+            return res.status(400).json({
+                success: false,
+                error: 'Category name already exists',
+                fieldErrors: {
+                    name: 'Category name already exists'
+                }
+            });
+        }
+
         const category = await AssetCategory.create({
             name: name.trim(),
             description: description ? description.trim() : null,
             is_active
         });
 
-        // Check if this is an API request
-        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
-
-        if (isApiRequest) {
-            return res.json({ 
-                success: true, 
-                message: 'Category created successfully',
-                data: { category }
-            });
-        }
-
-        return res.redirect('/asset-categories?success=Category created successfully');
+        return res.status(201).json({
+            success: true,
+            message: 'Category created successfully',
+            data: { category }
+        });
     } catch (error) {
         console.error('Error creating category:', error);
         
-        // Check if this is an API request
-        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
-
-        if (isApiRequest) {
-            return res.status(500).json({
+        // Handle validation errors
+        if (error.name === 'SequelizeValidationError') {
+            const fieldErrors = {};
+            error.errors.forEach(err => {
+                fieldErrors[err.path] = err.message;
+            });
+            
+            return res.status(400).json({
                 success: false,
-                error: 'Error creating category',
-                message: error.message
+                error: 'Validation failed',
+                fieldErrors
             });
         }
         
-        res.redirect('/asset-categories?error=Error creating category');
+        // Handle unique constraint errors
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({
+                success: false,
+                error: 'Category name already exists',
+                fieldErrors: {
+                    name: 'Category name already exists'
+                }
+            });
+        }
+        
+        return res.status(500).json({
+            success: false,
+            error: 'Error creating category',
+            message: error.message
+        });
     }
 };
 
@@ -148,53 +193,96 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         const categoryData = req.body;
         
+        // Validate required fields
+        const fieldErrors = {};
+        if (!categoryData.name || categoryData.name.trim() === '') {
+            fieldErrors.name = 'Category name is required';
+        }
+        if (!categoryData.description || categoryData.description.trim() === '') {
+            fieldErrors.description = 'Description is required';
+        }
+
+        if (Object.keys(fieldErrors).length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Validation failed',
+                fieldErrors
+            });
+        }
+        
         // Process the is_active field properly
         if (categoryData.is_active !== undefined) {
             categoryData.is_active = categoryData.is_active === 'true' || categoryData.is_active === true;
         }
         
-        const [updatedRowsCount] = await AssetCategory.update(categoryData, { where: { id } });
-        
-        // Check if this is an API request
-        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
-        
-        if (updatedRowsCount === 0) {
-            if (isApiRequest) {
-                return res.status(404).json({
-                    success: false,
-                    error: 'Category not found'
-                });
+        // Check for duplicate category name (excluding current category)
+        const existingCategory = await AssetCategory.findOne({
+            where: { 
+                name: categoryData.name.trim(),
+                id: { [Op.ne]: parseInt(id) }
             }
-            return res.redirect('/asset-categories');
-        }
-        
-        // Check if this is an API request
-        if (isApiRequest) {
-            const updatedCategory = await AssetCategory.findByPk(id);
-            return res.json({
-                success: true,
-                message: 'Category updated successfully',
-                data: { category: updatedCategory }
+        });
+
+        if (existingCategory) {
+            return res.status(400).json({
+                success: false,
+                error: 'Category name already exists',
+                fieldErrors: {
+                    name: 'Category name already exists'
+                }
             });
         }
         
-        // Redirect to categories list
-        return res.redirect('/asset-categories');
+        const [updatedRowsCount] = await AssetCategory.update(categoryData, { where: { id } });
+        
+        if (updatedRowsCount === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Category not found'
+            });
+        }
+        
+        // Get updated category to return in API response
+        const updatedCategory = await AssetCategory.findByPk(id);
+        
+        return res.json({
+            success: true,
+            message: 'Category updated successfully',
+            data: { category: updatedCategory }
+        });
     } catch (error) {
         console.error('Error updating category:', error);
         
-        // Check if this is an API request
-        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
-        
-        if (isApiRequest) {
-            return res.status(500).json({
+        // Handle validation errors
+        if (error.name === 'SequelizeValidationError') {
+            const fieldErrors = {};
+            error.errors.forEach(err => {
+                fieldErrors[err.path] = err.message;
+            });
+            
+            return res.status(400).json({
                 success: false,
-                error: 'Error updating category',
-                message: error.message
+                error: 'Validation failed',
+                fieldErrors
             });
         }
         
-        return res.redirect(`/asset-categories/${id}/form`);
+        // Handle unique constraint errors
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({
+                success: false,
+                error: 'Category name already exists',
+                fieldErrors: {
+                    name: 'Category name already exists'
+                }
+            });
+        }
+        
+        return res.status(500).json({
+            success: false,
+            error: 'Error updating category',
+            message: error.message
+        });
     }
 };
 
@@ -202,9 +290,6 @@ exports.delete = async (req, res) => {
     const transaction = await db.sequelize.transaction();
     try {
         const { id } = req.params;
-        
-        // Check if this is an API request
-        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
         
         const category = await AssetCategory.findByPk(id, { transaction });
         
@@ -222,28 +307,63 @@ exports.delete = async (req, res) => {
         });   
         await transaction.commit();
         
-        if (isApiRequest) {
-            return res.json({ success: true, message: 'Category deleted successfully' });
-        }
-        
-        return res.redirect('/asset-categories?success=Category deleted successfully');
+        return res.json({
+            success: true,
+            message: 'Category deleted successfully'
+        });
     } catch (error) {
         await transaction.rollback();
         console.error('Error deleting category:', error);
+        
+        // Handle validation errors
+        if (error.name === 'SequelizeValidationError') {
+            const fieldErrors = {};
+            error.errors.forEach(err => {
+                fieldErrors[err.path] = err.message;
+            });
+            
+            return res.status(400).json({
+                success: false,
+                error: 'Validation failed',
+                fieldErrors
+            });
+        }
+        
+        // Handle foreign key constraint errors
         const errorMessage = error.message.includes('foreign key constraint') 
             ? 'Cannot delete category: It has related records that could not be removed' 
             : 'Error deleting category: ' + error.message;
             
-        // Check if this is an API request
-        const isApiRequest = req.originalUrl && req.originalUrl.includes('/api/');
+        return res.status(500).json({
+            success: false,
+            error: errorMessage
+        });
+    }
+};
+
+// Get category by ID for API
+exports.getCategoryById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const category = await AssetCategory.findByPk(id);
         
-        if (isApiRequest) {
-            return res.status(500).json({ success: false, error: errorMessage });
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                error: 'Category not found'
+            });
         }
-            
-        return res.status(500).render('error', { 
-            message: 'Error deleting category',
-            error: error.message 
+        
+        return res.json({
+            success: true,
+            data: { category }
+        });
+    } catch (error) {
+        console.error('Error fetching category:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Error fetching category',
+            message: error.message
         });
     }
 };

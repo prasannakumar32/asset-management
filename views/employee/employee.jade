@@ -27,7 +27,7 @@ block content
     script.
       // Wait for DOM to be fully loaded
       document.addEventListener('DOMContentLoaded', function() {
-        // Load initial data
+        loadFilterOptions();
         loadEmployees();
         
         // Auto submit for filters using API
@@ -49,6 +49,56 @@ block content
         addFilterListener(isActiveSelect, loadEmployees);
         addFilterListener(branchSelect, loadEmployees);
       });
+      
+      // Load filter options (departments and branches)
+      function loadFilterOptions() {
+        // Load departments and branches from API
+        fetch('/api/employee/employee-form-options')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              populateDepartments(data.data.departments);
+              populateBranches(data.data.branches);
+            } else {
+              console.error('Error loading filter options:', data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error loading filter options:', error);
+          });
+      }
+      
+      // Populate department dropdown
+      function populateDepartments(departments) {
+        const departmentSelect = document.getElementById('department');
+        if (!departmentSelect) return;
+        
+        // Clear existing options except "All"
+        departmentSelect.innerHTML = '<option value="">All</option>';
+        
+        departments.forEach(department => {
+          const option = document.createElement('option');
+          option.value = department;
+          option.textContent = department;
+          departmentSelect.appendChild(option);
+        });
+      }
+      
+      // Populate branch dropdown
+      function populateBranches(branches) {
+        const branchSelect = document.getElementById('branch');
+        if (!branchSelect) return;
+        
+        // Clear existing options except "All"
+        branchSelect.innerHTML = '<option value="">All</option>';
+        
+        branches.forEach(branch => {
+          const option = document.createElement('option');
+          option.value = branch;
+          option.textContent = branch;
+          branchSelect.appendChild(option);
+        });
+      }
       
       // Load employees
       function loadEmployees() {
@@ -118,7 +168,7 @@ block content
                 '<a href="/employee/' + emp.id + '/form" class="btn btn-outline-primary btn-sm action-btn" title="Edit Employee">' +
                   '<i class="fas fa-edit"></i>' +
                 '</a>' +
-                '<a href="/employee/' + emp.id + '" class="btn btn-outline-info btn-sm action-btn" title="View Employee Details">' +
+                '<a href="/employee/' + emp.id + '/view" class="btn btn-outline-info btn-sm action-btn" title="View Employee Details">' +
                   '<i class="fas fa-eye"></i>' +
                 '</a>' +
                 '<button class="delete-btn" type="button" onclick="confirmDelete(' + emp.id + ', \'' + emp.first_name + ' ' + emp.last_name + '\')" title="Delete Employee">' +

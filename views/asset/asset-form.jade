@@ -5,15 +5,14 @@ block content
     .form-dialog
       .form-dialog-header
       .form-dialog-content
-        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
-          if isEdit
-            i.fas.fa-edit.me-2(style="color: #4e73df;")
-            | Edit Asset
-          else
-            i.fas.fa-plus.me-2(style="color: #4e73df;")
-            | Add New Asset
+        h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;" id="formTitle")
+          i.fas.fa-plus.me-2(style="color: #4e73df;")
+          | Add New Asset
         
-        form(action=(isEdit ? `/assets/${asset.id}?_method=PUT` : '/assets'), method='POST', id='assetForm', novalidate)
+        // Flash messages container
+        #alertContainer
+        
+        form(action='/assets', method='POST', id='assetForm', novalidate)
           .form-section
             h6.form-section-title
               i.fas.fa-info-circle.me-2
@@ -23,50 +22,37 @@ block content
                 label(for='name')
                   span.required-field Asset Name
                 input(type='text' class='form-control' id='name' name='name' 
-                      value=(isEdit ? (formData && formData.name) || (asset && asset.name) : (formData && formData.name) || '') 
-                      required
-                      placeholder='Enter asset name')
+                      placeholder='Enter asset name' 
+                      required)
+                .invalid-feedback(id='name-error')
               .form-group-wrapper
                 label(for='asset_tag') Asset Tag
                 input(type='text' class='form-control' id='asset_tag' name='asset_tag' 
-                      value=(isEdit ? (asset && asset.asset_tag) || (formData && formData.asset_tag) : (formData && formData.asset_tag) || '') 
-                      readonly=isEdit
-                      placeholder='Auto-generated on creation'
-                      class=isEdit ? 'form-control' : ('form-control ' + (error && error.includes('Asset tag') ? 'is-invalid' : '')))
-                if error && error.includes('Asset tag')
-                  .invalid-feedback
-                    i.fas.fa-exclamation-circle.me-1
-                    = error
+                      placeholder='Enter asset tag or leave empty to auto-generate')
+                .invalid-feedback(id='asset_tag-error')
               .form-group-wrapper
                 label(for='category_id')
                   span.required-field Category
                 select.form-control(id='category_id' name='category_id' required)
                   option(value='') Select Category
-                  if categories && categories.length > 0
-                    each category in categories
-                      option(value=category.id 
-                             selected=(isEdit ? (formData && formData.category_id == category.id) || (asset && asset.category_id === category.id) : (formData && formData.category_id == category.id)))
-                        = category.name
+                .invalid-feedback(id='category_id-error')
               .form-group-wrapper
-                label(for='serial_number') Serial Number
+                label(for='serial_number')
+                  span.required-field Serial Number
                 input(type='text' class='form-control' id='serial_number' name='serial_number' 
-                      value=(isEdit ? (formData && formData.serial_number) || (asset && asset.serial_number) : (formData && formData.serial_number)) || ''
-                      placeholder='Enter serial number'
-                      class=('form-control ' + (error && error.includes('Serial number') ? 'is-invalid' : '')))
-                if error && error.includes('Serial number')
-                  .invalid-feedback
-                    i.fas.fa-exclamation-circle.me-1
-                    = error
+                      placeholder='Enter serial number' 
+                      required)
+                .invalid-feedback(id='serial_number-error')
               .form-group-wrapper
                 label(for='model') Model
                 input(type='text' class='form-control' id='model' name='model' 
-                      value=(isEdit ? (formData && formData.model) || (asset && asset.model) : (formData && formData.model) || '')
                       placeholder='Enter model')
+                .invalid-feedback(id='model-error')
               .form-group-wrapper
                 label(for='manufacturer') Manufacturer
                 input(type='text' class='form-control' id='manufacturer' name='manufacturer' 
-                      value=(isEdit ? (formData && formData.manufacturer) || (asset && asset.manufacturer) : (formData && formData.manufacturer) || '')
                       placeholder='Enter manufacturer')
+                .invalid-feedback(id='manufacturer-error')
           .form-section
             h6.form-section-title
               | Financial Information
@@ -74,77 +60,115 @@ block content
               .form-group-wrapper
                 label(for='purchase_date') Purchase Date
                 input(type='date' class='form-control' id='purchase_date' name='purchase_date' 
-                      value=(formData && formData.purchase_date ? formData.purchase_date : (isEdit && asset && asset.purchase_date ? new Date(asset.purchase_date).toISOString().split('T')[0] : ''))
                       placeholder='select purchase date '
                       title='Enter date in DD/MM/YYYY format')
+                .invalid-feedback(id='purchase_date-error')
+              .form-group-wrapper
                 label(for='purchase_cost')
                   | Purchase Cost (₹)
                 input(type='text' class='form-control' id='purchase_cost' name='purchase_cost' 
                       pattern='\d*\.?\d*' 
-                      value=(isEdit ? (formData && formData.purchase_cost) || (asset && asset.purchase_cost) : (formData && formData.purchase_cost) || '')
                       placeholder='0.00'
                       oninput='this.value = this.value.replace(/[^0-9.]/g, ""); if(this.value < 0) this.value = 0;')
+                .invalid-feedback(id='purchase_cost-error')
             .form-row
               .form-group-wrapper
                 label(for='current_value')
                   | Current Value (₹)
                 input(type='text' class='form-control' id='current_value' name='current_value' 
                       pattern='\d*\.?\d*' 
-                      value=(isEdit ? (formData && formData.current_value) || (asset && asset.current_value) : (formData && formData.current_value) || '')
                       placeholder='0.00'
                       oninput='this.value = this.value.replace(/[^0-9.]/g, ""); if(this.value < 0) this.value = 0;')
+                .invalid-feedback(id='current_value-error')
               .form-group-wrapper
-                label(for='warranty_months') Warranty Period
+                label(for='warranty_months')
+                  span.required-field Warranty Period
                 input(type='text' class='form-control' id='warranty_months' name='warranty_months' 
-                      value=(isEdit ? (formData && formData.warranty_months) || (asset && asset.warranty_months) : (formData && formData.warranty_months) || '') 
-                      pattern='\d*' placeholder='Enter months'
+                      pattern='\d*' placeholder='Enter months' required
                       oninput='this.value = this.value.replace(/[^0-9]/g, ""); if(this.value < 0) this.value = 0; updateWarrantyDisplay(this.value)')
+                .invalid-feedback(id='warranty_months-error')
           .form-section
             h6.form-section-title
               i.fas.fa-map-marker-alt.me-2
               | Location
             .form-row
               .form-group-wrapper
-                label(for='branch') Branch
+                label(for='branch')
+                  span.required-field Branch
                 select.form-control(id='branch' name='branch' required)
                   option(value='') Select Branch
-                  if branches && branches.length > 0
-                    each branch in branches
-                      option(value=branch 
-                             selected=(isEdit ? (formData && formData.branch === branch) || (asset && asset.branch === branch) : (formData && formData.branch === branch)))
-                        = branch
+                .invalid-feedback(id='branch-error')
               .form-group-wrapper
-                label(for='location') Location
+                label(for='location')
+                  span.required-field Location
                 input(type='text' class='form-control' id='location' name='location' 
-                      value=(isEdit ? (formData && formData.location) || (asset && asset.location) : (formData && formData.location) || '')
-                      placeholder='Enter location')
+                      placeholder='Enter location' 
+                      required)
+                .invalid-feedback(id='location-error')
             .form-row(style="grid-template-columns: 1fr;")
               .form-group-wrapper
                 label(for='is_active') Active Status
                 select.form-control(id='is_active' name='is_active')
-                  option(value='true' selected=(isEdit ? (formData && formData.is_active === 'true') || (asset && asset.is_active === true) : (formData && formData.is_active === 'true'))) Active
-                  option(value='false' selected=(isEdit ? (formData && formData.is_active === 'false') || (asset && asset.is_active === false) : (formData && formData.is_active === 'false'))) Inactive
+                  option(value='true') Active
+                  option(value='false') Inactive
+                .invalid-feedback(id='is_active-error')
             .form-row(style="grid-template-columns: 1fr;")
               .form-group-wrapper
                 label(for='notes') Notes
                 textarea.form-control(
                   id='notes' 
                   name='notes' 
-                  placeholder='Enter any additional notes about this asset...'
-                )= isEdit ? (formData && formData.notes) || (asset && asset.notes) : (formData && formData.notes) || ''
+                  placeholder='Enter any additional notes about this asset...')
+                .invalid-feedback(id='notes-error')
           .form-dialog-footer
             a.form-action-btn.form-action-btn-secondary(href='/assets')
               i.fas.fa-times
               | Cancel
-            if isEdit
-              a.form-action-btn.form-action-btn-secondary(href='/assets/#{asset.id}')
-                i.fas.fa-eye
-                | View
+            a.form-action-btn.form-action-btn-secondary(id='viewAssetBtn' style='display: none;')
+              i.fas.fa-eye
+              | View
             button.form-action-btn.form-action-btn-primary(type='submit')
               i.fas.fa-save
-              = isEdit ? 'Update Asset' : 'Create Asset'
-    
+              | Create Asset
+
     script.
+      // Global variables
+      let isEdit = false;
+      let assetId = null;
+      
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're in edit mode by checking the URL
+        const pathParts = window.location.pathname.split('/');
+        isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
+        
+        if (isEdit) {
+          assetId = pathParts[pathParts.length - 2];
+          loadAssetData(assetId);
+          updateFormForEdit();
+        }
+        
+        // Load form options
+        loadFormOptions();
+        
+        // Setup form submission
+        setupFormSubmission();
+      });
+      
+      // Update form for edit mode
+      function updateFormForEdit() {
+        document.getElementById('formTitle').innerHTML = `
+          <i class="fas fa-edit me-2" style="color: #4e73df;"></i>
+          Edit Asset
+        `;
+        document.querySelector('button[type="submit"]').innerHTML = `
+          <i class="fas fa-save"></i>
+          Update Asset
+        `;
+        document.getElementById('asset_tag').readOnly = true;
+        document.getElementById('viewAssetBtn').style.display = 'inline-flex';
+      }
+      
       // Function to update warranty display
       function updateWarrantyDisplay(months) {
         const displayElement = document.querySelector('#warranty_months + .input-group-text');
@@ -164,11 +188,185 @@ block content
         } 
         displayElement.textContent = displayText || '';
       }
-      
-      // Initialize on page load (works for both create and edit)
-      document.addEventListener('DOMContentLoaded', function() {
-        const warrantyInput = document.getElementById('warranty_months');
-        if (warrantyInput && warrantyInput.value) {
-          updateWarrantyDisplay(warrantyInput.value);
+
+      // Load form options (categories and branches)
+      async function loadFormOptions() {
+        try {
+          const response = await fetch('/api/assets/asset-form-options');
+          const result = await response.json();
+          
+          if (result.success) {
+            // Load categories
+            const categorySelect = document.getElementById('category_id');
+            categorySelect.innerHTML = '<option value="">Select Category</option>';
+            result.data.categories.forEach(category => {
+              const option = document.createElement('option');
+              option.value = category.id;
+              option.textContent = category.name;
+              categorySelect.appendChild(option);
+            });
+
+            // Load branches
+            const branchSelect = document.getElementById('branch');
+            branchSelect.innerHTML = '<option value="">Select Branch</option>';
+            result.data.branches.forEach(branch => {
+              const option = document.createElement('option');
+              option.value = branch;
+              option.textContent = branch;
+              branchSelect.appendChild(option);
+            });
+          }
+        } catch (error) {
+          console.error('Error loading form options:', error);
+          showAlert('Error loading form options', 'danger');
         }
-      });
+      }
+
+      // Load asset data for edit mode
+      async function loadAssetData(assetId) {
+        try {
+          const response = await fetch(`/api/assets/${assetId}`);
+          const result = await response.json();
+          
+          if (result.success) {
+            const asset = result.data.asset;
+            
+            // Populate form fields
+            document.getElementById('name').value = asset.name || '';
+            document.getElementById('asset_tag').value = asset.asset_tag || '';
+            document.getElementById('category_id').value = asset.category_id || '';
+            document.getElementById('serial_number').value = asset.serial_number || '';
+            document.getElementById('model').value = asset.model || '';
+            document.getElementById('manufacturer').value = asset.manufacturer || '';
+            document.getElementById('purchase_date').value = asset.purchase_date ? new Date(asset.purchase_date).toISOString().split('T')[0] : '';
+            document.getElementById('purchase_cost').value = asset.purchase_cost || '';
+            document.getElementById('current_value').value = asset.current_value || '';
+            document.getElementById('warranty_months').value = asset.warranty_months || '';
+            document.getElementById('branch').value = asset.branch || '';
+            document.getElementById('location').value = asset.location || '';
+            document.getElementById('is_active').value = asset.is_active ? 'true' : 'false';
+            document.getElementById('notes').value = asset.notes || '';
+            
+            // Update warranty display if warranty months is set
+            if (asset.warranty_months) {
+              updateWarrantyDisplay(asset.warranty_months);
+            }
+
+            // Update form action for edit mode
+            document.getElementById('assetForm').action = `/assets/${assetId}?_method=PUT`;
+            
+            // Set View button href
+            document.getElementById('viewAssetBtn').href = `/assets/${assetId}`;
+          }
+        } catch (error) {
+          console.error('Error loading asset data:', error);
+          showAlert('Error loading asset data', 'danger');
+        }
+      }
+      
+      // Setup form submission
+      function setupFormSubmission() {
+        const form = document.getElementById('assetForm');
+        
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          // Clear previous errors
+          clearErrors();
+          
+          // Simple frontend validation for required fields
+          const requiredFields = ['name', 'category_id', 'serial_number', 'branch', 'location', 'warranty_months'];
+          const validationErrors = {};
+          
+          requiredFields.forEach(field => {
+            const element = document.getElementById(field);
+            const value = element ? element.value.trim() : '';
+            
+            if (!value) {
+              const fieldName = field.replace('_', ' ');
+              validationErrors[field] = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
+            }
+          });
+          
+          // If there are validation errors, show them and stop submission
+          if (Object.keys(validationErrors).length > 0) {
+            Object.keys(validationErrors).forEach(field => {
+              showFieldError(field, validationErrors[field]);
+            });
+            showAlert('Please fix the errors below', 'danger');
+            return;
+          }
+          
+          // Get form data
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+          
+          try {
+            const url = isEdit ? `/api/assets/${assetId}` : '/api/assets';
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+              method: method,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+              showAlert(result.message || 'Asset saved successfully', 'success');
+              setTimeout(() => {
+                window.location.href = '/assets';
+              }, 1500);
+            } else {
+              // Show error message
+              showAlert(result.error || 'Error saving asset', 'danger');
+              
+              // Show field-specific errors if available
+              if (result.fieldErrors) {
+                Object.keys(result.fieldErrors).forEach(field => {
+                  showFieldError(field, result.fieldErrors[field]);
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error submitting form:', error);
+            showAlert('Error submitting form', 'danger');
+          }
+        });
+      }
+      
+      // Show alert message
+      function showAlert(message, type) {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mb-3`;
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+          <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        alertContainer.innerHTML = '';
+        alertContainer.appendChild(alertDiv);
+      }
+      
+      // Show field-specific error
+      function showFieldError(field, message) {
+        const errorElement = document.getElementById(`${field}-error`);
+        if (errorElement) {
+          errorElement.textContent = message;
+          errorElement.style.display = 'block';
+        }
+      }
+      
+      // Clear all errors
+      function clearErrors() {
+        document.querySelectorAll('.invalid-feedback').forEach(element => {
+          element.textContent = '';
+          element.style.display = 'none';
+        });
+      }
