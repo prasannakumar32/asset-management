@@ -30,6 +30,9 @@ exports.listAPI = async (req, res) => {
         } else if (status === 'inactive') {
             whereClause.is_active = false;
         }
+        else if (status === '') {
+            whereClause.is_active = true;
+        }
         
         const categories = await AssetCategory.findAll({
             where: whereClause,

@@ -2,11 +2,14 @@ const express = require('express');
 const router = express.Router();
 const assetController = require('./assetController');
 
-// API endpoint to get assets as JSON
+// Get form option
+router.get('/asset-form-options', assetController.getFormOptions);
+
+// Get assets as JSON
 router.get('/', assetController.listAPI);
 
-// Get a single asset by id 
-router.get('/:id', assetController.viewAsset);
+// Get a single asset by id
+router.get('/:id', assetController.getAssetById);
 
 // Create a new asset
 router.post('/', assetController.create);

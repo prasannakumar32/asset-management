@@ -101,13 +101,9 @@ block content
             .form-row
               .form-group-wrapper
                 label(for='branch') Branch
-                select.form-control(id='branch' name='branch')
-                  option(value='') Select Branch
-                  if branches && branches.length > 0
-                    each branch in branches
-                      option(value=branch 
-                             selected=(formData && formData.branch === branch) || (isEdit && employee && employee.branch === branch))
-                        = branch
+                input.form-control(type='text' id='branch' name='branch' 
+                      value=(formData && formData.branch) || (isEdit && employee && employee.branch) || ''
+                      placeholder='Enter branch location')
               .form-group-wrapper
                 label(for='hire_date') 
                   span.required-field Hire Date

@@ -288,7 +288,7 @@ exports.delete = async (req, res) => {
 
 exports.listAPI = async (req, res) => {
     try {
-        const { category = '', status = '', is_active = 'true', branch = '' } = req.query;
+        const { category = '', status = '', is_active = '', branch = '' } = req.query;
         const whereClause = {};
 
 // Build where clause (same logic as list function)
@@ -306,7 +306,7 @@ exports.listAPI = async (req, res) => {
 
         if (status) whereClause.status = status;
         if (branch) whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
-        whereClause.is_active = is_active === 'true';
+        if (is_active !== '') whereClause.is_active = is_active === 'true';
 
         const assets = await Asset.findAll({
             where: whereClause,
@@ -319,6 +319,42 @@ exports.listAPI = async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error fetching assets',
+            message: error.message
+        });
+    }
+};
+
+exports.getAssetById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const asset = await Asset.findByPk(id, {
+            include: [{ model: db.AssetCategory, as: 'category', attributes: ['id', 'name'] }]
+        });
+        
+        if (!asset) {
+            return res.status(404).json({ success: false, error: 'Asset not found' });
+        }
+        
+        res.json({ success: true, data: { asset } });
+    } catch (error) {
+        console.error('Error fetching asset:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error fetching asset',
+            message: error.message
+        });
+    }
+};
+
+exports.getFormOptions = async (req, res) => {
+    try {
+        const options = await getFormOptions();
+        res.json({ success: true, data: options });
+    } catch (error) {
+        console.error('Error fetching form options:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error fetching form options',
             message: error.message
         });
     }
