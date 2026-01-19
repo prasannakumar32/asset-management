@@ -244,8 +244,6 @@ exports.update = async (req, res) => {
         
         // Don't allow updating certain fields
         delete assetData.asset_tag;
-        delete assetData.current_assignment;
-        delete assetData.currently_assigned_to;
         
         // Check duplicate serial number (excluding current asset)
         if (assetData.serial_number && assetData.serial_number.trim() !== '') {

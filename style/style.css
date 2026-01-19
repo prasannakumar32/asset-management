@@ -874,3 +874,66 @@ h1.mb-4 {
   margin-top: 0.25rem;
   font-weight: 500;
 }
+
+/* Asset Details Two Column Layout */
+.asset-details-card {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.asset-details-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem;
+}
+
+.asset-details-header h6 {
+  color: #495057;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.asset-details-body {
+  padding: 1rem;
+  background: #fff;
+}
+
+.asset-details-body .row {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.asset-details-body .col-6 {
+  padding: 0.5rem;
+  width: 50%;
+  float: left;
+  box-sizing: border-box;
+}
+
+.asset-details-body p {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  clear: both;
+}
+
+.asset-details-body p:last-child {
+  margin-bottom: 0;
+}
+
+.asset-details-body strong {
+  color: #495057;
+  font-weight: 600;
+  margin-right: 0.5rem;
+  display: inline-block;
+}
+
+.asset-details-body span {
+  color: #212529;
+  font-weight: 400;
+}

@@ -39,29 +39,50 @@ block content
               .description Active branches
     
     #stockDataContainer
-      .text-center.py-5
-        .spinner-border.text-primary(role='status')
-        p.mt-2.text-muted Loading stock data...
     
     script.
-      document.addEventListener('DOMContentLoaded', loadStockData);
-      
-      function loadStockData() {
+      function loadStockData(retryCount = 0, isManualRefresh = false) {
+        
+        // Show loading state
+        const container = document.getElementById('stockDataContainer');
+        if (isManualRefresh || retryCount === 0) {
+          container.innerHTML = `
+            <div class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2 text-muted">${isManualRefresh ? 'Refreshing stock data...' : 'Loading stock data...'}</p>
+            </div>
+          `;
+        }
+        
         fetch('/api/stock')
-          .then(response => response.json())
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
           .then(data => {
             if (data.success) {
               updateDashboard(data.data);
               renderStockData(data.data);
             } else {
-              showError('Unable to load stock data');
+              console.error('API returned error:', data);
+              showError('Unable to load stock data: ' + (data.error || 'Unknown error'));
             }
           })
           .catch(error => {
             console.error('Stock data error:', error);
-            showError('Failed to connect to server');
+            if (retryCount < 2) {
+              setTimeout(() => loadStockData(retryCount + 1, isManualRefresh), 1000);
+            } else {
+              showError('Failed to connect to server: ' + error.message);
+            }
           });
       }
+      
+      document.addEventListener('DOMContentLoaded', () => loadStockData());
       
       function updateDashboard(data) {
         // Update dashboard cards using same pattern as dashboard

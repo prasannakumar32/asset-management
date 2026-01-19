@@ -33,22 +33,26 @@ block content
             | Back to Asset List
       .row
         .col-md-4.mb-4
-          .card
-            .card-header.bg-light
-              h6.mb-0 Asset Details
-            .card-body
-              p.mb-1
-                strong Name: 
-                span#assetName
-              p.mb-1
-                strong Tag: 
-                span#assetTag
-              p.mb-1
-                strong Category: 
-                span#assetCategory
-              p.mb-0
-                strong Status: 
-                span#assetStatus
+          .card.asset-details-card
+            .card-header.asset-details-header
+              h6.mb-0
+                | Asset Details
+            .card-body.asset-details-body
+              .row
+                .col-6
+                  p.mb-2
+                    strong Name: 
+                    span#assetName
+                  p.mb-2
+                    strong Tag: 
+                    span#assetTag
+                .col-6
+                  p.mb-2
+                    strong Category: 
+                    span#assetCategory
+                  p.mb-2
+                    strong Status: 
+                    span#assetStatus
         .col-md-8
           .card
             .card-header.bg-light.py-3
