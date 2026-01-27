@@ -41,11 +41,11 @@ block content
                   span.required-field Return Condition
                 select#returnCondition.form-control(name='return_condition')
                   option(value='') Select Condition
-                  option(value='excellent') Excellent
                   option(value='good') Good
-                  option(value='fair') Fair
                   option(value='poor') Poor
                   option(value='damaged') Damaged
+                  option(value='lost') Lost
+                  option(value='stolen') Stolen
                 .invalid-feedback(id='return_condition-error')
           .form-section
             h6.form-section-title
@@ -112,17 +112,19 @@ block scripts
       }
       
       try {
-        const response = await fetch(`/api/assets?assigned_to=${employeeId}&status=assigned`);
+        const response = await fetch(`/api/asset-assignment/employee/${employeeId}`);
         const result = await response.json();
         
-        if (result.success && result.data && result.data.assets) {
+        if (result.success && result.data && result.data.assignments) {
           assetSelect.innerHTML = '<option value="">Select Asset</option>';
           
-          result.data.assets.forEach(asset => {
-            const option = document.createElement('option');
-            option.value = asset.id;
-            option.textContent = `${asset.name} (${asset.asset_tag})`;
-            assetSelect.appendChild(option);
+          result.data.assignments.forEach(assignment => {
+            if (assignment.asset) {
+              const option = document.createElement('option');
+              option.value = assignment.asset.id;
+              option.textContent = `${assignment.asset.name} (${assignment.asset.asset_tag})`;
+              assetSelect.appendChild(option);
+            }
           });
           
           if (assetSelect.children.length === 1) {

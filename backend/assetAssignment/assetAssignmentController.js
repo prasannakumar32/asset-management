@@ -296,19 +296,10 @@ exports.returnAsset = async (req, res) => {
 // Show return form
 exports.showReturnForm = async (req, res) => {
   try {
-    return res.json({
-      success: true,
-      data: {
-        message: 'Return form data ready'
-      }
-    });
+    return res.render('asset-assignment/return-form');
   } catch (error) {
     console.error('Error loading return form:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error loading return form',
-      message: error.message
-    });
+    return res.status(500).render('error', { error: 'Error loading return form' });
   }
 };
 

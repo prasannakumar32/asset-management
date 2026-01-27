@@ -75,7 +75,7 @@ block scripts
 
     async function loadAssets() {
       try {
-        const response = await fetch('/api/assets?is_active=true');
+        const response = await fetch('/api/assets?status=assigned,available');
         const result = await response.json();
         const assetSelect = document.getElementById('assetId');
         
@@ -90,7 +90,7 @@ block scripts
           });
           
           if (assetSelect.children.length === 1) {
-            showAlert('No assets found', 'warning');
+            showAlert('No assigned or available assets found', 'warning');
           }
         } else {
           showAlert('Error loading assets', 'danger');

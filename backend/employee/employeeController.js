@@ -73,9 +73,9 @@ const renderFormWithError = async (res, isEdit, error, formData = null, employee
         departments: options.departments,
         branches: options.branches,
         statuses: options.statuses,
-        currentPage: 'employee',
+        currentPage: 'employees',
         formData: formData || getFormData(res.req),
-        hireDateValue: hireDateValue,
+        hireDateValue: employee ? employee.hire_date : new Date().toISOString().split('T')[0],
         error: error
     });
 };
@@ -131,12 +131,12 @@ exports.showForm = async (req, res) => {
         const isEdit = !!id;
         const options = await getFormOptions();
         
-        const employee = isEdit 
-            ? await Employee.findByPk(id) 
-            : null;
-            
-        if (isEdit && !employee) {
-            return res.status(404).render('error', { error: 'Employee not found' });
+        let employee = null;
+        if (isEdit) {
+            employee = await Employee.findByPk(id);
+            if (!employee) {
+                return res.status(404).render('error', { error: 'Employee not found' });
+            }
         }
         
         return res.render('employee/employee-form', {
@@ -162,11 +162,33 @@ exports.view = async (req, res) => {
         if (!employee) {
             return res.status(404).render('error', { error: 'Employee not found' });
         }
+
+        // Get assigned assets for this employee
+        const assignments = await db.AssetAssignment.findAll({
+            where: { 
+                employee_id: id,
+                status: 'assigned'
+            },
+            include: [
+                { 
+                    model: db.Asset, 
+                    as: 'asset', 
+                    attributes: ['id', 'name', 'asset_tag', 'serial_number', 'status'],
+                    include: [{ 
+                        model: db.AssetCategory, 
+                        as: 'category', 
+                        attributes: ['id', 'name'] 
+                    }]
+                }
+            ],
+            order: [['assigned_date', 'DESC']]
+        });
         
         return res.render('employee/employee-view', {
             title: 'Employee Details',
             currentPage: 'employees',
-            employee: employee
+            employee: employee,
+            assignments: assignments
         });
     } catch (error) {
         console.error('Error viewing employee:', error);
@@ -178,14 +200,14 @@ exports.create = async (req, res) => {
     try {
         let employeeData = parseEmployeeData(req.body);
         
-// Validate required fields
+        // Validate required fields
         const requiredFields = ['first_name', 'email', 'department', 'branch', 'status', 'hire_date'];
         const missingFields = [];
         
         requiredFields.forEach(field => {
-            (!employeeData[field] || (typeof employeeData[field] === "string" && employeeData[field].trim()) === '') 
-                ? missingFields.push(field) 
-                : null;
+            if (!employeeData[field] || (typeof employeeData[field] === "string" && employeeData[field].trim() === '')) {
+                missingFields.push(field);
+            }
         });
         
         if (missingFields.length > 0) {
@@ -201,43 +223,41 @@ exports.create = async (req, res) => {
             });
         }
         
-// Handle employee ID
-        (!employeeData.employee_id || employeeData.employee_id.trim() === '') 
-            ? (employeeData.employee_id = await generateEmployeeId())
-            : (async () => {
-                const existingEmployee = await Employee.findOne({
-                    where: { employee_id: employeeData.employee_id.trim() }
+        // Handle employee ID
+        if (!employeeData.employee_id || employeeData.employee_id.trim() === '') {
+            employeeData.employee_id = await generateEmployeeId();
+        } else {
+            const existingEmployee = await Employee.findOne({
+                where: { employee_id: employeeData.employee_id.trim() }
+            });
+            if (existingEmployee) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Employee ID already exists. Please use a different ID or leave empty to auto-generate.',
+                    fieldErrors: {
+                        employee_id: 'Employee ID already exists'
+                    }
                 });
-                if (existingEmployee) {
-                    return res.status(400).json({ 
-                        success: false, 
-                        error: 'Employee ID already exists. Please use a different ID or leave empty to auto-generate.',
-                        fieldErrors: {
-                            employee_id: 'Employee ID already exists'
-                        }
-                    });
-                }
-            })();
+            }
+        }
         
-// Check duplicate email
-        (employeeData.email && employeeData.email.trim() !== '') 
-            ? (async () => {
-                const existingEmployee = await Employee.findOne({
-                    where: { email: employeeData.email.trim().toLowerCase() }
+        // Check duplicate email
+        if (employeeData.email && employeeData.email.trim() !== '') {
+            const existingEmployee = await Employee.findOne({
+                where: { email: employeeData.email.trim().toLowerCase() }
+            });
+            if (existingEmployee) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Email already exists. Please use a different email address.',
+                    fieldErrors: {
+                        email: 'Email already exists'
+                    }
                 });
-                if (existingEmployee) {
-                    return res.status(400).json({ 
-                        success: false, 
-                        error: 'Email already exists. Please use a different email address.',
-                        fieldErrors: {
-                            email: 'Email already exists'
-                        }
-                    });
-                }
-            })()
-            : null;
+            }
+        }
         
-// Create employee with transaction
+        // Create employee with transaction
         const transaction = await db.sequelize.transaction();
         try {
             const employee = await Employee.create(employeeData, { transaction });
@@ -255,7 +275,7 @@ exports.create = async (req, res) => {
     } catch (error) {
         console.error('Error creating employee:', error);
         
-// Handle validation errors
+        // Handle validation errors
         if (error.name === 'SequelizeValidationError') {
             const fieldErrors = {};
             error.errors.forEach(err => {
@@ -305,14 +325,14 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         let employeeData = parseEmployeeData(req.body);
         
-// Validate required fields
+        // Validate required fields
         const requiredFields = ['first_name', 'email', 'department', 'branch', 'status', 'hire_date'];
         const missingFields = [];
         
         requiredFields.forEach(field => {
-            (!employeeData[field] || (typeof employeeData[field] === "string" && employeeData[field].trim()) === '') 
-                ? missingFields.push(field) 
-                : null;
+            if (!employeeData[field] || (typeof employeeData[field] === "string" && employeeData[field].trim() === '')) {
+                missingFields.push(field);
+            }
         });
         
         if (missingFields.length > 0) {
@@ -328,48 +348,48 @@ exports.update = async (req, res) => {
             });
         }
         
-// Don't allow updating employee id
+        // Don't allow updating employee id
         delete employeeData.employee_id;
         
-// Check duplicate email 
-        (employeeData.email && employeeData.email.trim() !== '') 
-            ? (async () => {
-                const existingEmployee = await Employee.findOne({
-                    where: { 
-                        email: employeeData.email.trim().toLowerCase(),
-                        id: { [Op.ne]: parseInt(id) }
+        // Check duplicate email 
+        if (employeeData.email && employeeData.email.trim() !== '') {
+            const existingEmployee = await Employee.findOne({
+                where: { 
+                    email: employeeData.email.trim().toLowerCase(),
+                    id: { [Op.ne]: parseInt(id) }
+                }
+            });
+            if (existingEmployee) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Email already exists. Please use a different email address.',
+                    fieldErrors: {
+                        email: 'Email already exists'
                     }
                 });
-                if (existingEmployee) {
-                    return res.status(400).json({ 
-                        success: false, 
-                        error: 'Email already exists. Please use a different email address.',
-                        fieldErrors: {
-                            email: 'Email already exists'
-                        }
-                    });
-                }
-            })()
-            : null;
+            }
+        }
         
-// Update employee
+        // Update employee
         const [updatedRowsCount] = await Employee.update(employeeData, { where: { id } });
         
-        (updatedRowsCount === 0) 
-            ? res.status(404).json({ success: false, error: 'Employee not found' })
-            : (async () => {
-                const updatedEmployee = await Employee.findByPk(id);
-                return res.json({ 
-                    success: true, 
-                    message: 'Employee updated successfully',
-                    data: { employee: updatedEmployee }
-                });
-            })();
+        if (updatedRowsCount === 0) {
+            return res.status(404).json({ success: false, error: 'Employee not found' });
+        }
+        
+        // Get updated employee to return in response
+        const updatedEmployee = await Employee.findByPk(id);
+        
+        return res.json({ 
+            success: true, 
+            message: 'Employee updated successfully',
+            data: { employee: updatedEmployee }
+        });
         
     } catch (error) {
         console.error('Error updating employee:', error);
         
-// Handle validation errors
+        // Handle validation errors
         if (error.name === 'SequelizeValidationError') {
             const fieldErrors = {};
             error.errors.forEach(err => {
@@ -383,7 +403,7 @@ exports.update = async (req, res) => {
             });
         }
         
-// Handle unique constraint errors
+        // Handle unique constraint errors
         if (error.name === 'SequelizeUniqueConstraintError') {
             let field, message;
             if (error.errors[0].path === 'email') {
@@ -414,10 +434,10 @@ exports.update = async (req, res) => {
 exports.getFormOptions = async (req, res) => {
     try {
         const options = await getFormOptions();
-        res.json({ success: true, data: options });
+        return res.json({ success: true, data: options });
     } catch (error) {
         console.error('Error fetching form options:', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: 'Error fetching form options',
             message: error.message
@@ -430,12 +450,14 @@ exports.getEmployeeById = async (req, res) => {
         const { id } = req.params;
         const employee = await Employee.findByPk(id);
         
-        (!employee) 
-            ? res.status(404).json({ success: false, error: 'Employee not found' })
-            : res.json({ success: true, data: { employee } });
+        if (!employee) {
+            return res.status(404).json({ success: false, error: 'Employee not found' });
+        }
+        
+        return res.json({ success: true, data: { employee } });
     } catch (error) {
         console.error('Error fetching employee:', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: 'Error fetching employee',
             message: error.message
@@ -447,15 +469,20 @@ exports.delete = async (req, res) => {
     try {
         const { id } = req.params;
         
+        const employee = await Employee.findByPk(id);
+        if (!employee) {
+            return res.status(404).json({ success: false, error: 'Employee not found' });
+        }
+        
         await Employee.destroy({ where: { id } });
         
         return res.json({ success: true, message: 'Employee deleted successfully' });
     } catch (error) {
         console.error('Error deleting employee:', error);
-        return res.status(500).json({ 
-            success: false, 
-            error: 'Error deleting employee',
-            message: error.message
-        });
+        const errorMessage = error.message.includes('foreign key constraint') 
+            ? 'Cannot delete employee: It has related records' 
+            : 'Error deleting employee: ' + error.message;
+            
+        return res.status(500).json({ success: false, error: errorMessage });
     }
 };
