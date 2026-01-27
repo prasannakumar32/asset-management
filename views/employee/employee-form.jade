@@ -140,12 +140,16 @@ block content
         const pathParts = window.location.pathname.split('/');
         isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
         
-        // Load form option
+        if (isEdit) {
+          employeeId = pathParts[pathParts.length - 2];
+          updateFormForEdit();
+        }
+        
+        // Load form options first
         loadFormOptions().then(() => {
-          if (isEdit) {
-            employeeId = pathParts[pathParts.length - 2];
+          // Load employee data after form options are loaded (for edit mode)
+          if (isEdit && employeeId) {
             loadEmployeeData(employeeId);
-            updateFormForEdit();
           }
         });
         
@@ -178,11 +182,19 @@ block content
             const departmentSelect = document.getElementById('department');
             if (departmentSelect) {
               departmentSelect.innerHTML = '<option value="">Select Department</option>';
-              result.data.departments.forEach(department => {
-                const option = document.createElement('option');
-                option.value = department;
-                option.textContent = department;
-                departmentSelect.appendChild(option);
+              
+              // Get unique departments to avoid duplicates
+              const uniqueDepartments = new Set();
+              result.data.departments.forEach(departmentObj => {
+                if (departmentObj.department && !uniqueDepartments.has(departmentObj.department)) {
+                  uniqueDepartments.add(departmentObj.department);
+                  const option = document.createElement('option');
+                  option.value = departmentObj.department;
+                  // Capitalize first letter, make rest lowercase
+                  const formattedDepartment = departmentObj.department.charAt(0).toUpperCase() + departmentObj.department.slice(1).toLowerCase();
+                  option.textContent = formattedDepartment;
+                  departmentSelect.appendChild(option);
+                }
               });
             }
 
@@ -190,11 +202,19 @@ block content
             const branchSelect = document.getElementById('branch');
             if (branchSelect) {
               branchSelect.innerHTML = '<option value="">Select Branch</option>';
-              result.data.branches.forEach(branch => {
-                const option = document.createElement('option');
-                option.value = branch;
-                option.textContent = branch;
-                branchSelect.appendChild(option);
+              
+              // Get unique branches to avoid duplicates
+              const uniqueBranches = new Set();
+              result.data.branches.forEach(branchObj => {
+                if (branchObj.branch && !uniqueBranches.has(branchObj.branch)) {
+                  uniqueBranches.add(branchObj.branch);
+                  const option = document.createElement('option');
+                  option.value = branchObj.branch;
+                  // Capitalize first letter, make rest lowercase
+                  const formattedBranch = branchObj.branch.charAt(0).toUpperCase() + branchObj.branch.slice(1).toLowerCase();
+                  option.textContent = formattedBranch;
+                  branchSelect.appendChild(option);
+                }
               });
             }
           }
@@ -321,10 +341,7 @@ block content
             const result = await response.json();
             
             if (result.success) {
-              showAlert(result.message || 'Employee saved successfully', 'success');
-              setTimeout(() => {
-                window.location.href = '/employee';
-              }, 1500);
+              window.location.href = '/employee';
             } else {
               // Show error message
               showAlert(result.error || 'Error saving employee', 'danger');

@@ -63,6 +63,7 @@ router.use('/api/employee', employeeRoutes);
 router.get('/employee', employeeController.list);
 router.get('/employee/form', employeeController.showForm);
 router.get('/employee/:id/form', employeeController.showForm);
+router.get('/employee/:id', employeeController.view);
 router.get('/employee/:id/view', employeeController.view);
 router.post('/employee', employeeController.create);
 router.put('/employee/:id', employeeController.update);
@@ -95,11 +96,17 @@ router.get('/asset-categories/form', assetCategoryController.showCategoryForm);
 router.get('/asset-categories/:id/form', assetCategoryController.showCategoryForm);
 router.get('/asset-categories/:id/view', assetCategoryController.viewCategory);
 
+// API routes for asset categories
+router.use('/api/asset-categories', assetCategoriesRoutes);
+
 // Dashboard Routes
 router.use('/dashboard', dashboardRoutes);
 
 // Stock Routes
 router.get('/stock', stockController.showStockPage);
+
+// API routes for stock
+router.use('/api/stock', require('../stock/stockRoute'));
 
 // Asset History Page Route
 router.get('/asset-history', (req, res) => {

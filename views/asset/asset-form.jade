@@ -132,24 +132,27 @@ block content
               | Create Asset
 
     script.
-      // Global variables
+      //create asset or edit asset script
       let isEdit = false;
       let assetId = null;
       
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
-        // Check if we're in edit mode by checking the URL
+        // Check edit mode 
         const pathParts = window.location.pathname.split('/');
         isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
         
         if (isEdit) {
           assetId = pathParts[pathParts.length - 2];
-          loadAssetData(assetId);
           updateFormForEdit();
         }
         
-        // Load form options
-        loadFormOptions();
+        // Load form options first
+        loadFormOptions().then(() => {
+          // Load asset data after form options are loaded (for edit mode)
+          if (isEdit && assetId) {
+            loadAssetData(assetId);
+          }
+        });
         
         // Setup form submission
         setupFormSubmission();
@@ -209,11 +212,19 @@ block content
             // Load branches
             const branchSelect = document.getElementById('branch');
             branchSelect.innerHTML = '<option value="">Select Branch</option>';
-            result.data.branches.forEach(branch => {
-              const option = document.createElement('option');
-              option.value = branch;
-              option.textContent = branch;
-              branchSelect.appendChild(option);
+            
+            // Get unique branches to avoid duplicates
+            const uniqueBranches = new Set();
+            result.data.branches.forEach(branchObj => {
+              if (branchObj.branch && !uniqueBranches.has(branchObj.branch)) {
+                uniqueBranches.add(branchObj.branch);
+                const option = document.createElement('option');
+                option.value = branchObj.branch;
+                // Capitalize first letter, make rest lowercase
+                const formattedBranch = branchObj.branch.charAt(0).toUpperCase() + branchObj.branch.slice(1).toLowerCase();
+                option.textContent = formattedBranch;
+                branchSelect.appendChild(option);
+              }
             });
           }
         } catch (error) {
@@ -316,10 +327,7 @@ block content
             const result = await response.json();
             
             if (result.success) {
-              showAlert(result.message || 'Asset saved successfully', 'success');
-              setTimeout(() => {
-                window.location.href = '/assets';
-              }, 1500);
+              window.location.href = '/assets';
             } else {
               // Show error message
               showAlert(result.error || 'Error saving asset', 'danger');

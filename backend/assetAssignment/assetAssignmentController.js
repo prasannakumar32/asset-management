@@ -3,11 +3,19 @@ const { Op } = require('sequelize');
 const { Asset, Employee, AssetAssignment } = db;
 
 // Helper functions
-const sendResponse = (res, status, success, message, data = null) => {
-  res.status(status).json({ success, message, ...(data && { data }) });
+const sendResponse = (res, status, success, message, data) => {
+  const response = { success: success, message: message };
+  if (data) {
+    response.data = data;
+  }
+  res.status(status).json(response);
 };
-const sendError = (res, status, error, message = null) => {
-  res.status(status).json({ success: false, error, ...(message && { message }) });
+const sendError = (res, status, error, message) => {
+  const response = { success: false, error: error };
+  if (message) {
+    response.message = message;
+  }
+  res.status(status).json(response);
 };
 const updateAssetStatus = async (assetId, status) => {
   await Asset.update({ status }, { where: { id: assetId } });
@@ -28,11 +36,12 @@ const withTransaction = async (callback) => {
 // Create assignment
 exports.createAssignment = async (req, res) => {
   try {
-    const assignmentData = {
-      ...req.body,
-      assigned_date: req.body.assigned_date || new Date().toISOString().split('T')[0],
-      status: 'assigned'
-    };
+    const assignmentData = {};
+    for (const key in req.body) {
+      assignmentData[key] = req.body[key];
+    }
+    assignmentData.assigned_date = req.body.assigned_date || new Date().toISOString().split('T')[0];
+    assignmentData.status = 'assigned';
 
     // Validate required fields
     const fieldErrors = {};
@@ -287,14 +296,18 @@ exports.returnAsset = async (req, res) => {
 // Show return form
 exports.showReturnForm = async (req, res) => {
   try {
-    res.render('asset-assignment/return-form', {
-      error: req.query.error,
-      success: req.query.success
+    return res.json({
+      success: true,
+      data: {
+        message: 'Return form data ready'
+      }
     });
   } catch (error) {
     console.error('Error loading return form:', error);
-    res.render('asset-assignment/return-form', {
-      error: req.query.error || 'Error loading return form'
+    return res.status(500).json({
+      success: false,
+      error: 'Error loading return form',
+      message: error.message
     });
   }
 };

@@ -2,25 +2,20 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const AssetCategory = db.AssetCategory;
 
-// Show asset categories page 
+// Show asset categories
 exports.showCategoryPage = async (req, res) => {
     try {
-        const { status = '' } = req.query;
-        
-        res.render('asset-categories/asset-categories', {
-            status,
+        return res.render('asset-categories/asset-categories', {
             title: 'Asset Categories',
-            currentPage: 'asset-categories',
-            error: req.query.error,
-            success: req.query.success
+            currentPage: 'asset-categories'
         });
     } catch (error) {
         console.error('Error rendering categories page:', error);
-        res.redirect('/dashboard');
+        return res.status(500).render('error', { error: 'Error loading categories page' });
     }
 };
 
-// API endpoint for categories
+// api endpoint for categories list
 exports.listAPI = async (req, res) => {
     try {
         const { status = '' } = req.query;
@@ -39,16 +34,17 @@ exports.listAPI = async (req, res) => {
             order: [['name', 'ASC']]
         });
 
-        res.json({ success: true, data: { categories } });
+        return res.json({ success: true, data: { categories } });
     } catch (error) {
-        console.error('Error fetching categories API:', error);
-        res.status(500).json({
+        console.error('Error fetching categories:', error);
+        return res.status(500).json({
             success: false,
             error: 'Error fetching categories',
             message: error.message
         });
     }
 };
+
 
 // Show category form 
 exports.showCategoryForm = async (req, res) => {
@@ -58,21 +54,18 @@ exports.showCategoryForm = async (req, res) => {
         if (id) {
             category = await AssetCategory.findByPk(id);
             if (!category) {
-                return res.redirect('/asset-categories');
+                return res.status(404).render('error', { error: 'Category not found' });
             }
         }
-        res.render('asset-categories/asset-category-form', {
-            category,
-            title: id ? 'Edit Category' : 'Add New Category',
+        return res.render('asset-categories/asset-category-form', {
+            title: id ? 'Edit Category' : 'Create Category',
             currentPage: 'asset-categories',
-            isEdit: !!id,
-            error: req.query.error,
-            success: req.query.success,
-            formData: req.query.error ? req.query : {}
+            category: category,
+            isEdit: !!id
         });
     } catch (error) {
         console.error('Error showing category form:', error);
-        res.redirect('/asset-categories');
+        return res.status(500).render('error', { error: 'Error loading category form' });
     }
 };
 
@@ -82,22 +75,16 @@ exports.viewCategory = async (req, res) => {
         const { id } = req.params;
         const category = await AssetCategory.findByPk(id);
         if (!category) {
-            return res.status(404).render('error', { 
-                message: 'Category not found',
-                error: 'The requested category does not exist'
-            });
+            return res.status(404).render('error', { error: 'Category not found' });
         }
-        res.render('asset-categories/asset-category-view', {
-            category,
+        return res.render('asset-categories/asset-category-view', {
             title: 'Category Details',
-            currentPage: 'asset-categories'
+            currentPage: 'asset-categories',
+            category: category
         });
     } catch (error) {
         console.error('Error viewing category:', error);
-        res.status(500).render('error', { 
-            message: 'Error loading category details',
-            error: error.message 
-        });
+        return res.status(500).render('error', { error: 'Error loading category details' });
     }
 };
 
@@ -107,7 +94,7 @@ exports.create = async (req, res) => {
         const { name, description } = req.body;
         const is_active = req.body.is_active === 'true' || req.body.is_active === true;
         
-        // Validate required fields
+// Validate required fields
         const fieldErrors = {};
         if (!name || name.trim() === '') {
             fieldErrors.name = 'Category name is required';
@@ -124,10 +111,10 @@ exports.create = async (req, res) => {
             });
         }
 
-        // Check for duplicate category name
+// Check for duplicate category name
         const existingCategory = await AssetCategory.findOne({
             where: { 
-                name: name.trim()
+                name: name
             }
         });
 
@@ -155,7 +142,7 @@ exports.create = async (req, res) => {
     } catch (error) {
         console.error('Error creating category:', error);
         
-        // Handle validation errors
+// Handle validation errors
         if (error.name === 'SequelizeValidationError') {
             const fieldErrors = {};
             error.errors.forEach(err => {
@@ -169,7 +156,7 @@ exports.create = async (req, res) => {
             });
         }
         
-        // Handle unique constraint errors
+// Handle unique constraint errors
         if (error.name === 'SequelizeUniqueConstraintError') {
             return res.status(400).json({
                 success: false,
@@ -192,8 +179,8 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         const categoryData = req.body;
-        
-        // Validate required fields
+
+// Validate required fields
         const fieldErrors = {};
         if (!categoryData.name || categoryData.name.trim() === '') {
             fieldErrors.name = 'Category name is required';
@@ -210,12 +197,12 @@ exports.update = async (req, res) => {
             });
         }
         
-        // Process the is_active field properly
+// Process the is_active field properly
         if (categoryData.is_active !== undefined) {
             categoryData.is_active = categoryData.is_active === 'true' || categoryData.is_active === true;
         }
         
-        // Check for duplicate category name (excluding current category)
+// Check for duplicate category name
         const existingCategory = await AssetCategory.findOne({
             where: { 
                 name: categoryData.name.trim(),
@@ -242,7 +229,7 @@ exports.update = async (req, res) => {
             });
         }
         
-        // Get updated category to return in API response
+// Get updated category to return in API response
         const updatedCategory = await AssetCategory.findByPk(id);
         
         return res.json({
@@ -253,7 +240,7 @@ exports.update = async (req, res) => {
     } catch (error) {
         console.error('Error updating category:', error);
         
-        // Handle validation errors
+// Handle validation errors
         if (error.name === 'SequelizeValidationError') {
             const fieldErrors = {};
             error.errors.forEach(err => {
@@ -267,7 +254,7 @@ exports.update = async (req, res) => {
             });
         }
         
-        // Handle unique constraint errors
+ // Handle unique constraint errors
         if (error.name === 'SequelizeUniqueConstraintError') {
             return res.status(400).json({
                 success: false,
@@ -295,10 +282,7 @@ exports.delete = async (req, res) => {
         
         if (!category) {
             await transaction.rollback();
-            if (isApiRequest) {
-                return res.status(404).json({ success: false, error: 'Category not found' });
-            }
-            return res.redirect('/asset-categories?error=Category not found');
+            return res.status(404).json({ success: false, error: 'Category not found' });
         }
         
         await AssetCategory.destroy({ 
@@ -315,7 +299,7 @@ exports.delete = async (req, res) => {
         await transaction.rollback();
         console.error('Error deleting category:', error);
         
-        // Handle validation errors
+// Handle validation errors
         if (error.name === 'SequelizeValidationError') {
             const fieldErrors = {};
             error.errors.forEach(err => {
@@ -329,7 +313,7 @@ exports.delete = async (req, res) => {
             });
         }
         
-        // Handle foreign key constraint errors
+// Handle foreign key constraint errors
         const errorMessage = error.message.includes('foreign key constraint') 
             ? 'Cannot delete category: It has related records that could not be removed' 
             : 'Error deleting category: ' + error.message;
@@ -341,7 +325,7 @@ exports.delete = async (req, res) => {
     }
 };
 
-// Get category by ID for API
+// Get category by id
 exports.getCategoryById = async (req, res) => {
     try {
         const { id } = req.params;

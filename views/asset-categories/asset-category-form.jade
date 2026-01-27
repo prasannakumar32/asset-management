@@ -72,7 +72,7 @@ block content
       
       // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
-        // Check if we're in edit mode by checking the URL
+        // check edit mode 
         const pathParts = window.location.pathname.split('/');
         isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
         
@@ -98,7 +98,7 @@ block content
         `;
         document.getElementById('viewCategoryBtn').style.display = 'inline-flex';
         
-        // Show category_id field and remove display: none style
+        // Show category_id field
         const categoryField = document.getElementById('category_id');
         categoryField.style.display = 'block';
         categoryField.style.backgroundColor = '#e9ecef';

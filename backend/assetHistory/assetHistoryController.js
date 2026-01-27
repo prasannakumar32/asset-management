@@ -1,7 +1,7 @@
 const db = require('../models');
 
-// API method to get all assets for history list
-exports.listAPI = async(req, res) => {
+//get all assets history
+exports.list = async(req, res) => {
   try {
     const assets = await db.Asset.findAll({
       include: [{
@@ -23,7 +23,7 @@ exports.listAPI = async(req, res) => {
 };
 
 // API method to get single asset history
-exports.getAssetHistoryAPI = async(req, res) => {
+exports.getAssetHistory = async(req, res) => {
   try {
     const { id } = req.params;
     const asset = await db.Asset.findByPk(id, {
@@ -37,7 +37,7 @@ exports.getAssetHistoryAPI = async(req, res) => {
       return res.status(404).json({ success: false, error: 'Asset not found' });
     }
 
-    // Get all asset assignments
+// Get all asset assignments
     const assignments = await db.AssetAssignment.findAll({
       where:{asset_id:id},
       include:[
@@ -51,7 +51,7 @@ exports.getAssetHistoryAPI = async(req, res) => {
       order:[['assigned_date','DESC']]
     });
 
-    // Get asset history records
+// Get asset history records
     const histories = await db.AssetHistory.findAll({
       where: { asset_id: id },
       include: [
@@ -67,10 +67,10 @@ exports.getAssetHistoryAPI = async(req, res) => {
       order: [['action_date', 'DESC']]
     });
 
-    // Create timeline for chronological order 
+// Create timeline for chronological order 
     const timeline = [];
     
-    // Add history records to timeline
+// Add history records to timeline
     histories.forEach(history => {
       timeline.push({
         date: history.action_date,

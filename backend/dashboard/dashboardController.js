@@ -1,23 +1,38 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 
-const getDashboardData = async (req, res) => {
+exports.getDashboardData = async (req, res) => {
   try {
-    const [assetCount, employeeCount, assignedCount] = await Promise.all([
-      db.Asset.count({ where: { is_active: true } }),
-      db.Employee.count({ where: { status: 'active' } }),
-      db.AssetAssignment.count({
-        where: { status: 'assigned', return_date: null }
-      })
-    ]);
+// Get all assets 
+    const activeAssets = await db.Asset.findAll({
+      where: { is_active: true },
+      attributes: ['id']
+    });
+    const assetCount = activeAssets.length;
 
-    // Get actual available assets count
-    const availableCount = await db.Asset.count({
+// Get all active employees 
+    const activeEmployees = await db.Employee.findAll({
+      where: { status: 'active' },
+      attributes: ['id']
+    });
+    const employeeCount = activeEmployees.length;
+
+// Get all assigned assets
+    const assignedAssets = await db.AssetAssignment.findAll({
+      where: { status: 'assigned', return_date: null },
+      attributes: ['id']
+    });
+    const assignedCount = assignedAssets.length;
+
+// Get available assets
+    const availableAssets = await db.Asset.findAll({
       where: { 
         is_active: true,
         status: 'available'
-      }
+      },
+      attributes: ['id']
     });
+    const availableCount = availableAssets.length;
     
     res.json({
       success: true,
@@ -43,5 +58,3 @@ const getDashboardData = async (req, res) => {
     });
   }
 };
-
-module.exports = { getDashboardData };

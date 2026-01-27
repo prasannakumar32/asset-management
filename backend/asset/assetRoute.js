@@ -5,7 +5,7 @@ const assetController = require('./assetController');
 // Get form option
 router.get('/asset-form-options', assetController.getFormOptions);
 
-// Get assets as JSON
+// Get assets as json  
 router.get('/', assetController.listAPI);
 
 // Get a single asset by id

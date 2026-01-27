@@ -3,6 +3,6 @@ const router = express.Router();
 const stockController = require('./stockController');
 
 // API route for stock data
-router.get('/', stockController.stockView);
+router.get('/', stockController.getStockData);
 
 module.exports=router;
