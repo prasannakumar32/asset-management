@@ -152,10 +152,25 @@ block content
         document.getElementById('purchaseCost').textContent = asset.purchase_cost ? 
           `₹${parseFloat(asset.purchase_cost).toFixed(2)}` : 'N/A';
         
-        const warrantyYears = asset.warranty_years || (asset.warranty_months ? 
-          Math.round(asset.warranty_months / 12 * 10) / 10 : null);
-        document.getElementById('warranty').textContent = warrantyYears > 0 ? 
-          `${warrantyYears} year${warrantyYears !== 1 ? 's' : ''}` : 'N/A';
+        // Format warranty display
+        const warrantyElement = document.getElementById('warranty');
+        if (asset.warranty_months && asset.warranty_months > 0) {
+          const monthsNum = parseInt(asset.warranty_months);
+          const years = Math.floor(monthsNum / 12);
+          const remainingMonths = monthsNum % 12;
+          
+          let warrantyText = '';
+          if (years > 0) {
+            warrantyText += `${years} ${years === 1 ? 'year' : 'years'}`;
+          }
+          if (remainingMonths > 0) {
+            if (years > 0) warrantyText += ' ';
+            warrantyText += `${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'}`;
+          }
+          warrantyElement.textContent = warrantyText;
+        } else {
+          warrantyElement.textContent = 'N/A';
+        }
         
         document.getElementById('currentValue').textContent = asset.current_value ? 
           `₹${parseFloat(asset.current_value).toFixed(2)}` : 'N/A';

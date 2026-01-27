@@ -130,13 +130,11 @@ block content
               | Add Employee
 
     script.
-      // Global variables
       let isEdit = false;
       let employeeId = null;
       
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
-        // Check if we're in edit mode by checking the URL
+        // Check edit or create employee
         const pathParts = window.location.pathname.split('/');
         isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
         
@@ -147,7 +145,6 @@ block content
         
         // Load form options first
         loadFormOptions().then(() => {
-          // Load employee data after form options are loaded (for edit mode)
           if (isEdit && employeeId) {
             loadEmployeeData(employeeId);
           }
@@ -171,14 +168,14 @@ block content
         document.getElementById('viewEmployeeBtn').style.display = 'inline-flex';
       }
       
-      // Load form options (departments and branches)
+      // Load form option
       async function loadFormOptions() {
         try {
           const response = await fetch('/api/employee/employee-form-options');
           const result = await response.json();
           
           if (result.success) {
-            // Load departments
+            // Load department
             const departmentSelect = document.getElementById('department');
             if (departmentSelect) {
               departmentSelect.innerHTML = '<option value="">Select Department</option>';
@@ -190,7 +187,6 @@ block content
                   uniqueDepartments.add(departmentObj.department);
                   const option = document.createElement('option');
                   option.value = departmentObj.department;
-                  // Capitalize first letter, make rest lowercase
                   const formattedDepartment = departmentObj.department.charAt(0).toUpperCase() + departmentObj.department.slice(1).toLowerCase();
                   option.textContent = formattedDepartment;
                   departmentSelect.appendChild(option);
@@ -313,7 +309,7 @@ block content
             }
           }
           
-          // If there are validation errors, show them and stop submission
+          // If there is any validation error and  stop form submission
           if (Object.keys(validationErrors).length > 0) {
             Object.keys(validationErrors).forEach(field => {
               showFieldError(field, validationErrors[field]);

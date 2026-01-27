@@ -172,27 +172,7 @@ block content
         document.getElementById('viewAssetBtn').style.display = 'inline-flex';
       }
       
-      // Function to update warranty display
-      function updateWarrantyDisplay(months) {
-        const displayElement = document.querySelector('#warranty_months + .input-group-text');
-        if (!displayElement) return;
-        
-        const monthsNum = parseInt(months) || 0;
-        const years = Math.floor(monthsNum / 12);
-        const remainingMonths = monthsNum % 12;
-        
-        let displayText = '';
-        if (years > 0) {
-          displayText += `${years} ${years === 1 ? 'year' : 'years'}`;
-        }
-        if (remainingMonths > 0) {
-          if (years > 0) displayText += ' ';
-          displayText += `${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'}`;
-        } 
-        displayElement.textContent = displayText || '';
-      }
-
-      // Load form options (categories and branches)
+      // Load form options 
       async function loadFormOptions() {
         try {
           const response = await fetch('/api/assets/asset-form-options');
@@ -257,11 +237,6 @@ block content
             document.getElementById('location').value = asset.location || '';
             document.getElementById('is_active').value = asset.is_active ? 'true' : 'false';
             document.getElementById('notes').value = asset.notes || '';
-            
-            // Update warranty display if warranty months is set
-            if (asset.warranty_months) {
-              updateWarrantyDisplay(asset.warranty_months);
-            }
 
             // Update form action for edit mode
             document.getElementById('assetForm').action = `/assets/${assetId}?_method=PUT`;
@@ -285,7 +260,7 @@ block content
           // Clear previous errors
           clearErrors();
           
-          // Simple frontend validation for required fields
+          // frontend validation for required fields
           const requiredFields = ['name', 'category_id', 'serial_number', 'branch', 'location', 'warranty_months'];
           const validationErrors = {};
           
@@ -299,7 +274,7 @@ block content
             }
           });
           
-          // If there are validation errors, show them and stop submission
+          // If there is any  validation error, show them and stop submission
           if (Object.keys(validationErrors).length > 0) {
             Object.keys(validationErrors).forEach(field => {
               showFieldError(field, validationErrors[field]);

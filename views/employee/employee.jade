@@ -30,13 +30,13 @@ block content
         loadFilterOptions();
         loadEmployees();
         
-        // Auto submit for filters using API
+        // Auto submit for filters using api
         const departmentSelect = document.getElementById('department');
         const statusSelect = document.getElementById('status');
         const isActiveSelect = document.getElementById('is_active');
         const branchSelect = document.getElementById('branch');
         
-        // Helper function to add event listener if element exists
+        // Helper function 
         function addFilterListener(element, callback) {
           if (element) {
             element.addEventListener('change', callback);
@@ -50,9 +50,9 @@ block content
         addFilterListener(branchSelect, loadEmployees);
       });
       
-      // Load filter options (departments and branches)
+      // Load filter options 
       function loadFilterOptions() {
-        // Load departments and branches from API
+        // Load departments and branches from api
         fetch('/api/employee/employee-form-options')
           .then(response => response.json())
           .then(data => {
@@ -73,7 +73,7 @@ block content
         const departmentSelect = document.getElementById('department');
         if (!departmentSelect) return;
         
-        // Clear existing options except "All"
+        // Clear existing options
         departmentSelect.innerHTML = '<option value="">All</option>';
         
         departments.forEach(department => {
@@ -89,7 +89,7 @@ block content
         const branchSelect = document.getElementById('branch');
         if (!branchSelect) return;
         
-        // Clear existing options except "All"
+        // Clear existing options
         branchSelect.innerHTML = '<option value="">All</option>';
         
         branches.forEach(branch => {
@@ -123,7 +123,7 @@ block content
           });
       }
       
-      // Update employee table with new data
+      // Update employee table 
       function updateEmployeeTable(employees) {
         const tbody = document.querySelector('tbody');
         if (!tbody) return;

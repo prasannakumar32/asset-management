@@ -35,16 +35,14 @@ const getFormOptions = async () => {
 
 const parseEmployeeData = (employeeData) => {
 // Handle date fields
-    if (employeeData.hire_date && typeof employeeData.hire_date === 'string' && employeeData.hire_date.trim() !== '') {
-        employeeData.hire_date = new Date(employeeData.hire_date);
-    } else {
-        employeeData.hire_date = new Date();
-    }
+    employeeData.hire_date = (employeeData.hire_date && typeof employeeData.hire_date === 'string' && employeeData.hire_date.trim() !== '') 
+        ? new Date(employeeData.hire_date) 
+        : new Date();
     
 // Handle optional fields
     const optionalFields = ['phone', 'position', 'notes'];
     optionalFields.forEach(field => {
-        employeeData[field] = employeeData[field] && typeof employeeData[field] === 'string' && employeeData[field].trim() !== '' 
+        employeeData[field] = (employeeData[field] && typeof employeeData[field] === 'string' && employeeData[field].trim() !== '') 
             ? employeeData[field].trim() 
             : null;
     });
@@ -59,29 +57,15 @@ const generateEmployeeId = async () => {
         limit: 1
     });
     
-    let lastId = 0;
-    if (lastEmployee && lastEmployee.employee_id) {
-        const match = lastEmployee.employee_id.match(/\d+/);
-        if (match) lastId = parseInt(match[0]);
-    }
+    let lastId = lastEmployee && lastEmployee.employee_id 
+        ? ((match = lastEmployee.employee_id.match(/\d+/)) ? parseInt(match[0]) : 0) 
+        : 0;
     
     return `EMP${String(lastId + 1).padStart(4, '0')}`;
 };
 
 const renderFormWithError = async (res, isEdit, error, formData = null, employee = null) => {
     const options = await getFormOptions();
-    
-    // Format hire date for form display 
-    let hireDateValue = '';
-    if (formData?.hire_date) {
-        if (typeof formData.hire_date === 'string') {
-            hireDateValue = formData.hire_date;
-        } else if (formData.hire_date instanceof Date) {
-            hireDateValue = formData.hire_date.toISOString().split('T')[0];
-        }
-    } else if (employee?.hire_date) {
-        hireDateValue = new Date(employee.hire_date).toISOString().split('T')[0];
-    }
     
     return res.render('employee/employee-form', {
         isEdit: isEdit,
@@ -147,12 +131,12 @@ exports.showForm = async (req, res) => {
         const isEdit = !!id;
         const options = await getFormOptions();
         
-        let employee = null;
-        if (isEdit) {
-            employee = await Employee.findByPk(id);
-            if (!employee) {
-                return res.status(404).render('error', { error: 'Employee not found' });
-            }
+        const employee = isEdit 
+            ? await Employee.findByPk(id) 
+            : null;
+            
+        if (isEdit && !employee) {
+            return res.status(404).render('error', { error: 'Employee not found' });
         }
         
         return res.render('employee/employee-form', {
@@ -199,9 +183,9 @@ exports.create = async (req, res) => {
         const missingFields = [];
         
         requiredFields.forEach(field => {
-            if (!employeeData[field] || (typeof employeeData[field] === "string" && employeeData[field].trim()) === '') {
-                missingFields.push(field);
-            }
+            (!employeeData[field] || (typeof employeeData[field] === "string" && employeeData[field].trim()) === '') 
+                ? missingFields.push(field) 
+                : null;
         });
         
         if (missingFields.length > 0) {
@@ -218,39 +202,40 @@ exports.create = async (req, res) => {
         }
         
 // Handle employee ID
-        if (!employeeData.employee_id || employeeData.employee_id.trim() === '') {
-            employeeData.employee_id = await generateEmployeeId();
-        } else {
-// Check duplicate employee ID
-            const existingEmployee = await Employee.findOne({
-                where: { employee_id: employeeData.employee_id.trim() }
-            });
-            if (existingEmployee) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: 'Employee ID already exists. Please use a different ID or leave empty to auto-generate.',
-                    fieldErrors: {
-                        employee_id: 'Employee ID already exists'
-                    }
+        (!employeeData.employee_id || employeeData.employee_id.trim() === '') 
+            ? (employeeData.employee_id = await generateEmployeeId())
+            : (async () => {
+                const existingEmployee = await Employee.findOne({
+                    where: { employee_id: employeeData.employee_id.trim() }
                 });
-            }
-        }
+                if (existingEmployee) {
+                    return res.status(400).json({ 
+                        success: false, 
+                        error: 'Employee ID already exists. Please use a different ID or leave empty to auto-generate.',
+                        fieldErrors: {
+                            employee_id: 'Employee ID already exists'
+                        }
+                    });
+                }
+            })();
         
 // Check duplicate email
-        if (employeeData.email && employeeData.email.trim() !== '') {
-            const existingEmployee = await Employee.findOne({
-                where: { email: employeeData.email.trim().toLowerCase() }
-            });
-            if (existingEmployee) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: 'Email already exists. Please use a different email address.',
-                    fieldErrors: {
-                        email: 'Email already exists'
-                    }
+        (employeeData.email && employeeData.email.trim() !== '') 
+            ? (async () => {
+                const existingEmployee = await Employee.findOne({
+                    where: { email: employeeData.email.trim().toLowerCase() }
                 });
-            }
-        }
+                if (existingEmployee) {
+                    return res.status(400).json({ 
+                        success: false, 
+                        error: 'Email already exists. Please use a different email address.',
+                        fieldErrors: {
+                            email: 'Email already exists'
+                        }
+                    });
+                }
+            })()
+            : null;
         
 // Create employee with transaction
         const transaction = await db.sequelize.transaction();
@@ -325,9 +310,9 @@ exports.update = async (req, res) => {
         const missingFields = [];
         
         requiredFields.forEach(field => {
-            if (!employeeData[field] || (typeof employeeData[field] === "string" && employeeData[field].trim()) === '') {
-                missingFields.push(field);
-            }
+            (!employeeData[field] || (typeof employeeData[field] === "string" && employeeData[field].trim()) === '') 
+                ? missingFields.push(field) 
+                : null;
         });
         
         if (missingFields.length > 0) {
@@ -347,39 +332,39 @@ exports.update = async (req, res) => {
         delete employeeData.employee_id;
         
 // Check duplicate email 
-        if (employeeData.email && employeeData.email.trim() !== '') {
-            const existingEmployee = await Employee.findOne({
-                where: { 
-                    email: employeeData.email.trim().toLowerCase(),
-                    id: { [Op.ne]: parseInt(id) }
-                }
-            });
-            if (existingEmployee) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: 'Email already exists. Please use a different email address.',
-                    fieldErrors: {
-                        email: 'Email already exists'
+        (employeeData.email && employeeData.email.trim() !== '') 
+            ? (async () => {
+                const existingEmployee = await Employee.findOne({
+                    where: { 
+                        email: employeeData.email.trim().toLowerCase(),
+                        id: { [Op.ne]: parseInt(id) }
                     }
                 });
-            }
-        }
+                if (existingEmployee) {
+                    return res.status(400).json({ 
+                        success: false, 
+                        error: 'Email already exists. Please use a different email address.',
+                        fieldErrors: {
+                            email: 'Email already exists'
+                        }
+                    });
+                }
+            })()
+            : null;
         
 // Update employee
         const [updatedRowsCount] = await Employee.update(employeeData, { where: { id } });
         
-        if (updatedRowsCount === 0) {
-            return res.status(404).json({ success: false, error: 'Employee not found' });
-        }
-        
-// Get updated employee to return in API response
-        const updatedEmployee = await Employee.findByPk(id);
-        
-        return res.json({ 
-            success: true, 
-            message: 'Employee updated successfully',
-            data: { employee: updatedEmployee }
-        });
+        (updatedRowsCount === 0) 
+            ? res.status(404).json({ success: false, error: 'Employee not found' })
+            : (async () => {
+                const updatedEmployee = await Employee.findByPk(id);
+                return res.json({ 
+                    success: true, 
+                    message: 'Employee updated successfully',
+                    data: { employee: updatedEmployee }
+                });
+            })();
         
     } catch (error) {
         console.error('Error updating employee:', error);
@@ -445,11 +430,9 @@ exports.getEmployeeById = async (req, res) => {
         const { id } = req.params;
         const employee = await Employee.findByPk(id);
         
-        if (!employee) {
-            return res.status(404).json({ success: false, error: 'Employee not found' });
-        }
-        
-        res.json({ success: true, data: { employee } });
+        (!employee) 
+            ? res.status(404).json({ success: false, error: 'Employee not found' })
+            : res.json({ success: true, data: { employee } });
     } catch (error) {
         console.error('Error fetching employee:', error);
         res.status(500).json({

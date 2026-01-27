@@ -66,11 +66,9 @@ block content
               | Create Category
 
     script.
-      // Global variables
       let isEdit = false;
       let categoryId = null;
       
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
         // check edit mode 
         const pathParts = window.location.pathname.split('/');

@@ -5,28 +5,28 @@ block content
     .container-fluid
       h1.mb-4 Asset Management Dashboard
       .dashboard-horizontal
-        .card(data-metric="employees")
+        .card(data="employees")
           .card-icon
             i.fa.fa-users.fa-2x
           .card-content
             h3 Total Employees
             .number.loading Loading...
             .description Registered employees
-        .card(data-metric="assets")
+        .card(data="assets")
           .card-icon
             i.fa.fa-cubes.fa-2x
           .card-content
             h3 Total Assets
             .number.loading Loading...
             .description Active assets in system
-        .card(data-metric="assigned")
+        .card(data="assigned")
           .card-icon
             i.fa.fa-user.fa-2x
           .card-content
             h3 Assigned Assets
             .number.loading Loading...
             .description Currently assigned
-        .card(data-metric="available")
+        .card(data="available")
           .card-icon
             i.fa.fa-check-circle.fa-2x
           .card-content
@@ -41,10 +41,10 @@ block content
         const data = await response.json();
         
         if (data.success) {
-          document.querySelector('[data-metric="employees"] .number').textContent = data.data.employeeCount;
-          document.querySelector('[data-metric="assets"] .number').textContent = data.data.assetCount;
-          document.querySelector('[data-metric="assigned"] .number').textContent = data.data.assignedCount;
-          document.querySelector('[data-metric="available"] .number').textContent = data.data.availableCount;
+          document.querySelector('[data="employees"] .number').textContent = data.data.employeeCount;
+          document.querySelector('[data="assets"] .number').textContent = data.data.assetCount;
+          document.querySelector('[data="assigned"] .number').textContent = data.data.assignedCount;
+          document.querySelector('[data="available"] .number').textContent = data.data.availableCount;
           document.querySelectorAll('.number').forEach(el => el.classList.remove('loading'));
         } else {
           throw new Error(data.error || 'Failed to load data');
