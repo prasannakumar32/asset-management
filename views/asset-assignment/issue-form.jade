@@ -8,10 +8,6 @@ block content
         h1.text-center.mb-4(style="font-size: 1.8rem; font-weight: 600; color: #2e3338;")
           i.fas.fa-hand-holding-box.me-2(style="color: #4e73df;")
           | Issue Asset to Employee
-        
-        // Flash messages container
-        #alertContainer
-        
         form(action='/api/asset-assignment', method='POST', id='issueForm', novalidate)
           .form-section
             h6.form-section-title
