@@ -139,10 +139,10 @@ block content
       document.addEventListener('DOMContentLoaded', function() {
         // Check edit mode 
         const pathParts = $(location).attr('pathname').split('/');
-        isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
+        isEdit = pathParts.length === 4 && pathParts[0] === '' && pathParts[1] === 'assets' && pathParts[3] === 'form';
         
         if (isEdit) {
-          assetId = pathParts[pathParts.length - 2];
+          assetId = pathParts[2];
           updateFormForEdit();
         }
         

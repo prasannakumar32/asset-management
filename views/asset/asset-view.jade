@@ -184,7 +184,6 @@ block content
         if (asset.status) {
           const statusClass = asset.status === 'active' ? 'bg-success' : 
             asset.status === 'inactive' ? 'bg-secondary' : 
-            asset.status === 'archived' ? 'bg-dark' : 'bg-info';
           statusElement.innerHTML = `<span class="badge ${statusClass}" style="font-size: 0.85rem; padding: 0.4rem 0.75rem;">${asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}</span>`;
         } else {
           statusElement.textContent = 'N/A';
