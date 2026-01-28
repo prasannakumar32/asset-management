@@ -115,8 +115,11 @@ block content
       
       document.addEventListener('DOMContentLoaded',()=>{
         loadAssets();
-        const p=window.location.pathname.split('/');
+        const p=$(location).attr('pathname').split('/');
         if(p.length>2&&p[2]&&p[2]!=='all')loadAssetDetail(p[2]);
       });
       
-      window.addEventListener('popstate',e=>e.state&&e.state.assetId?loadAssetDetail(e.state.assetId):showAssetList());
+      window.addEventListener('popstate',e=>
+        e.state&&e.state.assetId?
+          loadAssetDetail(e.state.assetId):
+          showAssetList());

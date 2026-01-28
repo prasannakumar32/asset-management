@@ -158,7 +158,7 @@ block scripts
           if (result.success) {
             showAlert(result.message || 'Asset scrapped successfully', 'success');
             setTimeout(() => {
-              window.location.href = '/assets';
+              $(location).attr('href', '/assets');
             }, 1500);
           } else {
             // Show error message

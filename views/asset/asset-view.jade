@@ -116,7 +116,7 @@ block content
       // Load asset data via API
       async function loadAssetData() {
         try {
-          const pathParts = window.location.pathname.split('/');
+          const pathParts = $(location).attr('pathname').split('/');
           const assetId = pathParts[pathParts.length - 1];
           
           const response = await fetch(`/api/assets/${assetId}`);

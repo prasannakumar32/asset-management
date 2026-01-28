@@ -71,7 +71,7 @@ block content
       
       document.addEventListener('DOMContentLoaded', function() {
         // check edit mode 
-        const pathParts = window.location.pathname.split('/');
+        const pathParts = $(location).attr('pathname').split('/');
         isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
         
         if (isEdit) {
@@ -161,7 +161,7 @@ block content
             if (result.success) {
               showAlert(result.message || 'Category saved successfully', 'success');
               setTimeout(() => {
-                window.location.href = '/asset-categories';
+                $(location).attr('href', '/asset-categories');
               }, 1500);
             } else {
               // Show error message

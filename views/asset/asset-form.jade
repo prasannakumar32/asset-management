@@ -138,7 +138,7 @@ block content
       
       document.addEventListener('DOMContentLoaded', function() {
         // Check edit mode 
-        const pathParts = window.location.pathname.split('/');
+        const pathParts = $(location).attr('pathname').split('/');
         isEdit = pathParts.includes('form') && pathParts.length > 3 && pathParts[pathParts.length - 2] !== 'form';
         
         if (isEdit) {
@@ -302,7 +302,7 @@ block content
             const result = await response.json();
             
             if (result.success) {
-              window.location.href = '/assets';
+              $(location).attr('href', '/assets');
             } else {
               // Show error message
               showAlert(result.error || 'Error saving asset', 'danger');
