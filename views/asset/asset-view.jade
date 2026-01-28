@@ -113,7 +113,7 @@ block content
           | Back to List
     
     script.
-      // Load asset data via API
+      // Load asset data via api
       async function loadAssetData() {
         try {
           const pathParts = $(location).attr('pathname').split('/');
@@ -195,7 +195,6 @@ block content
           document.getElementById('notes').textContent = asset.notes;
         }
         
-        // Set edit button href
         document.getElementById('editBtn').href = `/assets/${asset.id}/form`;
       }
       

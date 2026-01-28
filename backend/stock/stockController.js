@@ -1,7 +1,7 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 
-// API endpoint for stock data
+// api endpoint for stock data
 exports.getStockData = async (req, res) => {
   try {
     const allAssets = await db.Asset.findAll({
@@ -15,7 +15,7 @@ exports.getStockData = async (req, res) => {
       order: [['branch', 'ASC'], ['name', 'ASC']]
     });
 
-    // Group assets by branch
+    // group assets by branch
     const assetsByBranch = {};
     let totalValue = 0;
     const availableCount = { available: 0, assigned: 0, maintenance: 0, retired: 0, scrapped: 0 };
@@ -62,7 +62,7 @@ exports.getStockData = async (req, res) => {
   }
 };
 
-// Render stock page (UI)
+//stock page 
 exports.showStockPage = async (req, res) => {
   try {
     return res.render('stock/stock', {

@@ -9,7 +9,7 @@ block content
           i.fas.fa-plus.me-2(style="color: #4e73df;")
           | Add New Asset
         
-        // Flash messages container
+        // flash messages container
         #alertContainer
         
         form(action='/assets', method='POST', id='assetForm', novalidate)
@@ -146,9 +146,8 @@ block content
           updateFormForEdit();
         }
         
-        // Load form options first
         loadFormOptions().then(() => {
-          // Load asset data after form options are loaded (for edit mode)
+          // Load asset data after form options
           if (isEdit && assetId) {
             loadAssetData(assetId);
           }
@@ -193,14 +192,14 @@ block content
             const branchSelect = document.getElementById('branch');
             branchSelect.innerHTML = '<option value="">Select Branch</option>';
             
-            // Get unique branches to avoid duplicates
+            // Get unique branches to remove duplicates
             const uniqueBranches = new Set();
             result.data.branches.forEach(branchObj => {
               if (branchObj.branch && !uniqueBranches.has(branchObj.branch)) {
                 uniqueBranches.add(branchObj.branch);
                 const option = document.createElement('option');
                 option.value = branchObj.branch;
-                // Capitalize first letter, make rest lowercase
+                // Capitalize first letter
                 const formattedBranch = branchObj.branch.charAt(0).toUpperCase() + branchObj.branch.slice(1).toLowerCase();
                 option.textContent = formattedBranch;
                 branchSelect.appendChild(option);
@@ -241,7 +240,7 @@ block content
             // Update form action for edit mode
             document.getElementById('assetForm').action = `/assets/${assetId}?_method=PUT`;
             
-            // Set View button href
+            // Set View button
             document.getElementById('viewAssetBtn').href = `/assets/${assetId}`;
           }
         } catch (error) {

@@ -103,7 +103,7 @@ exports.showAssetForm = async (req, res) => {
     }
 };
 
-// Show assets page (UI)
+// Show assets page
 exports.list = async (req, res) => {
     try {
         const options = await getFormOptions();
@@ -119,7 +119,7 @@ exports.list = async (req, res) => {
     }
 };
 
-// API endpoint for assets list
+// api endpoint for assets list
 exports.listAPI = async (req, res) => {
     try {
         const { 

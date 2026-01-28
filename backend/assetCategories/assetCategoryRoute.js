@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const assetCategoryController = require('./assetCategoryController');
 
-// Get category by ID (must come before the general GET)
+// Get category by id
 router.get('/:id', assetCategoryController.getCategoryById);
 
 //get asset category list

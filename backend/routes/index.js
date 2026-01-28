@@ -10,10 +10,10 @@ const assetCategoryController = require('../assetCategories/assetCategoryControl
 const stockController = require('../stock/stockController');
 const assetHistoryRoute = require('../assetHistory/assetHistoryRoute');
 
-// Import route files
+// import route files
 const dashboardRoutes = require('../dashboard/dashboardRoute');
 
-// Authentication Routes
+// authentication Routes
 router.get('/login', (req, res) => res.render('login'));
 
 router.get('/logout', (req, res) => {
@@ -28,7 +28,7 @@ router.post('/login',
   })
 );
 
-// API Authentication
+// api authentication
 router.post('/api/login', (req, res, next) => {
   passport.authenticate('local', (err, user) => {
     if (err) return res.status(500).json({ error: 'Internal server error' });
@@ -54,10 +54,10 @@ router.post('/assets', assetController.create);
 router.put('/assets/:id', assetController.update);
 router.delete('/assets/:id', assetController.delete);
 
-// API routes for assets
+// api routes for assets
 router.use('/api/assets', assetRoutes);
 
-// Employee Routes
+// employee routes
 const employeeRoutes = require('../employee/employeeRoute');
 router.use('/api/employee', employeeRoutes);
 router.get('/employee', employeeController.list);
@@ -69,9 +69,9 @@ router.post('/employee', employeeController.create);
 router.put('/employee/:id', employeeController.update);
 router.delete('/employee/:id', employeeController.delete);
 
-// Asset Assignment Routes
+// asset assignment Routes
 
-// Asset Assignment Routes
+// asset assignment Routes
 router.get('/asset-assignment', (req, res) => {
   res.render('asset-assignment/asset-assignment');
 });
@@ -96,7 +96,7 @@ router.get('/asset-categories/form', assetCategoryController.showCategoryForm);
 router.get('/asset-categories/:id/form', assetCategoryController.showCategoryForm);
 router.get('/asset-categories/:id/view', assetCategoryController.viewCategory);
 
-// API routes for asset categories
+// api routes for asset categories
 router.use('/api/asset-categories', assetCategoriesRoutes);
 
 // Dashboard Routes
@@ -105,10 +105,10 @@ router.use('/dashboard', dashboardRoutes);
 // Stock Routes
 router.get('/stock', stockController.showStockPage);
 
-// API routes for stock
+// api routes for stock
 router.use('/api/stock', require('../stock/stockRoute'));
 
-// Asset History Page Route
+// asset history page route
 router.get('/asset-history', (req, res) => {
   res.render('assetHistory/asset-history');
 });

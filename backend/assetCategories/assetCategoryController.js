@@ -229,7 +229,7 @@ exports.update = async (req, res) => {
             });
         }
         
-// Get updated category to return in API response
+// Get updated category to return response 
         const updatedCategory = await AssetCategory.findByPk(id);
         
         return res.json({

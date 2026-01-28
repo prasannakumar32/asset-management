@@ -11,7 +11,7 @@ router.get('/', (req, res) => {
   });
 });
 
-// Dashboard API route
+// Dashboard api route
 router.get('/api', dashboardController.getDashboardData);
 
 module.exports = router;

@@ -5,7 +5,7 @@ const employeeController = require('./employeeController');
 // Get form options
 router.get('/employee-form-options', employeeController.getFormOptions);
 
-// Get employees as JSON
+// Get employees as json
 router.get('/', employeeController.listAPI);
 
 // Get a single employee by id
@@ -20,7 +20,7 @@ router.put('/:id', employeeController.update);
 // Delete an employee
 router.delete('/:id', employeeController.delete);
 
-// View employee details (must come before :id route for web routes)
+// View employee details 
 router.get('/:id/view', employeeController.view);
 
 // Show form for creating a new employee
