@@ -105,10 +105,13 @@ block content
         branchSelect.innerHTML = '<option value="">All</option>';
         
         // Get unique branches
-        const branches = [...new Set(assets
-          .map(asset => asset.branch)
-          .filter(branch => branch)
-        )].sort();
+        const branchSet = new Set();
+        assets.forEach(asset => {
+            if (asset.branch) {
+                branchSet.add(asset.branch);
+            }
+        });
+        const branches = Array.from(branchSet).sort();
         
         branches.forEach(branch => {
           const option = document.createElement('option');

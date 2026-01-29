@@ -27,8 +27,21 @@ const getFormOptions = async () => {
     });
 
     // Get unique departments and branches
-    const uniqueDepartments = [...new Set(departments.map(d => d.department).filter(Boolean))];
-    const uniqueBranches = [...new Set(branches.map(b => b.branch).filter(Boolean))];
+    const departmentSet = new Set();
+    departments.forEach(d => {
+        if (d.department) {
+            departmentSet.add(d.department);
+        }
+    });
+    const uniqueDepartments = Array.from(departmentSet);
+    
+    const branchSet = new Set();
+    branches.forEach(b => {
+        if (b.branch) {
+            branchSet.add(b.branch);
+        }
+    });
+    const uniqueBranches = Array.from(branchSet);
 
     return {
         departments: uniqueDepartments,
