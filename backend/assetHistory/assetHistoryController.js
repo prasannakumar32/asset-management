@@ -83,32 +83,63 @@ exports.getAssetHistory = async(req, res) => {
     
 // Add history records to timeline
     histories.forEach(history => {
-      timeline.push({
-        date: history.action_date,
-        type: history.action_type,
-        description: toCamelCase(history.action_type) || 'Action Performed',
-        details: history.notes || null,
-        icon: 'fas-circle',
-        color: 'secondary'
-      });
+      if (history.action_date && !['assigned', 'returned'].includes(history.action_type)) {
+        const actionDate = new Date(history.action_date);
+        //get time from created at 
+        if (history.created_at) {
+          const createdAt = new Date(history.created_at);
+          actionDate.setHours(createdAt.getHours());
+          actionDate.setMinutes(createdAt.getMinutes());
+          actionDate.setSeconds(createdAt.getSeconds());
+        }
+        timeline.push({
+          date: actionDate,
+          timestamp: actionDate.getTime(),
+          type: history.action_type,
+          description: toCamelCase(history.action_type) || 'Action Performed',
+          details: history.notes || null,
+          icon: 'fas-circle',
+          color: 'secondary'
+        });
+      }
     });
 
     // Add assignment history to timeline
     assignments.forEach(assignment => {
-      timeline.push({
-        date: assignment.assigned_date,
-        type: 'assigned',
-        description: `Issued To ${assignment.employee ? assignment.employee.first_name + assignment.employee.last_name : 'Unknown'}`,
-        details: assignment.notes || null,
-        icon: 'fas-hand-holding-box',
-        color: 'primary'
-      });
+      if (assignment.assigned_date) {
+        const assignDate = new Date(assignment.assigned_date);
+        // Add time component from created_at to ensure proper sorting
+        if (assignment.created_at) {
+          const createdAt = new Date(assignment.created_at);
+          assignDate.setHours(createdAt.getHours());
+          assignDate.setMinutes(createdAt.getMinutes());
+          assignDate.setSeconds(createdAt.getSeconds());
+        }
+        timeline.push({
+          date: assignDate,
+          timestamp: assignDate.getTime(),
+          type: 'assigned',
+          description: `Issued To ${assignment.employee ? assignment.employee.first_name + ' ' + assignment.employee.last_name : 'Unknown'}`,
+          details: assignment.notes || null,
+          icon: 'fas-hand-holding-box',
+          color: 'primary'
+        });
+      }
       
       if (assignment.return_date) {
+        const returnDate = new Date(assignment.return_date);
+        // Add time component from updated_at to ensure proper sorting
+        if (assignment.updated_at) {
+          const updatedAt = new Date(assignment.updated_at);
+          returnDate.setHours(updatedAt.getHours());
+          returnDate.setMinutes(updatedAt.getMinutes());
+          returnDate.setSeconds(updatedAt.getSeconds());
+        }
         timeline.push({
-          date: assignment.return_date,
+          date: returnDate,
+          timestamp: returnDate.getTime(),
           type: 'returned',
-          description: `Returned By ${assignment.employee ? assignment.employee.first_name + assignment.employee.last_name : 'Unknown'}`,
+          description: `Returned By ${assignment.employee ? assignment.employee.first_name + ' ' + assignment.employee.last_name : 'Unknown'}`,
           details: `Condition: ${assignment.return_condition}${assignment.return_notes ? ' - ' + assignment.return_notes : ''}`,
           icon: 'fas-undo',
           color: assignment.return_condition === 'damaged' ? 'warning' : 'success'
@@ -116,8 +147,20 @@ exports.getAssetHistory = async(req, res) => {
       }
     });
 
-    // Sort timeline by date
-    timeline.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Sort timeline by timestamp descending
+    timeline.sort((a, b) => b.timestamp - a.timestamp);
+    
+    // Remove duplicates 
+    const uniqueTimeline = [];
+    const seen = new Set();
+    
+    timeline.forEach(item => {
+      const key = `${item.timestamp}-${item.type}-${item.description}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueTimeline.push(item);
+      }
+    });
 
     res.json({ 
       success: true, 
@@ -125,7 +168,7 @@ exports.getAssetHistory = async(req, res) => {
         asset,
         assignments,
         histories,
-        timeline,
+        timeline: uniqueTimeline,
         metrics: {
           totalAssignments: assignments.length,
           currentAssignment: assignments.find(a => a.status === 'assigned')
@@ -141,4 +184,3 @@ exports.getAssetHistory = async(req, res) => {
     });
   }
 };
-

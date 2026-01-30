@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     action_date: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW
     },

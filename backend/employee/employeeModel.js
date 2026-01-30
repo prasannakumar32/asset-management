@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     hire_date: {
       type: DataTypes.DATEONLY,
-      allowNull: true
+      allowNull: false
     },
     status: {
       type: DataTypes.ENUM('active', 'inactive'),
@@ -51,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     branch: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     }
   }, {
     tableName: 'employees',

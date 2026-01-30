@@ -33,7 +33,6 @@ block content
         // Auto submit for filters using api
         const departmentSelect = document.getElementById('department');
         const statusSelect = document.getElementById('status');
-        const isActiveSelect = document.getElementById('is_active');
         const branchSelect = document.getElementById('branch');
         
         // Helper function 
@@ -46,7 +45,6 @@ block content
         // Add event listeners for filter controls
         addFilterListener(departmentSelect, loadEmployees);
         addFilterListener(statusSelect, loadEmployees);
-        addFilterListener(isActiveSelect, loadEmployees);
         addFilterListener(branchSelect, loadEmployees);
       });
       
@@ -104,10 +102,9 @@ block content
       function loadEmployees() {
         const department = document.getElementById('department')?.value || '';
         const status = document.getElementById('status')?.value || '';
-        const is_active = document.getElementById('is_active')?.value || '';
         const branch = document.getElementById('branch')?.value || '';
         
-        const params = new URLSearchParams({ department, status, is_active, branch });
+        const params = new URLSearchParams({ department, status, branch });
         
         fetch('/api/employee?' + params.toString())
           .then(response => response.json())
@@ -155,7 +152,7 @@ block content
               '<span>' + (emp.department || '') + '</span>' +
             '</td>' +
             '<td class="status-td">' +
-              '<span class="badge ' + (emp.status === 'active' ? 'bg-success' : 'bg-danger') + '">' + (emp.status === 'active' ? 'Active' : 'Inactive') + '</span>' +
+              '<span>' + (emp.status === 'active' ? 'Active' : 'Inactive') + '</span>' +
             '</td>' +
             '<td class="phone-td">' +
               '<span>' + (emp.phone || '') + '</span>' +
@@ -184,11 +181,9 @@ block content
       function clearAllFilters() {
         const dept = document.getElementById('department');
         const status = document.getElementById('status');
-        const isActive = document.getElementById('is_active');
         const branch = document.getElementById('branch');
         if (dept) dept.value = '';
         if (status) status.value = '';
-        if (isActive) isActive.value = '';
         if (branch) branch.value = '';
         loadEmployees();
       }
@@ -238,12 +233,6 @@ block content
                       option(value='') All
                       option(value='active', selected=status === 'active') Active
                       option(value='inactive', selected=status === 'inactive') Inactive
-                  .filter-form-group
-                    label.form-label.mb-0.fs-sm.text-muted(for='is_active') Active
-                    select.form-select.form-select-sm(name='is_active', id='is_active')
-                      option(value='') All
-                      option(value='true', selected=is_active === 'true') Active
-                      option(value='false', selected=is_active === 'false') Inactive
                   .filter-form-group
                     label.form-label.mb-0.fs-sm.text-muted(for='branch') Branch
                     select.form-select.form-select-sm(name='branch', id='branch')

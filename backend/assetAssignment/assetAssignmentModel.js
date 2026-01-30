@@ -30,12 +30,12 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     assigned_date: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW
     },
     return_date: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true
     },
     return_condition: {
