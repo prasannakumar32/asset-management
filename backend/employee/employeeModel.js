@@ -43,8 +43,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     hire_date: {
       type: DataTypes.DATEONLY,
-      allowNull: true,
-      defaultValue: null
+      allowNull: true
     },
     status: {
       type: DataTypes.ENUM('active', 'inactive'),

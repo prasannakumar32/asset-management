@@ -51,12 +51,14 @@ const getFormOptions = async () => {
 };
 
 const parseEmployeeData = (employeeData) => {
-// Handle date fields
-    employeeData.hire_date = (employeeData.hire_date && typeof employeeData.hire_date === 'string' && employeeData.hire_date.trim() !== '') 
-        ? new Date(employeeData.hire_date) 
-        : new Date();
+    // Handle date fields
+    if (employeeData.hire_date && typeof employeeData.hire_date === 'string' && employeeData.hire_date.trim() !== '') {
+        employeeData.hire_date = new Date(employeeData.hire_date);
+    } else {
+        employeeData.hire_date = null;
+    }
     
-// Handle optional fields
+    // Handle optional fields
     const optionalFields = ['phone', 'position', 'notes'];
     optionalFields.forEach(field => {
         employeeData[field] = (employeeData[field] && typeof employeeData[field] === 'string' && employeeData[field].trim() !== '') 
@@ -218,7 +220,7 @@ exports.create = async (req, res) => {
         let employeeData = parseEmployeeData(req.body);
         
         // Validate required fields
-        const requiredFields = ['first_name', 'email', 'department', 'branch', 'status', 'hire_date'];
+        const requiredFields = ['first_name', 'email', 'department', 'branch', 'status'];
         const missingFields = [];
         
         requiredFields.forEach(field => {
@@ -343,7 +345,7 @@ exports.update = async (req, res) => {
         let employeeData = parseEmployeeData(req.body);
         
         // Validate required fields
-        const requiredFields = ['first_name', 'email', 'department', 'branch', 'status', 'hire_date'];
+        const requiredFields = ['first_name', 'email', 'department', 'branch', 'status'];
         const missingFields = [];
         
         requiredFields.forEach(field => {

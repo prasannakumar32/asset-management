@@ -164,10 +164,7 @@ block scripts
           const result = await response.json();
           
           if (result.success) {
-            showAlert(result.message || 'Asset issued successfully', 'success');
-            setTimeout(() => {
-              $(location).attr('href', '/assets');
-            }, 1500);
+            $(location).attr('href', '/assets');
           } else {
             // Show error message
             showAlert(result.error || 'Error issuing asset', 'danger');

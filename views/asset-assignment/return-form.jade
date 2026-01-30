@@ -164,10 +164,7 @@ block scripts
           const result = await response.json();
           
           if (result.success) {
-            showAlert(result.message || 'Asset returned successfully', 'success');
-            setTimeout(() => {
-              $(location).attr('href', '/assets');
-            }, 1500);
+            $(location).attr('href', '/assets');
           } else {
             // Show error message
             showAlert(result.error || 'Error returning asset', 'danger');

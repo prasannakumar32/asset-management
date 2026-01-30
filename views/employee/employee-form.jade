@@ -304,6 +304,18 @@ block content
             }
           }
           
+          // Hire date validation - prevent future dates
+          const hireDateElement = document.getElementById('hire_date');
+          if (hireDateElement && hireDateElement.value) {
+            const hireDate = new Date(hireDateElement.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+            
+            if (hireDate > today) {
+              validationErrors.hire_date = 'Hire date cannot be in the future';
+            }
+          }
+          
           // If there is any validation error and  stop form submission
           if (Object.keys(validationErrors).length > 0) {
             Object.keys(validationErrors).forEach(field => {

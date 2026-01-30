@@ -23,12 +23,10 @@ block content
                   span.required-field Asset
                 select#assetId.form-control(name='asset_id', required)
                   option(value='') Select Asset
-                .invalid-feedback(id='asset_id-error')
               .form-group-wrapper
                 label(for='scrapDate')
                   span.required-field Scrap Date
                 input#scrapDate.form-control(name='scrap_date', type='date', value=new Date().toISOString().split('T')[0], required)
-                .invalid-feedback(id='scrap_date-error')
             .form-row
               .form-group-wrapper
                 label(for='method')
@@ -39,14 +37,11 @@ block content
                   option(value='disposed') Disposed
                   option(value='sold') Sold
                   option(value='donated') Donated
-                  option(value='other') Other
-                .invalid-feedback(id='method-error')
               .form-group-wrapper
                 label(for='employeeId')
                   span.required-field Scrapped By
                 select#employeeId.form-control(name='employee_id', required)
                   option(value='') Select Employee
-                .invalid-feedback(id='employee_id-error')
           .form-section
             h6.form-section-title
               i.fas.fa-comment.me-2
@@ -56,7 +51,6 @@ block content
                 label(for='reason')
                   span.required-field Reason
                 textarea#reason.form-control(name='reason', rows='4', required, placeholder='Enter the reason for scrapping this asset...', style="resize: vertical; min-height: 120px;")
-                .invalid-feedback(id='reason-error')
           .form-dialog-footer
             a.form-action-btn.form-action-btn-secondary(href='/assets')
               i.fas.fa-times
@@ -75,7 +69,7 @@ block scripts
 
     async function loadAssets() {
       try {
-        const response = await fetch('/api/assets?status=assigned,available');
+        const response = await fetch('/api/assets?status=available');
         const result = await response.json();
         const assetSelect = document.getElementById('assetId');
         
@@ -90,7 +84,7 @@ block scripts
           });
           
           if (assetSelect.children.length === 1) {
-            showAlert('No assigned or available assets found', 'warning');
+            showAlert('No available assets found', 'warning');
           }
         } else {
           showAlert('Error loading assets', 'danger');
@@ -140,6 +134,29 @@ block scripts
         // Clear previous errors
         clearErrors();
         
+        // Frontend validation for required fields
+        const requiredFields = ['assetId', 'scrapDate', 'method', 'employeeId', 'reason'];
+        const validationErrors = {};
+        
+        requiredFields.forEach(field => {
+          const element = document.getElementById(field);
+          const value = element ? element.value.trim() : '';
+          
+          if (!value) {
+            const fieldName = field.replace(/([A-Z])/g, ' $1').trim();
+            validationErrors[field] = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
+          }
+        });
+        
+        // If there is any validation error, show them and stop submission
+        if (Object.keys(validationErrors).length > 0) {
+          Object.keys(validationErrors).forEach(field => {
+            showFieldError(field, validationErrors[field]);
+          });
+          showAlert('Please fix the errors below', 'danger');
+          return;
+        }
+        
         // Get form data
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
@@ -156,10 +173,7 @@ block scripts
           const result = await response.json();
           
           if (result.success) {
-            showAlert(result.message || 'Asset scrapped successfully', 'success');
-            setTimeout(() => {
-              $(location).attr('href', '/assets');
-            }, 1500);
+            $(location).attr('href', '/assets');
           } else {
             // Show error message
             showAlert(result.error || 'Error scrapping asset', 'danger');

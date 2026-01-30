@@ -41,6 +41,9 @@ block content
                   span.required-field Serial Number
                 input(type='text' class='form-control' id='serial_number' name='serial_number' 
                       placeholder='Enter serial number' 
+                      pattern='\d*'
+                      title='Serial number should only contain numbers'
+                      oninput='this.value = this.value.replace(/[^0-9]/g, "");'
                       required)
                 .invalid-feedback(id='serial_number-error')
               .form-group-wrapper
@@ -51,17 +54,22 @@ block content
               .form-group-wrapper
                 label(for='manufacturer') Manufacturer
                 input(type='text' class='form-control' id='manufacturer' name='manufacturer' 
-                      placeholder='Enter manufacturer')
+                      placeholder='Enter manufacturer'
+                      pattern='[a-zA-Z\s]+'
+                      title='Manufacturer should only contain letters and spaces'
+                      oninput='this.value = this.value.replace(/[^a-zA-Z\s]/g, "");')
                 .invalid-feedback(id='manufacturer-error')
           .form-section
             h6.form-section-title
               | Financial Information
             .form-row
               .form-group-wrapper
-                label(for='purchase_date') Purchase Date
+                label(for='purchase_date')
+                  span.required-field Purchase Date
                 input(type='date' class='form-control' id='purchase_date' name='purchase_date' 
                       placeholder='select purchase date '
-                      title='Enter date in DD/MM/YYYY format')
+                      title='Enter date in DD/MM/YYYY format'
+                      required)
                 .invalid-feedback(id='purchase_date-error')
               .form-group-wrapper
                 label(for='purchase_cost')
@@ -260,7 +268,7 @@ block content
           clearErrors();
           
           // frontend validation for required fields
-          const requiredFields = ['name', 'category_id', 'serial_number', 'branch', 'location', 'warranty_months'];
+          const requiredFields = ['name', 'category_id', 'serial_number', 'branch', 'location', 'warranty_months', 'purchase_date'];
           const validationErrors = {};
           
           requiredFields.forEach(field => {
@@ -272,6 +280,18 @@ block content
               validationErrors[field] = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
             }
           });
+          
+          // Purchase date validation - prevent future dates
+          const purchaseDateElement = document.getElementById('purchase_date');
+          if (purchaseDateElement && purchaseDateElement.value) {
+            const purchaseDate = new Date(purchaseDateElement.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+            
+            if (purchaseDate > today) {
+              validationErrors.purchase_date = 'Purchase date cannot be in the future';
+            }
+          }
           
           // If there is any  validation error, show them and stop submission
           if (Object.keys(validationErrors).length > 0) {

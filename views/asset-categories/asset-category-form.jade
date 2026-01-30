@@ -159,10 +159,7 @@ block content
             const result = await response.json();
             
             if (result.success) {
-              showAlert(result.message || 'Category saved successfully', 'success');
-              setTimeout(() => {
-                $(location).attr('href', '/asset-categories');
-              }, 1500);
+              $(location).attr('href', '/asset-categories');
             } else {
               // Show error message
               showAlert(result.error || 'Error saving category', 'danger');
