@@ -101,7 +101,7 @@ block scripts
       }
     }
 
-    // Load assets when employee is selected
+    // Load assets when employee is selected from dropdown
     document.getElementById('employeeId').addEventListener('change', async function() {
       const employeeId = this.value;
       const assetSelect = document.getElementById('assetId');
@@ -115,9 +115,9 @@ block scripts
         const response = await fetch(`/api/asset-assignment/employee/${employeeId}`);
         const result = await response.json();
         
-        if (result.success && result.data && result.data.assignments) {
-          assetSelect.innerHTML = '<option value="">Select Asset</option>';
-          
+        assetSelect.innerHTML = '<option value="">Select Asset</option>';
+        
+        if (result.success && result.data.assignments.length > 0) {
           result.data.assignments.forEach(assignment => {
             if (assignment.asset) {
               const option = document.createElement('option');
@@ -126,16 +126,16 @@ block scripts
               assetSelect.appendChild(option);
             }
           });
-          
-          if (assetSelect.children.length === 1) {
-            showAlert('No assigned assets found for this employee', 'warning');
-          }
         } else {
-          showAlert('Error loading assigned assets', 'danger');
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'No assigned assets';
+          option.disabled = true;
+          option.selected = true;
+          assetSelect.appendChild(option);
         }
       } catch (error) {
         console.error('Error loading assets:', error);
-        showAlert('Failed to load assigned assets', 'danger');
       }
     });
     

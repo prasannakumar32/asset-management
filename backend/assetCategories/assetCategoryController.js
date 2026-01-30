@@ -20,6 +20,7 @@ exports.listAPI = async (req, res) => {
     try {
         const { status = 'active' } = req.query;
         const whereClause = {};
+        
         whereClause.is_active = status === 'active';
         
         const categories = await AssetCategory.findAll({
