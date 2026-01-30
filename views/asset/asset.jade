@@ -116,7 +116,9 @@ block content
         branches.forEach(branch => {
           const option = document.createElement('option');
           option.value = branch;
-          option.textContent = branch;
+          // Capitalize first letter
+          const formattedBranch = branch.charAt(0).toUpperCase() + branch.slice(1).toLowerCase();
+          option.textContent = formattedBranch;
           branchSelect.appendChild(option);
         });
       }

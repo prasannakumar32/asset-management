@@ -101,10 +101,9 @@ block content
         container.innerHTML=!timeline||!timeline.length?`<div class="text-center py-4"><i class="fas fa-history text-muted mb-3" style="font-size: 2.5rem;"></i><p class="text-muted">No history records found</p></div>`:'<div class="asset-history-timeline">'+timeline.map(e=>`
           <div class="list-group-item">
             <div class="d-flex w-100 justify-content-between">
-              <strong>${e.title}</strong>
               <span class="badge bg-light text-muted">${new Date(e.date).toISOString().split('T')[0]}</span>
             </div>
-            <div class="mb-1">${e.description?`<div>${e.description}</div>`:''}${e.details?`<small>${e.details}</small>`:''}</div>
+            <div class="mb-1">${e.description?`<div style="color: #00b7ff;">${e.description}</div>`:''}${e.details?`<small>${e.details}</small>`:''}</div>
           </div>`).join('')+'</div>';
       };
       const showAssetList=()=>{

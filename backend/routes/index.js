@@ -8,7 +8,7 @@ const employeeController = require('../employee/employeeController');
 const assetAssignmentController = require('../assetAssignment/assetAssignmentController');
 const assetCategoryController = require('../assetCategories/assetCategoryController');
 const stockController = require('../stock/stockController');
-const assetHistoryRoute = require('../assetHistory/assetHistoryRoute');
+const assetHistoryController = require('../assetHistory/assetHistoryController');
 
 // import route files
 const dashboardRoutes = require('../dashboard/dashboardRoute');
@@ -109,12 +109,7 @@ router.get('/stock', stockController.showStockPage);
 router.use('/api/stock', require('../stock/stockRoute'));
 
 // asset history page route
-router.get('/asset-history', (req, res) => {
-  res.render('assetHistory/asset-history');
-});
-
-router.get('/asset-history/:id', (req, res) => {
-  res.render('assetHistory/asset-history');
-});
+router.get('/asset-history', assetHistoryController.list);
+router.get('/asset-history/:id', assetHistoryController.list);
 
 module.exports = router;

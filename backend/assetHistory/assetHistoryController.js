@@ -1,7 +1,12 @@
 const db = require('../models');
 
-//get all assets history
-exports.list = async(req, res) => {
+// Show asset history page
+exports.list = (req, res) => {
+  res.render('assetHistory/asset-history', { currentPage: 'asset-history' });
+};
+
+//get all assets history API
+exports.listAPI = async(req, res) => {
   try {
     const assets = await db.Asset.findAll({
       include: [{
@@ -70,13 +75,18 @@ exports.getAssetHistory = async(req, res) => {
 // Create timeline for chronological order 
     const timeline = [];
     
+    // convert action type to camelCase
+    const toCamelCase = (str) => {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    };
+    
 // Add history records to timeline
     histories.forEach(history => {
       timeline.push({
         date: history.action_date,
         type: history.action_type,
-        title: history.action_type ? history.action_type.charAt(0).toUpperCase() + history.action_type.slice(1) : 'Action',
-        description: history.action_type || 'Action performed',
+        description: toCamelCase(history.action_type) || 'Action Performed',
         details: history.notes || null,
         icon: 'fas-circle',
         color: 'secondary'
@@ -88,8 +98,7 @@ exports.getAssetHistory = async(req, res) => {
       timeline.push({
         date: assignment.assigned_date,
         type: 'assigned',
-        title: 'Asset Issued',
-        description: `Issued to ${assignment.employee ? assignment.employee.first_name + ' ' + assignment.employee.last_name : 'Unknown'}`,
+        description: `Issued To ${assignment.employee ? assignment.employee.first_name + assignment.employee.last_name : 'Unknown'}`,
         details: assignment.notes || null,
         icon: 'fas-hand-holding-box',
         color: 'primary'
@@ -99,8 +108,7 @@ exports.getAssetHistory = async(req, res) => {
         timeline.push({
           date: assignment.return_date,
           type: 'returned',
-          title: 'Asset Returned',
-          description: `Returned by ${assignment.employee ? assignment.employee.first_name + ' ' + assignment.employee.last_name : 'Unknown'}`,
+          description: `Returned By ${assignment.employee ? assignment.employee.first_name + assignment.employee.last_name : 'Unknown'}`,
           details: `Condition: ${assignment.return_condition}${assignment.return_notes ? ' - ' + assignment.return_notes : ''}`,
           icon: 'fas-undo',
           color: assignment.return_condition === 'damaged' ? 'warning' : 'success'

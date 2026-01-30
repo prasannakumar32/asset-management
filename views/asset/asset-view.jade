@@ -195,6 +195,7 @@ block content
           document.getElementById('notes').textContent = asset.notes;
         }
         
+        // Set edit button 
         document.getElementById('editBtn').href = `/assets/${asset.id}/form`;
       }
       
@@ -208,5 +209,11 @@ block content
         `;
       }
       
-      // Initialize on page load
-      document.addEventListener('DOMContentLoaded', loadAssetData);
+      document.addEventListener('DOMContentLoaded', function() {
+        // Set edit button
+        const pathParts = $(location).attr('pathname').split('/');
+        const assetId = pathParts[pathParts.length - 1];
+        document.getElementById('editBtn').href = `/assets/${assetId}/form`;
+        
+        loadAssetData();
+      });

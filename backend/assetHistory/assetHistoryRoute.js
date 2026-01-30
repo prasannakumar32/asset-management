@@ -3,7 +3,7 @@ const router = express.Router();
 const assetHistoryController = require('./assetHistoryController');
 
 //asset history route 
-router.get('/', assetHistoryController.list);
+router.get('/', assetHistoryController.listAPI);
 router.get('/:id', assetHistoryController.getAssetHistory);
 
 module.exports = router;

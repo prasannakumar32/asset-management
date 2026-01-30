@@ -37,6 +37,12 @@ const parseAssetData = (assetData) => {
     });
 // Convert boolean
     assetData.is_active = assetData.is_active === 'true';
+    
+   //branch first letter capital and other in small letter
+    if (assetData.branch && assetData.branch.trim() !== '') {
+        assetData.branch = assetData.branch.charAt(0).toUpperCase() + assetData.branch.slice(1).toLowerCase();
+    }
+    
     return assetData;
 };
 
