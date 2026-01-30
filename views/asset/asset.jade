@@ -85,7 +85,6 @@ block content
         const categorySelect = document.getElementById('category');
         if (!categorySelect) return;
         
-        // Clear existing options except "All"
         categorySelect.innerHTML = '<option value="">All</option>';
         
         categories.forEach(category => {
@@ -101,7 +100,6 @@ block content
         const branchSelect = document.getElementById('branch');
         if (!branchSelect) return;
         
-        // Clear existing options except "All"
         branchSelect.innerHTML = '<option value="">All</option>';
         
         // Get unique branches
@@ -205,7 +203,7 @@ block content
       function clearAllFilters() {
         document.getElementById('category').value = '';
         document.getElementById('status').value = '';
-        document.getElementById('is_active').value = '';
+        document.getElementById('is_active').value = 'true';
         document.getElementById('branch').value = '';
         loadAssets();
       }
@@ -258,7 +256,6 @@ block content
                   .filter-form-group
                     label.form-label.mb-0.fs-sm.text-muted(for='is_active') Active
                     select.form-select.form-select-sm(name='is_active', id='is_active')
-                      option(value='') All
                       option(value='true') Active
                       option(value='false') Inactive
                   .filter-form-group

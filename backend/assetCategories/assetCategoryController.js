@@ -18,16 +18,9 @@ exports.showCategoryPage = async (req, res) => {
 // api endpoint for categories list
 exports.listAPI = async (req, res) => {
     try {
-        const { status = '' } = req.query;
+        const { status = 'active' } = req.query;
         const whereClause = {};
-        if (status === 'active') {
-            whereClause.is_active = true;
-        } else if (status === 'inactive') {
-            whereClause.is_active = false;
-        }
-        else if (status === '') {
-            whereClause.is_active = true;
-        }
+        whereClause.is_active = status === 'active';
         
         const categories = await AssetCategory.findAll({
             where: whereClause,

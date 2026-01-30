@@ -71,7 +71,7 @@ block content
         const departmentSelect = document.getElementById('department');
         if (!departmentSelect) return;
         
-        // Clear existing options
+        // Clear existing options except "All"
         departmentSelect.innerHTML = '<option value="">All</option>';
         
         departments.forEach(department => {
@@ -87,7 +87,7 @@ block content
         const branchSelect = document.getElementById('branch');
         if (!branchSelect) return;
         
-        // Clear existing options
+        // Clear existing options except "All"
         branchSelect.innerHTML = '<option value="">All</option>';
         
         branches.forEach(branch => {
@@ -183,7 +183,7 @@ block content
         const status = document.getElementById('status');
         const branch = document.getElementById('branch');
         if (dept) dept.value = '';
-        if (status) status.value = '';
+        if (status) status.value = 'active';
         if (branch) branch.value = '';
         loadEmployees();
       }
@@ -230,7 +230,6 @@ block content
                   .filter-form-group
                     label.form-label.mb-0.fs-sm.text-muted(for='status') Status
                     select.form-select.form-select-sm(name='status', id='status')
-                      option(value='') All
                       option(value='active', selected=status === 'active') Active
                       option(value='inactive', selected=status === 'inactive') Inactive
                   .filter-form-group

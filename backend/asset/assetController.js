@@ -131,17 +131,17 @@ exports.listAPI = async (req, res) => {
         const { 
             category = '', 
             status = '', 
-            is_active = '', 
+            is_active = 'true', 
             branch = ''
         } = req.query;
         
         const whereClause = {};
         
-        //build where clause  
+        // Build where clause  
         category ? whereClause.category_id = parseInt(category) : null;
-        status ? whereClause.status = status.includes(',') ? { [Op.in]: status.split(',').map(s => s.trim()).filter(Boolean) } : status : null;
-        branch ? whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) } : null;
-        is_active !== '' ? whereClause.is_active = is_active === 'true' : null;
+        status ? whereClause.status = status : null;
+        branch ? whereClause.branch = branch : null;
+        whereClause.is_active = is_active === 'true';
 
         const assets = await Asset.findAll({
             where: whereClause,

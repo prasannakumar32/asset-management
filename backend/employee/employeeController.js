@@ -118,12 +118,12 @@ exports.list = async (req, res) => {
 // endpoint for employees list
 exports.listAPI = async (req, res) => {
     try {
-        const { department = '', status = '', branch = '' } = req.query;
+        const { department = '', status = 'active', branch = '' } = req.query;
         const whereClause = {};
 
 // Build where clause
         if (department) whereClause.department = department;
-        if (status && ['active', 'inactive'].includes(status)) whereClause.status = status;
+        whereClause.status = status;
         if (branch) whereClause.branch = { [Op.in]: branch.split(',').map(b => b.trim()).filter(Boolean) };
 
         const employees = await Employee.findAll({
