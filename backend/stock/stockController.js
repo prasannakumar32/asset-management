@@ -29,6 +29,7 @@ exports.getStockData = async (req, res) => {
           available: 0,
           assigned: 0,
           maintenance: 0,
+          retired: 0,
           scrapped: 0,
           totalValue: 0
         };

@@ -8,7 +8,7 @@ const getFormData = (req) => {
     for (const key in req.body) {
         formData[key] = req.body[key];
     }
-    formData.is_active = formData.is_active ? 'true' : 'false';
+    formData.is_active = formData.is_active ? true : false;
     return formData;
 };
 const getFormOptions = async () => {
@@ -29,12 +29,17 @@ const getFormOptions = async () => {
 };
 
 const parseAssetData = (assetData) => {
-    const numericFields = ['warranty_months', 'purchase_cost', 'current_value', 'category_id'];
+    const numericFields = ['warranty_months', 'purchase_cost', 'current_value'];
     numericFields.forEach(field => {
         assetData[field] && assetData[field].trim() !== '' 
-            ? assetData[field] = field === 'category_id' ? parseInt(assetData[field]) : parseFloat(assetData[field])
+            ? assetData[field] = (field === 'warranty_months') ? parseInt(assetData[field]) : parseFloat(assetData[field])
             : assetData[field] = null;
     });
+    
+    // Handle category_id separately
+    if (assetData.category_id && assetData.category_id.trim() !== '') {
+        assetData.category_id = parseInt(assetData.category_id);
+    }
 // Convert boolean
     assetData.is_active = assetData.is_active === 'true';
     

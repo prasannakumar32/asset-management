@@ -253,14 +253,41 @@ exports.returnAsset = async (req, res) => {
         return_notes: notes || ''
       }, { transaction });
 
-      await updateAssetStatus(asset_id, 'available');
+      // Determine asset status based on return condition
+      let assetStatus, actionType, historyMessage;
+      
+      switch(return_condition.toLowerCase()) {
+        case 'good':
+          assetStatus = 'available';
+          actionType = 'returned';
+          historyMessage = `Asset returned on ${return_date}. Condition: ${return_condition}. ${notes || ''}`;
+          break;
+        case 'poor':
+        case 'damaged':
+          assetStatus = 'maintenance';
+          actionType = 'maintenance';
+          historyMessage = `Asset sent to maintenance due to ${return_condition} condition on ${return_date}. ${notes || ''}`;
+          break;
+        case 'lost':
+        case 'stolen':
+          assetStatus = 'retired';
+          actionType = 'retired';
+          historyMessage = `Asset retired due to ${return_condition} on ${return_date}. ${notes || ''}`;
+          break;
+        default:
+          assetStatus = 'available';
+          actionType = 'returned';
+          historyMessage = `Asset returned on ${return_date}. Condition: ${return_condition}. ${notes || ''}`;
+      }
+      
+      await updateAssetStatus(asset_id, assetStatus);
 
       await db.AssetHistory.create({
         asset_id,
         employee_id,
-        action_type: 'returned',
+        action_type: actionType,
         action_date: new Date(),
-        notes: `Asset returned on ${return_date}. Condition: ${return_condition || 'good'}. ${notes || ''}`
+        notes: historyMessage
       }, { transaction });
     });
 

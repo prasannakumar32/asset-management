@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     category_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'asset_categories',
         key: 'id'
