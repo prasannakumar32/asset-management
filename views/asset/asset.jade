@@ -65,12 +65,12 @@ block content
             console.error('Error loading categories:', error);
           });
         
-        // Load branches from assets
-        fetch('/api/assets')
+        // Load branches using form options endpoint
+        fetch('/api/assets/asset-form-options')
           .then(response => response.json())
           .then(data => {
             if (data.success) {
-              populateBranches(data.data.assets);
+              populateBranchesFromOptions(data.data.branches);
             } else {
               console.error('Error loading branches:', data.error);
             }
@@ -95,29 +95,21 @@ block content
         });
       }
       
-      // Populate branch dropdown
-      function populateBranches(assets) {
+      // Populate branch dropdown from options
+      function populateBranchesFromOptions(branches) {
         const branchSelect = document.getElementById('branch');
         if (!branchSelect) return;
         
         branchSelect.innerHTML = '<option value="">All</option>';
         
-        // Get unique branches
-        const branchSet = new Set();
-        assets.forEach(asset => {
-            if (asset.branch) {
-                branchSet.add(asset.branch);
-            }
-        });
-        const branches = Array.from(branchSet).sort();
-        
         branches.forEach(branch => {
-          const option = document.createElement('option');
-          option.value = branch;
-          // Capitalize first letter
-          const formattedBranch = branch.charAt(0).toUpperCase() + branch.slice(1).toLowerCase();
-          option.textContent = formattedBranch;
-          branchSelect.appendChild(option);
+          if (branch) {
+            const option = document.createElement('option');
+            option.value = branch;
+            const formattedBranch = branch.charAt(0).toUpperCase() + branch.slice(1).toLowerCase();
+            option.textContent = formattedBranch;
+            branchSelect.appendChild(option);
+          }
         });
       }
       

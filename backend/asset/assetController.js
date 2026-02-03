@@ -26,18 +26,8 @@ const getFormOptions = async () => {
         raw: true
     });
 
-    // Get unique branches 
-    const branchSet = new Set();
-    const uniqueBranches = [];
-    branches.forEach(b => {
-        if (b.branch) {
-            const normalizedBranch = b.branch.toLowerCase();
-            if (!branchSet.has(normalizedBranch)) {
-                branchSet.add(normalizedBranch);
-                uniqueBranches.push(b.branch);
-            }
-        }
-    });
+    // Get unique branches
+    const uniqueBranches = [...new Set(branches.map(b => b.branch).filter(Boolean))];
 
     return { categories, branches: uniqueBranches };
 };
