@@ -200,15 +200,11 @@ block content
             const branchSelect = document.getElementById('branch');
             branchSelect.innerHTML = '<option value="">Select Branch</option>';
             
-            // Get unique branches to remove duplicates
-            const uniqueBranches = new Set();
-            result.data.branches.forEach(branchObj => {
-              if (branchObj.branch && !uniqueBranches.has(branchObj.branch)) {
-                uniqueBranches.add(branchObj.branch);
+            result.data.branches.forEach(branch => {
+              if (branch) {
                 const option = document.createElement('option');
-                option.value = branchObj.branch;
-                // Capitalize first letter
-                const formattedBranch = branchObj.branch.charAt(0).toUpperCase() + branchObj.branch.slice(1).toLowerCase();
+                option.value = branch;
+                const formattedBranch = branch.charAt(0).toUpperCase() + branch.slice(1).toLowerCase();
                 option.textContent = formattedBranch;
                 branchSelect.appendChild(option);
               }

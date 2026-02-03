@@ -53,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     branch: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
     location: {
       type: DataTypes.STRING,

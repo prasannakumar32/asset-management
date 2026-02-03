@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const db = require('../models');
 const { Asset, AssetHistory, AssetCategory } = db;
+const sequelize = db.sequelize;
 
 // Helper functions for form data and options
 const getFormData = (req) => {
@@ -14,18 +15,31 @@ const getFormData = (req) => {
 const getFormOptions = async () => {
     const categories = await AssetCategory.findAll({ 
         where: { is_active: true },
-        order: [['name', 'ASC']]
+        order: [['name', 'ASC']],
+        raw: true
     });
+    
     const branches = await Asset.findAll({
         attributes: ['branch'],
-        where: { branch: { [Op.ne]: null } },
+        where: { branch: { [Op.ne]: null, [Op.ne]: '' } },
         order: [['branch', 'ASC']],
+        raw: true
     });
 
-    return {
-        categories: categories,
-        branches: branches
-    };
+    // Get unique branches 
+    const branchSet = new Set();
+    const uniqueBranches = [];
+    branches.forEach(b => {
+        if (b.branch) {
+            const normalizedBranch = b.branch.toLowerCase();
+            if (!branchSet.has(normalizedBranch)) {
+                branchSet.add(normalizedBranch);
+                uniqueBranches.push(b.branch);
+            }
+        }
+    });
+
+    return { categories, branches: uniqueBranches };
 };
 
 const parseAssetData = (assetData) => {
