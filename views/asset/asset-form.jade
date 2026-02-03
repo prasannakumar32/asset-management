@@ -161,7 +161,7 @@ block content
           }
         });
         
-        // Setup form submission
+        // Setup form for create or edit submission
         setupFormSubmission();
       });
       
@@ -192,7 +192,8 @@ block content
             result.data.categories.forEach(category => {
               const option = document.createElement('option');
               option.value = category.id;
-              option.textContent = category.name;
+              const formattedCategory = category.name.charAt(0).toUpperCase() + category.name.slice(1).toLowerCase();
+              option.textContent = formattedCategory;
               categorySelect.appendChild(option);
             });
 
@@ -225,7 +226,7 @@ block content
           if (result.success) {
             const asset = result.data.asset;
             
-            // Populate form fields
+            // Populate form fields foe edit mode 
             document.getElementById('name').value = asset.name || '';
             document.getElementById('asset_tag').value = asset.asset_tag || '';
             document.getElementById('category_id').value = asset.category_id || '';
@@ -282,7 +283,7 @@ block content
           if (purchaseDateElement && purchaseDateElement.value) {
             const purchaseDate = new Date(purchaseDateElement.value);
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+            today.setHours(0, 0, 0, 0); 
             
             if (purchaseDate > today) {
               validationErrors.purchase_date = 'Purchase date cannot be in the future';
