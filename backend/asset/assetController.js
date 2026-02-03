@@ -339,41 +339,6 @@ exports.update = async (req, res) => {
             return res.status(404).json({ success: false, error: 'Asset not found' });
         }
         
-        // Track actual changes only
-        const changes = {};
-        Object.keys(req.body).forEach(key => {
-            if (key !== 'asset_tag' && key !== '_csrf' && originalAsset[key] !== undefined) {
-                const newVal = req.body[key];
-                const oldVal = originalAsset[key];
-                
-                if (newVal && (typeof newVal !== 'string' || newVal.trim())) {
-                    const normNew = newVal.toString().trim();
-                    const normOld = oldVal ? oldVal.toString().trim() : '';
-                    
-                    if (normOld !== normNew) {
-                        changes[key] = { from: normOld, to: normNew };
-                    }
-                }
-            }
-        });
-        
-        if (!Object.keys(changes).length) {
-            return res.json({ 
-                success: true, 
-                message: 'Asset updated successfully',
-                data: { asset: await Asset.findByPk(id) }
-            });
-        }
-        
-        await AssetHistory.create({
-            asset_id: parseInt(id),
-            action_type: 'updated',
-            action_date: new Date(),
-            previous_values: Object.fromEntries(Object.keys(changes).map(k => [k, changes[k].from])),
-            new_values: Object.fromEntries(Object.keys(changes).map(k => [k, changes[k].to])),
-            notes: `Updated fields: ${Object.keys(changes).join(', ')}`
-        });
-        
         return res.json({ success: true, message: 'Asset updated successfully', data: { asset: await Asset.findByPk(id) } });
         
     } catch (error) {

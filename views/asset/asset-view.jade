@@ -182,8 +182,12 @@ block content
         // Status
         const statusElement = document.getElementById('status');
         if (asset.status) {
-          const statusClass = asset.status === 'active' ? 'bg-success' : 
-            asset.status === 'inactive' ? 'bg-secondary' : 
+          const statusClass = asset.status === 'available' ? 'bg-success' : 
+            asset.status === 'assigned' ? 'bg-info' : 
+            asset.status === 'maintenance' ? '' : 
+            asset.status === 'retired' ? 'bg-secondary' : 
+            asset.status === 'scrapped' ? 'bg-danger' : 
+            'bg-secondary';
           statusElement.innerHTML = `<span class="badge ${statusClass}" style="font-size: 0.85rem; padding: 0.4rem 0.75rem;">${asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}</span>`;
         } else {
           statusElement.textContent = 'N/A';

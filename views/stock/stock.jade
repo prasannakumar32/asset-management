@@ -186,7 +186,7 @@ block content
         const badges = [];
         if (branchData.available > 0) badges.push(`<span class="badge bg-success me-1">${branchData.available} available</span>`);
         if (branchData.assigned > 0) badges.push(`<span class="badge bg-info me-1">${branchData.assigned} assigned</span>`);
-        if (branchData.maintenance > 0) badges.push(`<span class="badge bg-warning me-1">${branchData.maintenance} maintenance</span>`);
+        if (branchData.maintenance > 0) badges.push(`<span class="badge bg-secondary me-1">${branchData.maintenance} maintenance</span>`);
         if (branchData.scrapped > 0) badges.push(`<span class="badge bg-danger me-1">${branchData.scrapped} scrapped</span>`);
         if (branchData.retired > 0) badges.push(`<span class="badge bg-secondary me-1">${branchData.retired} retired</span>`);
         return badges.join('');
@@ -196,7 +196,7 @@ block content
         const classes = {
           'available': 'bg-success',
           'assigned': 'bg-info',
-          'maintenance': 'bg-warning',
+          'maintenance': 'bg-secondary',
           'retired': 'bg-secondary',
           'scrapped': 'bg-danger'
         };

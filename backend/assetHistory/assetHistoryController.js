@@ -83,7 +83,7 @@ exports.getAssetHistory = async(req, res) => {
     
 // Add history records to timeline
     histories.forEach(history => {
-      if (history.action_date && !['assigned', 'returned'].includes(history.action_type)) {
+      if (history.action_date && !['assigned', 'returned', 'updated'].includes(history.action_type)) {
         const actionDate = new Date(history.action_date);
         //get time from created at 
         if (history.created_at) {
@@ -94,19 +94,6 @@ exports.getAssetHistory = async(req, res) => {
         }
         
         let details = history.notes || null;
-        
-        // Show field changes for updated actions
-        if (history.action_type === 'updated' && history.previous_values && history.new_values) {
-          const changes = [];
-          Object.keys(history.previous_values).forEach(field => {
-            if (history.previous_values[field] !== history.new_values[field]) {
-              changes.push(`${field}: ${history.previous_values[field]} → ${history.new_values[field]}`);
-            }
-          });
-          if (changes.length > 0) {
-            details = changes.join(' | ');
-          }
-        }
         
         timeline.push({
           date: actionDate,
