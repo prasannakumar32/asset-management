@@ -14,7 +14,6 @@ const getFormData = (req) => {
 const getFormOptions = async () => {
     const departments = await Employee.findAll({
         attributes: ['department'],
-        where: { department: { [Op.ne]: null, [Op.ne]: '' } },
         order: [['department', 'ASC']],
         raw: true
     });
@@ -26,14 +25,7 @@ const getFormOptions = async () => {
     });
 
     // Get unique departments and branches
-    const departmentSet = new Set();
-    departments.forEach(d => {
-        if (d.department) {
-            departmentSet.add(d.department);
-        }
-    });
-    const uniqueDepartments = Array.from(departmentSet);
-    
+    const uniqueDepartments = [...new Set(departments.map(d => d.department).filter(dept => dept && dept.trim() !== ''))];
     const uniqueBranches = [...new Set(branches.map(b => b.branch).filter(branch => branch && branch.trim() !== ''))];
 
     return {

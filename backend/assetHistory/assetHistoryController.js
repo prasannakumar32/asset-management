@@ -92,12 +92,28 @@ exports.getAssetHistory = async(req, res) => {
           actionDate.setMinutes(createdAt.getMinutes());
           actionDate.setSeconds(createdAt.getSeconds());
         }
+        
+        let details = history.notes || null;
+        
+        // Show field changes for updated actions
+        if (history.action_type === 'updated' && history.previous_values && history.new_values) {
+          const changes = [];
+          Object.keys(history.previous_values).forEach(field => {
+            if (history.previous_values[field] !== history.new_values[field]) {
+              changes.push(`${field}: ${history.previous_values[field]} → ${history.new_values[field]}`);
+            }
+          });
+          if (changes.length > 0) {
+            details = changes.join(' | ');
+          }
+        }
+        
         timeline.push({
           date: actionDate,
           timestamp: actionDate.getTime(),
           type: history.action_type,
           description: toCamelCase(history.action_type) || 'Action Performed',
-          details: history.notes || null,
+          details: details,
           icon: 'fas-circle',
           color: 'secondary'
         });

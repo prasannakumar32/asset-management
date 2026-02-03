@@ -307,9 +307,14 @@ exports.update = async (req, res) => {
         const { id } = req.params;
         let assetData = parseAssetData(req.body);
         
-//remove asset_tag from update data 
         delete assetData.asset_tag;
-// Check duplicate serial number
+        
+        const originalAsset = await Asset.findByPk(id);
+        if (!originalAsset) {
+            return res.status(404).json({ success: false, error: 'Asset not found' });
+        }
+        
+        // Check duplicate serial number
         if (assetData.serial_number && assetData.serial_number.trim() !== '') {
             const existingAsset = await Asset.findOne({
                 where: {  
@@ -328,33 +333,52 @@ exports.update = async (req, res) => {
             }
         }
         
-// Update asset
         const [updatedRowsCount] = await Asset.update(assetData, { where: { id } });
         
         if (updatedRowsCount === 0) {
             return res.status(404).json({ success: false, error: 'Asset not found' });
         }
         
-// Create history record
+        // Track actual changes only
+        const changes = {};
+        Object.keys(req.body).forEach(key => {
+            if (key !== 'asset_tag' && key !== '_csrf' && originalAsset[key] !== undefined) {
+                const newVal = req.body[key];
+                const oldVal = originalAsset[key];
+                
+                if (newVal && (typeof newVal !== 'string' || newVal.trim())) {
+                    const normNew = newVal.toString().trim();
+                    const normOld = oldVal ? oldVal.toString().trim() : '';
+                    
+                    if (normOld !== normNew) {
+                        changes[key] = { from: normOld, to: normNew };
+                    }
+                }
+            }
+        });
+        
+        if (!Object.keys(changes).length) {
+            return res.json({ 
+                success: true, 
+                message: 'Asset updated successfully',
+                data: { asset: await Asset.findByPk(id) }
+            });
+        }
+        
         await AssetHistory.create({
             asset_id: parseInt(id),
             action_type: 'updated',
-            action_date: new Date()
+            action_date: new Date(),
+            previous_values: Object.fromEntries(Object.keys(changes).map(k => [k, changes[k].from])),
+            new_values: Object.fromEntries(Object.keys(changes).map(k => [k, changes[k].to])),
+            notes: `Updated fields: ${Object.keys(changes).join(', ')}`
         });
         
-// Get updated asset to return in API response
-        const updatedAsset = await Asset.findByPk(id);
-        
-        return res.json({ 
-            success: true, 
-            message: 'Asset updated successfully',
-            data: { asset: updatedAsset }
-        });
+        return res.json({ success: true, message: 'Asset updated successfully', data: { asset: await Asset.findByPk(id) } });
         
     } catch (error) {
         console.error('Error updating asset:', error);
         
-// Handle validation errors
         if (error.name === 'SequelizeValidationError') {
             const fieldErrors = {};
             error.errors.forEach(err => {
