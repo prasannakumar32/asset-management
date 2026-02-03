@@ -21,13 +21,12 @@ const getFormOptions = async () => {
     
     const branches = await Asset.findAll({
         attributes: ['branch'],
-        where: { branch: { [Op.ne]: null, [Op.ne]: '' } },
         order: [['branch', 'ASC']],
         raw: true
     });
 
     // Get unique branches
-    const uniqueBranches = [...new Set(branches.map(b => b.branch).filter(Boolean))];
+    const uniqueBranches = [...new Set(branches.map(b => b.branch).filter(branch => branch && branch.trim() !== ''))];
 
     return { categories, branches: uniqueBranches };
 };

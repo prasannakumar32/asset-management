@@ -21,7 +21,6 @@ const getFormOptions = async () => {
     
     const branches = await Employee.findAll({
         attributes: ['branch'],
-        where: { branch: { [Op.ne]: null, [Op.ne]: '' } },
         order: [['branch', 'ASC']],
         raw: true
     });
@@ -35,13 +34,7 @@ const getFormOptions = async () => {
     });
     const uniqueDepartments = Array.from(departmentSet);
     
-    const branchSet = new Set();
-    branches.forEach(b => {
-        if (b.branch) {
-            branchSet.add(b.branch);
-        }
-    });
-    const uniqueBranches = Array.from(branchSet);
+    const uniqueBranches = [...new Set(branches.map(b => b.branch).filter(branch => branch && branch.trim() !== ''))];
 
     return {
         departments: uniqueDepartments,
@@ -65,6 +58,11 @@ const parseEmployeeData = (employeeData) => {
             ? employeeData[field].trim() 
             : null;
     });
+    
+    // Branch first letter capital and other in small letter
+    if (employeeData.branch && employeeData.branch.trim() !== '') {
+        employeeData.branch = employeeData.branch.charAt(0).toUpperCase() + employeeData.branch.slice(1).toLowerCase();
+    }
     
     return employeeData;
 };
