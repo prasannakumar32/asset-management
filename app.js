@@ -26,6 +26,10 @@ if (process.env.NODE_ENV === 'production') {
 //check database connection
 const connectDB = async () => {
   try {
+    console.log('Attempting database connection...');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Database URL exists:', !!process.env.DATABASE_URL);
+    
     await db.sequelize.authenticate();
     console.log('Database connected successfully');
     await db.sequelize.sync();
@@ -34,6 +38,7 @@ const connectDB = async () => {
     await createAdminUser();
   } catch (error) {
     console.error('Database connection failed:', error.message);
+    console.error('Full error:', error);
     process.exit(1);
   }
 };

@@ -9,6 +9,7 @@ const getDatabaseConfig = () => {
     // Production database (Render/Heroku)
     // Check if DATABASE_URL is provided (common on Render/Heroku)
     if (process.env.DATABASE_URL) {
+      console.log('Using DATABASE_URL for production');
       return {
         url: process.env.DATABASE_URL,
         dialect: 'postgres',
@@ -16,6 +17,12 @@ const getDatabaseConfig = () => {
         ssl: {
           require: true,
           rejectUnauthorized: false
+        },
+        dialectOptions: {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false
+          }
         },
         define: {
           underscored: true,
@@ -34,6 +41,7 @@ const getDatabaseConfig = () => {
     }
     
     // Fallback to individual environment variables
+    console.log('Using individual env vars for production');
     return {
       database: process.env.DB_NAME,
       username: process.env.DB_USER,
