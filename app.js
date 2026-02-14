@@ -60,6 +60,29 @@ const connectDB = async (retries = 5, delay = 5000) => {
     console.log('Database connected successfully');
     await db.sequelize.sync();
 
+    // Safety-fix: some production DBs may have `assets.serial_number` as INTEGER from an
+    // older schema — convert it to VARCHAR so alphanumeric serials (e.g. "DL123456789")
+    // don't cause seed/startup failures. This runs non-destructively and is logged.
+    try {
+      const [cols] = await db.sequelize.query(`
+        SELECT udt_name
+        FROM information_schema.columns
+        WHERE table_name = 'assets' AND column_name = 'serial_number'
+      `);
+
+      if (Array.isArray(cols) && cols[0] && typeof cols[0].udt_name === 'string' && /^int/i.test(cols[0].udt_name)) {
+        console.log('Detected integer type for assets.serial_number — converting to VARCHAR(255)...');
+        await db.sequelize.query(`
+          ALTER TABLE assets
+          ALTER COLUMN serial_number TYPE VARCHAR(255)
+          USING serial_number::varchar
+        `);
+        console.log('Converted assets.serial_number to VARCHAR(255)');
+      }
+    } catch (err) {
+      console.warn('Warning: could not verify/alter assets.serial_number column type:', err && err.message ? err.message : err);
+    }
+
     // Ensure session table exists for connect-pg-simple (safety fallback)
     try {
       const [rows] = await db.sequelize.query("SELECT to_regclass('public.user_sessions') AS exists;");
