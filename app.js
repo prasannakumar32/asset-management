@@ -37,6 +37,11 @@ const connectDB = async (retries = 5, delay = 5000) => {
     // Debug: Show all database-related environment variables
     console.log('=== Database Environment Variables ===');
     console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    if (process.env.DATABASE_URL) {
+      console.log('DATABASE_URL length:', process.env.DATABASE_URL.length);
+      console.log('DATABASE_URL (first 50 chars):', process.env.DATABASE_URL.substring(0, 50) + '...');
+      console.log('DATABASE_URL format check:', process.env.DATABASE_URL.startsWith('postgres://'));
+    }
     console.log('PGHOST:', process.env.PGHOST);
     console.log('PGPORT:', process.env.PGPORT);
     console.log('PGUSER:', process.env.PGUSER);

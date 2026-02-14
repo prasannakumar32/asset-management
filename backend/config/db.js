@@ -11,8 +11,23 @@ const getDatabaseConfig = () => {
     // Method 1: DATABASE_URL (most common)
     if (process.env.DATABASE_URL) {
       console.log('Using DATABASE_URL for production');
+      
+      // Parse and validate DATABASE_URL
+      let dbUrl = process.env.DATABASE_URL;
+      console.log('Original DATABASE_URL length:', dbUrl.length);
+      
+      // Fix common DATABASE_URL issues
+      if (!dbUrl.startsWith('postgres://') && !dbUrl.startsWith('postgresql://')) {
+        console.log('DATABASE_URL format issue detected, attempting to fix...');
+        // If it's missing protocol, add it
+        if (dbUrl.includes('@') && dbUrl.includes('.')) {
+          dbUrl = 'postgres://' + dbUrl;
+          console.log('Fixed DATABASE_URL:', dbUrl.substring(0, 50) + '...');
+        }
+      }
+      
       return {
-        url: process.env.DATABASE_URL,
+        url: dbUrl,
         dialect: 'postgres',
         logging: false,
         ssl: {
