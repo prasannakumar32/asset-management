@@ -7,7 +7,8 @@
     "dev": "nodemon app.js",
     "seed-admin": "node scripts/seed-admin.js",
     "seed-sample": "node scripts/seed-sample-data.js",
-    "seed-assets": "node scripts/seed-assets-only.js"
+    "seed-assets": "node scripts/seed-assets-only.js",
+    "add-dashboard-data": "node scripts/add-dashboard-data.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
