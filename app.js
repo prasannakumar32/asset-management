@@ -24,11 +24,15 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 //check database connection
-const connectDB = async () => {
+const connectDB = async (retries = 5, delay = 5000) => {
   try {
     console.log('Attempting database connection...');
     console.log('Environment:', process.env.NODE_ENV);
     console.log('Database URL exists:', !!process.env.DATABASE_URL);
+    
+    if (process.env.DATABASE_URL) {
+      console.log('DATABASE_URL found, length:', process.env.DATABASE_URL.length);
+    }
     
     await db.sequelize.authenticate();
     console.log('Database connected successfully');
@@ -37,8 +41,15 @@ const connectDB = async () => {
     // Create admin user if not exists
     await createAdminUser();
   } catch (error) {
-    console.error('Database connection failed:', error.message);
-    console.error('Full error:', error);
+    console.error(`Database connection failed (attempt ${6 - retries}/5):`, error.message);
+    
+    if (retries > 0) {
+      console.log(`Retrying in ${delay/1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return connectDB(retries - 1, delay);
+    }
+    
+    console.error('Max retries reached. Full error:', error);
     process.exit(1);
   }
 };
@@ -162,6 +173,15 @@ app.get('/api/dashboard', dashboardController.getDashboardData);
 // Stock API route
 const stockRoutes = require('./backend/stock/stockRoute');
 app.use('/api/stock', stockRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
 
 // Main routes (should be after API routes)
 const mainRoutes = require('./backend/routes');

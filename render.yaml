@@ -25,3 +25,8 @@ services:
     plan: free
     databases:
       - name: asset_tracker
+    healthCheck:
+      path: /health
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
