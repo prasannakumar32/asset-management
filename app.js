@@ -40,7 +40,7 @@ const connectDB = async (retries = 5, delay = 5000) => {
     if (process.env.DATABASE_URL) {
       console.log('DATABASE_URL length:', process.env.DATABASE_URL.length);
       console.log('DATABASE_URL (first 50 chars):', process.env.DATABASE_URL.substring(0, 50) + '...');
-      console.log('DATABASE_URL format check:', process.env.DATABASE_URL.startsWith('postgres://'));
+      console.log('DATABASE_URL format check:', process.env.DATABASE_URL.startsWith('postgres://') || process.env.DATABASE_URL.startsWith('postgresql://'));
     }
     console.log('PGHOST:', process.env.PGHOST);
     console.log('PGPORT:', process.env.PGPORT);

@@ -11,49 +11,59 @@ const getDatabaseConfig = () => {
     // Method 1: DATABASE_URL (most common)
     if (process.env.DATABASE_URL) {
       console.log('Using DATABASE_URL for production');
-      
-      // Parse and validate DATABASE_URL
-      let dbUrl = process.env.DATABASE_URL;
-      console.log('Original DATABASE_URL length:', dbUrl.length);
-      
-      // Fix common DATABASE_URL issues
-      if (!dbUrl.startsWith('postgres://') && !dbUrl.startsWith('postgresql://')) {
-        console.log('DATABASE_URL format issue detected, attempting to fix...');
-        // If it's missing protocol, add it
-        if (dbUrl.includes('@') && dbUrl.includes('.')) {
-          dbUrl = 'postgres://' + dbUrl;
-          console.log('Fixed DATABASE_URL:', dbUrl.substring(0, 50) + '...');
-        }
+
+      const rawUrl = process.env.DATABASE_URL;
+      console.log('Original DATABASE_URL length:', rawUrl.length);
+
+      // Ensure protocol is present so URL parser works with values like "user:pass@host:port/db"
+      let normalizedUrl = rawUrl;
+      if (!normalizedUrl.startsWith('postgres://') && !normalizedUrl.startsWith('postgresql://')) {
+        normalizedUrl = 'postgres://' + normalizedUrl;
+        console.log('Normalized DATABASE_URL to include protocol');
       }
-      
-      return {
-        url: dbUrl,
-        dialect: 'postgres',
-        logging: false,
-        ssl: {
-          require: true,
-          rejectUnauthorized: false
-        },
-        dialectOptions: {
-          ssl: {
-            require: true,
-            rejectUnauthorized: false
+
+      try {
+        const { URL } = require('url');
+        const parsed = new URL(normalizedUrl);
+
+        const username = decodeURIComponent(parsed.username || '');
+        const password = decodeURIComponent(parsed.password || '');
+        const host = parsed.hostname;
+        const port = parsed.port ? parseInt(parsed.port, 10) : 5432;
+        const database = parsed.pathname ? parsed.pathname.replace(/^\//, '') : '';
+
+        return {
+          database,
+          username,
+          password,
+          host,
+          port,
+          dialect: 'postgres',
+          logging: false,
+          dialectOptions: {
+            ssl: {
+              require: true,
+              rejectUnauthorized: false
+            }
+          },
+          define: {
+            underscored: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            deletedAt: 'deleted_at',
+            paranoid: true
+          },
+          pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
           }
-        },
-        define: {
-          underscored: true,
-          createdAt: 'created_at',
-          updatedAt: 'updated_at',
-          deletedAt: 'deleted_at',
-          paranoid: true
-        },
-        pool: {
-          max: 5,
-          min: 0,
-          acquire: 30000,
-          idle: 10000
-        }
-      };
+        };
+      } catch (err) {
+        console.error('Failed to parse DATABASE_URL:', err);
+        throw err;
+      }
     }
     
     // Method 2: Individual environment variables (manual setup)
