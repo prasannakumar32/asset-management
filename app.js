@@ -17,13 +17,15 @@ if (process.env.NODE_ENV === 'production') {
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false }
     },
-    tableName: 'user_sessions'
+    tableName: 'user_sessions',
+    // auto-create the sessions table if it doesn't exist (prevents "relation does not exist")
+    createTableIfMissing: true
   });
 } else {
   sessionStore = new session.MemoryStore();
 }
 
-//check database connection
+// Connect to DB with retry logic
 const connectDB = async (retries = 5, delay = 5000) => {
   try {
     console.log('Attempting database connection...');
