@@ -4,13 +4,15 @@ services:
     name: asset-tracker
     env: node
     plan: free
-    buildCommand: "npm install"
+    buildCommand: "npm install && npm run seed-admin"
     startCommand: "npm start"
     envVars:
       - key: NODE_ENV
         value: production
       - key: SESSION_SECRET
         generateValue: true
+      - key: TRUST_PROXY
+        value: "1"
       - fromDatabase:
           name: asset-tracker-db
           property: connectionString

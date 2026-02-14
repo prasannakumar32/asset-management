@@ -4,7 +4,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "seed-admin": "node scripts/seed-admin.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

@@ -29,16 +29,21 @@ app.use(
     cookie: { 
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax'
+    },
+    name: 'asset-tracker.sid' // Custom session name for security
   })
 );
+
+// Trust proxy for production (Render/Heroku)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
 
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
-
-// Make user available to views
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
   res.locals.message = req.session.message;
