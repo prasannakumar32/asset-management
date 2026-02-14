@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const db = require('../backend/models');
 
-const createAdminUser = async () => {
+const createAdminUser = async (closeAfter = true) => {
   try {
     // Check if admin user already exists
     const existingAdmin = await db.User.findOne({ 
@@ -10,7 +10,7 @@ const createAdminUser = async () => {
 
     if (existingAdmin) {
       console.log('Admin user already exists');
-      return;
+      return existingAdmin;
     }
 
     // Create admin user
@@ -28,16 +28,20 @@ const createAdminUser = async () => {
     console.log('Email: admin@assettracker.com');
     console.log('Role: admin');
 
+    return adminUser;
   } catch (error) {
     console.error('Error creating admin user:', error);
+    throw error;
   } finally {
-    await db.sequelize.close();
+    if (closeAfter) {
+      await db.sequelize.close();
+    }
   }
 };
 
 // Run if called directly
 if (require.main === module) {
-  createAdminUser();
+  createAdminUser(true);
 }
 
 module.exports = createAdminUser;
