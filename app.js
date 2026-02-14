@@ -81,6 +81,29 @@ const connectDB = async (retries = 5, delay = 5000) => {
 
     // Create admin user if not exists
     await createAdminUser();
+
+    // Optional: run seed scripts in production when RUN_SEEDS=true
+    if (process.env.RUN_SEEDS === 'true') {
+      const seedTarget = (process.env.SEED_TARGET || 'sample').toLowerCase();
+      console.log('RUN_SEEDS detected — seeding target:', seedTarget);
+      try {
+        if (seedTarget === 'admin' || seedTarget === 'all' || seedTarget === 'sample') {
+          const createAdmin = require('./scripts/seed-admin');
+          await createAdmin(false);
+        }
+        if (seedTarget === 'sample' || seedTarget === 'all') {
+          const seedSample = require('./scripts/seed-sample-data');
+          await seedSample(false);
+        }
+        if (seedTarget === 'assets') {
+          const seedAssetsOnly = require('./scripts/seed-assets-only');
+          await seedAssetsOnly(false);
+        }
+        console.log('Seeding (RUN_SEEDS) completed');
+      } catch (err) {
+        console.error('Seeding failed (RUN_SEEDS):', err);
+      }
+    }
   } catch (error) {
     console.error(`Database connection failed (attempt ${6 - retries}/5):`, error.message);
     
@@ -233,6 +256,33 @@ const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
   await connectDB();
+
+  // Optional: run seed scripts in controlled way when requested via env vars
+  if (process.env.RUN_SEEDS === 'true') {
+    const warnMsg = 'RUN_SEEDS is enabled. This will run seed scripts against the connected database.';
+    console.warn(warnMsg);
+
+    // In production require explicit confirmation env var
+    if (process.env.NODE_ENV === 'production' && process.env.RUN_SEEDS_CONFIRM !== 'yes') {
+      console.warn('Skipping RUN_SEEDS in production because RUN_SEEDS_CONFIRM !== "yes". Set RUN_SEEDS_CONFIRM=yes to proceed.');
+    } else {
+      try {
+        console.log('Executing seed scripts (admin, sample, assets)');
+        const seedAdmin = require('./scripts/seed-admin');
+        const seedSampleData = require('./scripts/seed-sample-data');
+        const seedAssetsOnly = require('./scripts/seed-assets-only');
+
+        // run without closing the existing Sequelize connection (closeAfter=false)
+        await seedAdmin(false);
+        await seedSampleData(false);
+        await seedAssetsOnly(false);
+        console.log('RUN_SEEDS: seed scripts completed');
+      } catch (err) {
+        console.error('RUN_SEEDS error:', err);
+      }
+    }
+  }
+
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
