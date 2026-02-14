@@ -6,8 +6,9 @@ const getDatabaseConfig = () => {
   const env = process.env.NODE_ENV || 'development';
   
   if (env === 'production') {
-    // Production database (Render/Heroku)
-    // Check if DATABASE_URL is provided (common on Render/Heroku)
+    // Production database - try multiple methods
+    
+    // Method 1: DATABASE_URL (most common)
     if (process.env.DATABASE_URL) {
       console.log('Using DATABASE_URL for production');
       return {
@@ -40,34 +41,89 @@ const getDatabaseConfig = () => {
       };
     }
     
-    // Fallback to individual environment variables
-    console.log('Using individual env vars for production');
-    return {
-      database: process.env.DB_NAME,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT || 5432,
-      dialect: 'postgres',
-      logging: false,
-      ssl: process.env.DB_SSL === 'true' ? {
-        require: true,
-        rejectUnauthorized: false
-      } : false,
-      define: {
-        underscored: true,
-        createdAt: 'created_at',
-        updatedAt: 'updated_at',
-        deletedAt: 'deleted_at',
-        paranoid: true
-      },
-      pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
-      }
-    };
+    // Method 2: Individual environment variables (manual setup)
+    if (process.env.PGDATABASE && process.env.PGHOST) {
+      console.log('Using individual PG env vars for production');
+      return {
+        database: process.env.PGDATABASE,
+        username: process.env.PGUSER,
+        password: process.env.PGPASSWORD,
+        host: process.env.PGHOST,
+        port: process.env.PGPORT || 5432,
+        dialect: 'postgres',
+        logging: false,
+        ssl: {
+          require: true,
+          rejectUnauthorized: false
+        },
+        dialectOptions: {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false
+          }
+        },
+        define: {
+          underscored: true,
+          createdAt: 'created_at',
+          updatedAt: 'updated_at',
+          deletedAt: 'deleted_at',
+          paranoid: true
+        },
+        pool: {
+          max: 5,
+          min: 0,
+          acquire: 30000,
+          idle: 10000
+        }
+      };
+    }
+    
+    // Method 3: Custom env vars (alternative manual setup)
+    if (process.env.DB_HOST && process.env.DB_NAME) {
+      console.log('Using custom DB env vars for production');
+      return {
+        database: process.env.DB_NAME,
+        username: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT || 5432,
+        dialect: 'postgres',
+        logging: false,
+        ssl: {
+          require: true,
+          rejectUnauthorized: false
+        },
+        dialectOptions: {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false
+          }
+        },
+        define: {
+          underscored: true,
+          createdAt: 'created_at',
+          updatedAt: 'updated_at',
+          deletedAt: 'deleted_at',
+          paranoid: true
+        },
+        pool: {
+          max: 5,
+          min: 0,
+          acquire: 30000,
+          idle: 10000
+        }
+      };
+    }
+    
+    // Method 4: Fallback to error with helpful message
+    console.log('No database configuration found in production environment');
+    console.log('Please set one of the following in your Render dashboard:');
+    console.log('1. DATABASE_URL (recommended)');
+    console.log('2. PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE');
+    console.log('3. DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME');
+    
+    throw new Error('No database configuration found. Please set DATABASE_URL or individual database environment variables in Render dashboard.');
+    
   } else {
     // Local development database
     return {
