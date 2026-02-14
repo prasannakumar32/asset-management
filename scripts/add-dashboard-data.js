@@ -11,38 +11,38 @@ const addDashboardData = async () => {
       await db.Employee.bulkCreate([
         {
           employee_id: 'EMP001',
-          first_name: 'John',
-          last_name: 'Doe',
-          email: 'john@company.com',
-          phone: '123-456-7890',
+          first_name: 'Prasanna',
+          last_name: 'Kumar',
+          email: 'prasanna@company.com',
+          phone: '9840012345',
           department: 'IT',
           position: 'Software Developer',
-          hire_date: '2023-01-15',
-          branch: 'Headquarters',
+          hire_date: '2022-03-01',
+          branch: 'Chennai',
           status: 'active'
         },
         {
           employee_id: 'EMP002',
-          first_name: 'Jane',
-          last_name: 'Smith',
-          email: 'jane@company.com',
-          phone: '098-765-4321',
-          department: 'HR',
-          position: 'HR Manager',
-          hire_date: '2023-02-20',
-          branch: 'Headquarters',
+          first_name: 'Pravin',
+          last_name: 'Kumar',
+          email: 'pravin@company.com',
+          phone: '9840022345',
+          department: 'IT',
+          position: 'DevOps Engineer',
+          hire_date: '2022-06-15',
+          branch: 'Coimbatore',
           status: 'active'
         },
         {
           employee_id: 'EMP003',
-          first_name: 'Mike',
-          last_name: 'Johnson',
-          email: 'mike@company.com',
-          phone: '555-123-4567',
-          department: 'Finance',
-          position: 'Accountant',
-          hire_date: '2023-03-10',
-          branch: 'Headquarters',
+          first_name: 'Dinesh',
+          last_name: 'R',
+          email: 'dinesh@company.com',
+          phone: '9840032345',
+          department: 'Support',
+          position: 'Support Engineer',
+          hire_date: '2023-01-10',
+          branch: 'Namakkal',
           status: 'active'
         }
       ]);
@@ -57,10 +57,12 @@ const addDashboardData = async () => {
       console.log('Adding sample asset categories...');
       await db.AssetCategory.bulkCreate([
         { name: 'Laptops', description: 'Company laptops' },
-        { name: 'Monitors', description: 'Computer monitors' },
-        { name: 'Phones', description: 'Mobile phones' }
+        { name: 'Phones', description: 'Mobile phones' },
+        { name: 'Headphones', description: 'Audio/headset devices' },
+        { name: 'Printers', description: 'Printers and scanners' },
+        { name: 'Network', description: 'WiFi routers and network gear' }
       ]);
-      console.log('✅ Added 3 asset categories');
+      console.log('✅ Added 5 asset categories');
     } else {
       console.log(`✅ Found ${categoryCount} existing asset categories`);
     }
@@ -81,47 +83,62 @@ const addDashboardData = async () => {
           status: 'available',
           purchase_date: new Date('2023-01-15'),
           purchase_cost: 1200,
-          is_active: true
-        },
-        {
-          name: 'HP EliteDisplay E243',
-          asset_tag: 'MON001',
-          serial_number: 'HP987654321',
-          category_id: categories[1].id,
-          status: 'available',
-          purchase_date: new Date('2023-02-20'),
-          purchase_cost: 300,
-          is_active: true
+          is_active: true,
+          branch: 'Chennai',
+          manufacturer: 'Dell',
+          model: 'Latitude 5420'
         },
         {
           name: 'iPhone 13',
           asset_tag: 'PHN001',
           serial_number: 'AP112233445',
-          category_id: categories[2].id,
+          category_id: categories[1].id,
           status: 'assigned',
           purchase_date: new Date('2023-03-10'),
           purchase_cost: 800,
-          is_active: true
+          is_active: true,
+          branch: 'Coimbatore',
+          manufacturer: 'Apple',
+          model: 'iPhone 13'
         },
         {
-          name: 'MacBook Pro 14"',
-          asset_tag: 'LAP002',
-          serial_number: 'MB456789123',
-          category_id: categories[0].id,
+          name: 'TP-Link Archer C7',
+          asset_tag: 'NET001',
+          serial_number: 'TPLINKARC7',
+          category_id: categories[4].id,
           status: 'available',
-          purchase_date: new Date('2023-04-05'),
-          purchase_cost: 2000,
-          is_active: true
+          purchase_date: new Date('2022-10-05'),
+          purchase_cost: 80,
+          is_active: true,
+          branch: 'Namakkal',
+          manufacturer: 'TP-Link',
+          model: 'Archer C7'
         },
         {
-          name: 'Samsung Galaxy S23',
-          asset_tag: 'PHN002',
-          serial_number: 'SG789456123',
+          name: 'HP LaserJet Pro M428',
+          asset_tag: 'PRN001',
+          serial_number: 'HPLJPRO428',
+          category_id: categories[3].id,
+          status: 'available',
+          purchase_date: new Date('2022-11-10'),
+          purchase_cost: 450,
+          is_active: true,
+          branch: 'Chennai',
+          manufacturer: 'HP',
+          model: 'LaserJet Pro M428'
+        },
+        {
+          name: 'Sony WH-1000XM4',
+          asset_tag: 'HPH001',
+          serial_number: 'SONYWH1000XM4',
           category_id: categories[2].id,
           status: 'assigned',
-          purchase_date: new Date('2023-05-12'),
-          purchase_cost: 900,
-          is_active: true
+          purchase_date: new Date('2023-02-20'),
+          purchase_cost: 300,
+          is_active: true,
+          branch: 'Coimbatore',
+          manufacturer: 'Sony',
+          model: 'WH-1000XM4'
         }
       ]);
       console.log('✅ Added 5 assets');
