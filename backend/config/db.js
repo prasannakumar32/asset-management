@@ -190,7 +190,31 @@ const connectDB = async () => {
 // Sync all models with the database
     await sequelize.sync({ alter: true });
     console.log('Database synchronized.');
-    
+
+    // Safety-fix: some production databases may have `serial_number` as INTEGER from
+    // an older schema. Ensure it's TEXT/VARCHAR so alphanumeric serials (e.g. "DL123456789")
+    // don't cause INSERT errors. This runs only when the column exists and is an integer.
+    try {
+      const [cols] = await sequelize.query(`
+        SELECT udt_name
+        FROM information_schema.columns
+        WHERE table_name = 'assets' AND column_name = 'serial_number'
+      `);
+
+      if (Array.isArray(cols) && cols[0] && typeof cols[0].udt_name === 'string' && /^int/i.test(cols[0].udt_name)) {
+        console.log('Detected integer type for assets.serial_number — converting to VARCHAR(255)...');
+        await sequelize.query(`
+          ALTER TABLE assets
+          ALTER COLUMN serial_number TYPE VARCHAR(255)
+          USING serial_number::varchar
+        `);
+        console.log('Converted assets.serial_number to VARCHAR(255)');
+      }
+    } catch (err) {
+      // Non-fatal — log and continue so app can still start even if ALTER fails.
+      console.warn('Warning: could not verify/alter assets.serial_number column type:', err && err.message ? err.message : err);
+    }
+
     return db;
   } catch (error) {
     console.error('Unable to connect to the database:', error);
