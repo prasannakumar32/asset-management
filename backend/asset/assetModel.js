@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       unique: true
     },
     serial_number: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: true,
       unique: true
     },

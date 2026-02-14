@@ -110,7 +110,7 @@ exports.listAPI = async (req, res) => {
     try {
         const { 
             department = '', 
-            status = 'true',
+            status = 'active',
             branch = '' 
         } = req.query;
 
