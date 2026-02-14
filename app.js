@@ -238,13 +238,23 @@ app.get('/api/dashboard', dashboardController.getDashboardData);
 const stockRoutes = require('./backend/stock/stockRoute');
 app.use('/api/stock', stockRoutes);
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
+// Health check endpoint (includes DB connectivity)
+app.get('/health', async (req, res) => {
+  const payload = {
+    status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV
-  });
+  };
+
+  try {
+    await db.sequelize.authenticate();
+    payload.database = 'connected';
+    return res.status(200).json(payload);
+  } catch (err) {
+    payload.database = 'unreachable';
+    payload.error = err.message;
+    return res.status(503).json(payload);
+  }
 });
 
 // Main routes (should be after API routes)

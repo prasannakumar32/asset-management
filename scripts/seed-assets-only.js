@@ -75,7 +75,8 @@ const seedAssetsOnly = async (closeAfter = true) => {
     console.error('Error creating sample assets:', error);
     throw error;
   } finally {
-    if (closeAfter) {
+    // Only close the shared Sequelize connection when this script is executed directly
+    if (closeAfter && require.main === module) {
       await db.sequelize.close();
     }
   }

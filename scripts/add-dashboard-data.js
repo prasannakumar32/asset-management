@@ -177,7 +177,10 @@ const addDashboardData = async () => {
   } catch (error) {
     console.error('❌ Error adding dashboard data:', error);
   } finally {
-    await db.sequelize.close();
+    // Only close the shared Sequelize connection when script is run directly
+    if (require.main === module) {
+      await db.sequelize.close();
+    }
   }
 };
 
