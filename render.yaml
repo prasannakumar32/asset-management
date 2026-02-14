@@ -1,0 +1,25 @@
+services:
+  # Web Service
+  - type: web
+    name: asset-tracker
+    env: node
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - fromDatabase:
+          name: asset-tracker-db
+          property: connectionString
+          key: DATABASE_URL
+
+  # PostgreSQL Database
+  - type: pserv
+    name: asset-tracker-db
+    env: postgres
+    plan: free
+    databases:
+      - name: asset_tracker
