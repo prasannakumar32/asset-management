@@ -4,7 +4,7 @@ services:
     name: asset-tracker
     env: node
     plan: free
-    buildCommand: "npm install && npm run seed-admin"
+    buildCommand: "npm install"
     startCommand: "npm start"
     envVars:
       - key: NODE_ENV

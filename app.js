@@ -8,15 +8,55 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const methodOverride = require('method-override');
 
+// Production session store
+let sessionStore;
+if (process.env.NODE_ENV === 'production') {
+  const pgSession = require('connect-pg-simple')(session);
+  sessionStore = new pgSession({
+    conObject: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    },
+    tableName: 'user_sessions'
+  });
+} else {
+  sessionStore = new session.MemoryStore();
+}
+
 //check database connection
 const connectDB = async () => {
   try {
     await db.sequelize.authenticate();
     console.log('Database connected successfully');
     await db.sequelize.sync();
+    
+    // Create admin user if not exists
+    await createAdminUser();
   } catch (error) {
     console.error('Database connection failed:', error.message);
     process.exit(1);
+  }
+};
+
+// Create admin user function
+const createAdminUser = async () => {
+  try {
+    const existingAdmin = await db.User.findOne({ 
+      where: { username: 'admin' } 
+    });
+
+    if (!existingAdmin) {
+      await db.User.create({
+        username: 'admin',
+        email: 'admin@assettracker.com',
+        password: 'admin123',
+        role: 'admin',
+        is_active: true
+      });
+      console.log('Admin user created successfully');
+    }
+  } catch (error) {
+    console.error('Error creating admin user:', error);
   }
 };
 
@@ -26,6 +66,7 @@ app.use(
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
+    store: sessionStore,
     cookie: { 
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
