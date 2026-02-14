@@ -59,7 +59,26 @@ const connectDB = async (retries = 5, delay = 5000) => {
     await db.sequelize.authenticate();
     console.log('Database connected successfully');
     await db.sequelize.sync();
-    
+
+    // Ensure session table exists for connect-pg-simple (safety fallback)
+    try {
+      const [rows] = await db.sequelize.query("SELECT to_regclass('public.user_sessions') AS exists;");
+      const exists = rows && rows[0] && rows[0].exists;
+      if (!exists) {
+        console.log('`user_sessions` table missing — creating fallback table');
+        await db.sequelize.query(`
+          CREATE TABLE IF NOT EXISTS "user_sessions" (
+            sid varchar NOT NULL PRIMARY KEY,
+            sess json NOT NULL,
+            expire timestamp(6) NOT NULL
+          );
+        `);
+        console.log('`user_sessions` table created (or already exists)');
+      }
+    } catch (err) {
+      console.warn('Could not ensure `user_sessions` table exists:', err.message);
+    }
+
     // Create admin user if not exists
     await createAdminUser();
   } catch (error) {
