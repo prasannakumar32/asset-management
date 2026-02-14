@@ -34,6 +34,13 @@ const connectDB = async (retries = 5, delay = 5000) => {
       console.log('DATABASE_URL found, length:', process.env.DATABASE_URL.length);
     }
     
+    // Debug: Show all database-related environment variables
+    console.log('DB_HOST:', process.env.DB_HOST);
+    console.log('DB_PORT:', process.env.DB_PORT);
+    console.log('DB_USER:', process.env.DB_USER);
+    console.log('DB_NAME:', process.env.DB_NAME);
+    console.log('DB_PASSWORD exists:', !!process.env.DB_PASSWORD);
+    
     await db.sequelize.authenticate();
     console.log('Database connected successfully');
     await db.sequelize.sync();
