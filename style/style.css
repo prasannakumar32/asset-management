@@ -904,6 +904,26 @@ h1.mb-4 {
   font-size: 0.875rem;
   margin-top: 0.25rem;
   font-weight: 500;
+  padding: 0.75rem;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  transition: opacity 0.3s ease;
+}
+
+/* Form Success Messages */
+.success-message {
+  color: #155724;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+  padding: 0.75rem;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  transition: opacity 0.3s ease;
 }
 /* Asset Details Two Column Layout */
 .asset-details-card {

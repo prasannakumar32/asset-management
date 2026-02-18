@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
+const flash = require('connect-flash');
 const app = express();
 const db = require('./backend/models');
 const bcrypt = require('bcryptjs');
@@ -188,13 +189,13 @@ if (process.env.NODE_ENV === 'production') {
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Flash messages middleware
+app.use(flash());
+
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
-  res.locals.message = req.session.message;
-  // Clear message after it's been made available to views
-  if (req.session.message) {
-    delete req.session.message;
-  }
+  res.locals.message = req.flash('message');
   next();
 });
 

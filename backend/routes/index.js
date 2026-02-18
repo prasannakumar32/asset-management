@@ -26,7 +26,10 @@ router.get('/login', (req, res) => {
   if (req.isAuthenticated()) {
     return res.redirect('/dashboard');
   }
-  res.render('login');
+  res.render('login', { 
+    error: req.flash('error'),
+    success: req.flash('success')
+  });
 });
 
 router.get('/logout', (req, res) => {
@@ -37,7 +40,8 @@ router.post('/login',
   passport.authenticate('local', { 
     successRedirect: '/dashboard',
     failureRedirect: '/login',
-    failureFlash: false
+    failureFlash: true,
+    successFlash: 'Login successful! Welcome back.'
   })
 );
 

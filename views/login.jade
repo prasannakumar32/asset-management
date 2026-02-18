@@ -5,6 +5,17 @@ html(lang='en')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     title Login - Asset Management System
     link(rel='stylesheet', href='/style.css')
+    script.
+      setTimeout(function() {
+        const errorMessages = document.querySelectorAll('.error-message, .success-message');
+        errorMessages.forEach(function(msg) {
+          msg.style.transition = 'opacity 0.3s ease';
+          msg.style.opacity = '0';
+          setTimeout(function() {
+            msg.style.display = 'none';
+          }, 300);
+        });
+      }, 1000);
   body
     .login-container
       .login-header
@@ -12,6 +23,8 @@ html(lang='en')
         p Sign in to your account
       if error
         .error-message= error
+      if success
+        .success-message= success
       form(action='/login', method='POST')
         .form-group
           label(for='username') Username
